@@ -6,23 +6,21 @@ Japanese Toolbox Designer is a browser-only web application designed for woodwor
 
 ## Current Status
 
-**Phase 8 Complete — JSON Import/Export**
+**Phase 9 Complete — 2D Technical Drawings**
 
-The application provides portable JSON interchange for individual Japanese Toolbox designs alongside browser persistence and parametric editing:
+The application provides interactive, browser-only 2D SVG technical drawings generated directly and deterministically from the authoritative geometry engine:
 
-- **Export JSON:** Export the current working design to a human-readable `.json` file formatted with 2-space indentation and a filesystem-safe filename slug derived from the design name. Export is disabled when input draft errors or invalid physical geometry exist.
-- **Import JSON:** Import a previously exported `.json` design file entirely in the browser using modern local File APIs (no network requests, APIs, servers, or external services).
-- **One Design Per File:** Each JSON file represents exactly one canonical `ToolboxDesign` containing physical design inputs, unit system preference, wood ID, and timestamps.
-- **Inputs Only (No Derived Geometry):** Exported JSON files never store calculated geometry or derived metrics (such as internal dimensions, lid panel length, or wedge widths). Geometry is always computed deterministically upon import.
-- **Safe Validation & Structured Errors:** Files are defended against malformed JSON, oversized payloads (> 1 MiB), unsupported schema versions, schema violations, and physical geometry violations before any action is taken.
-- **Safe Import Semantics:** Imported designs become the active working design marked as `Not saved`. They are not automatically written to browser `localStorage` until you explicitly click `Save`.
-- **Identity & Conflict Resolution:** If an imported design's ID matches an existing saved or working design ID, a fresh unique ID and new timestamps are automatically assigned to prevent silent overwriting of existing designs.
-- **Unsaved Changes Guard:** Importing checks the unsaved-change guard after validation passes, preventing accidental loss of current editor work.
-- **Local & Private:** All import, export, and editing operations happen strictly within the client browser. No file contents or design data are ever transmitted over the network.
+- **Orthographic Views:** Front elevation, Plan view, and End elevation selectable via accessible view tabs (Plan view active by default).
+- **Authoritative Woodworking Projections:** Accurately visualises the carcass footprint, side and end walls, bottom board, fixed top battens, sliding lid panel in locked state, straight lid batten, tapered locking batten, and removable locking wedge.
+- **Captured Wedge Visual Proof:** Front elevation displays the captured trapezoidal cross-section ($\beta$) confirming vertical retention without disassembly; Plan view visualises the plan taper angle ($\alpha$).
+- **Responsive Viewport & Vector Fidelity:** Features pointer-centred wheel zooming, pointer-drag panning with grab feedback, and instant Fit-to-View reset with `non-scaling-stroke` vector clarity at all zoom levels.
+- **Dynamic Dimension Annotations:** Displays principal dimensions formatted cleanly in the active unit system (whole millimetres or imperial fractions) with zero rounding drift in canonical geometry.
+- **Safe State Handling:** Displays clear unavailable warnings if input drafts contain syntax errors or if dimensions violate physical woodworking geometry constraints.
+- **Renderer-Neutral Drawing Layer:** Pure projection models (`createFrontDrawing`, `createPlanDrawing`, `createEndDrawing`) decoupled from React DOM to enable direct reuse in future browser-side PDF generation.
 
-_Note: 2D technical drawings in SVG (Phase 9), 3D interactive viewer (Phase 10), materials (Phase 11), cut list generation (Phase 12), and PDF workshop documentation (Phase 13) are scheduled for subsequent phases._
+_Note: Interactive 3D rendering with Three.js / React Three Fiber remains Phase 10, wood materials remain Phase 11, and cut lists, process planning, and PDF generation remain subsequent phases._
 
-For the full specification and architectural roadmap, see the [Product Requirements Document](.junie/plans/prd-v1.md), the [Sliding Lid Geometry Documentation](docs/lid-geometry.md), and the [Locking Wedge Geometry Documentation](docs/wedge-geometry.md).
+For the full specification and architectural roadmap, see the [Product Requirements Document](.junie/plans/prd-v1.md), the [Sliding Lid Geometry Documentation](docs/lid-geometry.md), the [Locking Wedge Geometry Documentation](docs/wedge-geometry.md), and the [2D Technical Drawings Documentation](docs/technical-drawings.md).
 
 ## Technology Stack
 
@@ -121,6 +119,6 @@ Implementation roadmap outlined in `.junie/plans/prd-v1.md`:
 - **Phase 6 (Complete):** Interactive numerical design parameters editor, live validation, and calculated dimensions
 - **Phase 7 (Complete):** Local storage persistence, multi-design management (New, Save, Open, Rename, Duplicate, Delete), and Zod schema validation
 - **Phase 8 (Complete):** Portable JSON single-design export and import with validation, ID conflict resolution, and pure serialization
-- **Phase 9:** 2D technical drawing generation (front, plan, end views) using SVG with zoom/pan
+- **Phase 9 (Complete):** 2D technical drawing generation (front, plan, end views) using SVG with zoom/pan
 - **Phase 10:** Interactive 3D viewer (Three.js / React Three Fiber)
 - **Phase 11–13:** Wood materials, automated cut lists, process planning, and browser-side PDF export

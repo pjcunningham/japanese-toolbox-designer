@@ -8,6 +8,7 @@ import { AngleField } from './AngleField';
 import { UnitSelector } from './UnitSelector';
 import { ValidationPanel } from './ValidationPanel';
 import { CalculatedDimensionsPanel } from './CalculatedDimensionsPanel';
+import { TechnicalDrawingViewer } from '../../rendering/two-d';
 import type {
   DesignEditorProps,
   DimensionFieldKey,
@@ -396,8 +397,14 @@ export const DesignEditor: React.FC<DesignEditorProps> = ({
           </section>
         </div>
 
-        {/* Right Column: Live Calculated Results */}
+        {/* Right Column: Live Calculated Results & Technical Drawings */}
         <div className="editor-calculated-column">
+          <TechnicalDrawingViewer
+            geometryResult={geometryResult}
+            unitSystem={design.unitSystem}
+            hasInputErrors={hasInputErrors}
+            design={design}
+          />
           <CalculatedDimensionsPanel
             geometryResult={geometryResult}
             unitSystem={design.unitSystem}

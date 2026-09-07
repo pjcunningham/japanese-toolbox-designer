@@ -19,21 +19,21 @@ describe('App Component', () => {
     expect(subtitle).toBeInTheDocument();
   });
 
-  it('renders the header brand and phase badge', () => {
+  it('renders the header brand and badge', () => {
     render(<App />);
 
-    const phaseBadge = screen.getByText('Phase 1');
-    expect(phaseBadge).toBeInTheDocument();
+    const badge = screen.getByText('Design Editor');
+    expect(badge).toBeInTheDocument();
   });
 
-  it('renders the foundation status card and footer', () => {
+  it('renders the design editor and footer', () => {
     render(<App />);
 
-    const statusTitle = screen.getByRole('heading', {
+    const dimensionsTitle = screen.getByRole('heading', {
       level: 2,
-      name: 'Project Foundation Active',
+      name: 'Design dimensions',
     });
-    expect(statusTitle).toBeInTheDocument();
+    expect(dimensionsTitle).toBeInTheDocument();
 
     const currentYear = new Date().getFullYear().toString();
     const footer = screen.getByText(new RegExp(`Japanese Toolbox Designer © ${currentYear}`));

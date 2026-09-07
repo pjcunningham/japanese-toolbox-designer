@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { createDefaultToolboxDesign, type ToolboxDesign } from '../domain';
+import { DesignEditor } from '../features/editor';
 import './App.css';
 
 export const App: React.FC = () => {
+  const [design, setDesign] = useState<ToolboxDesign>(() => createDefaultToolboxDesign());
+
   return (
     <div className="app-container">
       <header className="app-header">
@@ -39,29 +43,17 @@ export const App: React.FC = () => {
             </svg>
             <span className="header-title">Japanese Toolbox Designer</span>
           </div>
-          <span className="header-badge">Phase 1</span>
+          <span className="header-badge">Design Editor</span>
         </div>
       </header>
 
       <main className="app-main">
-        <section className="hero-card">
-          <h1 className="hero-title">Japanese Toolbox Designer</h1>
-          <p className="hero-subtitle">Parametric Japanese toolbox design in your browser.</p>
-          <p className="hero-description">
-            A parametric design tool for traditional Japanese toolboxes with sliding lids and
-            wedge-locking battens. Built for woodworkers to eliminate complex sliding lid and
-            locking wedge calculations.
-          </p>
-        </section>
+        <div className="workspace-intro">
+          <h1 className="workspace-title">Japanese Toolbox Designer</h1>
+          <p className="workspace-subtitle">Parametric Japanese toolbox design in your browser.</p>
+        </div>
 
-        <section className="status-card">
-          <h2 className="status-title">Project Foundation Active</h2>
-          <p className="status-text">
-            Application shell, build pipelines, testing suites, and deployment workflows are ready.
-            Parametric domain models and geometry calculation modules will be added in subsequent
-            phases.
-          </p>
-        </section>
+        <DesignEditor design={design} onDesignChange={setDesign} />
       </main>
 
       <footer className="app-footer">

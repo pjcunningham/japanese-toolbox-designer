@@ -6,17 +6,18 @@ Japanese Toolbox Designer is a browser-only web application designed for woodwor
 
 ## Current Status
 
-**Phase 5 Complete — Captured Locking Wedge Geometry**
+**Phase 6 Complete — Interactive Design Editor**
 
-The pure TypeScript geometry engine calculates authoritative carcass dimensions (`calculateBoxGeometry`), sliding lid dimensions and kinematic states (`calculateLidGeometry`), captured locking wedge and tapered locking batten geometry (`calculateLockingMechanismGeometry`), and combined aggregate toolbox geometry (`calculateToolboxGeometry`).
+The application provides a live, interactive numerical design workspace for traditional Japanese toolboxes:
 
-The mathematical model validates that:
+- **Live Parameter Editing:** Edit principal box dimensions (length, width, height, stock thickness) and advanced construction parameters (lid thickness, fixed top batten width, lid batten width, clearances, desired overlap, overhang, travel clearance, and wedge taper/bevel angles).
+- **Dual Unit System Support:** Seamlessly work in whole millimetres (metric) or standard woodworking fractions down to 1/16" (imperial).
+- **Canonical Precision Storage:** All dimensions are stored internally in exact millimetres. Switching units updates input and display formatting without mutating or truncating underlying canonical values.
+- **Immediate Input Validation & Live Geometry Feedback:** Live syntax parsing is separated from canonical state. Syntactically invalid drafts are held in editable inputs with clear inline error messages, blocking stale calculations and unit switching without corrupting the underlying model.
+- **Authoritative Geometry Validation:** The editor consumes domain geometry calculations (`calculateToolboxGeometry`) to validate rigid lid kinematics and captured wedge constraints, displaying structured geometry errors and warnings.
+- **Calculated Dimensions Panel:** Exposes live, read-only calculated internal carcass dimensions, lid parameters, release travel margins, and locking wedge manufacturing dimensions.
 
-- Core carcass geometry and internal spaces are physically feasible.
-- The rigid V1 lid can be inserted and removed kinematically without relying on bending or flexing the wood ($2O < R - T$).
-- The removable tapered locking wedge positively prevents $+X$ lid motion when seated, tightens progressively along $Y$, vertically captures the wedge via complementary bevels ($\beta$), and preserves full Phase 4 lid release travel when removed ($W_{\min} = D + Q$).
-
-Visual designer UI (Phase 6), local storage persistence (Phase 7), 2D technical drawings, 3D interactive rendering, materials management, cut lists, and PDF export will be implemented in subsequent phases.
+_Note: Designs currently live in application memory and reset upon browser reload. Saved design management and local persistence will be added in Phase 7. Technical 2D SVG drawings (Phase 9) and 3D interactive rendering (Phase 10) are scheduled for subsequent phases._
 
 For the full specification and architectural roadmap, see the [Product Requirements Document](.junie/plans/prd-v1.md), the [Sliding Lid Geometry Documentation](docs/lid-geometry.md), and the [Locking Wedge Geometry Documentation](docs/wedge-geometry.md).
 
@@ -103,7 +104,7 @@ The geometry engine (`src/domain/geometry.ts`) is a pure, framework-independent 
 - **Calculations & Scope:**
   - All calculations operate deterministically in canonical millimetres with full floating-point precision (no premature rounding).
   - Phase 3 implements core carcass geometry only. Sliding lid calculations (Phase 4) and locking wedge geometry (Phase 5) will build on this model.
-  - The application UI currently presents the Phase 1 shell; direct UI parameter editing will be introduced in Phase 6.
+  - Phase 6 provides live interactive numerical parameter editing, validation, and calculated dimensions.
 
 ## Roadmap
 
@@ -114,7 +115,8 @@ Implementation roadmap outlined in `.junie/plans/prd-v1.md`:
 - **Phase 3 (Complete):** Pure TypeScript core box geometry calculation engine and physical validation
 - **Phase 4 (Complete):** Sliding lid geometry, kinematic reference states, and non-flexing release validation
 - **Phase 5 (Complete):** Locking wedge and tapered batten geometry
-- **Phase 6 & 7:** Interactive design parameters editor and local storage persistence
-- **Phase 8 & 9:** 2D technical drawing generation (plan, elevation, cross-sections) using SVG
+- **Phase 6 (Complete):** Interactive numerical design parameters editor, live validation, and calculated dimensions
+- **Phase 7:** Local storage persistence, multi-design management (New, Save, Open, Rename, Duplicate, Delete)
+- **Phase 8 & 9:** JSON import/export and 2D technical drawing generation (plan, elevation, cross-sections) using SVG
 - **Phase 10:** Interactive 3D viewer (Three.js / React Three Fiber)
 - **Phase 11–13:** Wood materials, automated cut lists, process planning, and browser-side PDF export

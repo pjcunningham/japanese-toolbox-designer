@@ -6,21 +6,20 @@ Japanese Toolbox Designer is a browser-only web application designed for woodwor
 
 ## Current Status
 
-**Phase 9 Complete — 2D Technical Drawings**
+**Phase 10 Complete — Interactive 3D Viewer**
 
-The application provides interactive, browser-only 2D SVG technical drawings generated directly and deterministically from the authoritative geometry engine:
+The application provides an interactive, browser-only 3D representation and 2D SVG technical drawings generated directly and deterministically from the authoritative geometry engine:
 
-- **Orthographic Views:** Front elevation, Plan view, and End elevation selectable via accessible view tabs (Plan view active by default).
-- **Authoritative Woodworking Projections:** Accurately visualises the carcass footprint, side and end walls, bottom board, fixed top battens, sliding lid panel in locked state, straight lid batten, tapered locking batten, and removable locking wedge.
-- **Captured Wedge Visual Proof:** Front elevation displays the captured trapezoidal cross-section ($\beta$) confirming vertical retention without disassembly; Plan view visualises the plan taper angle ($\alpha$).
-- **Responsive Viewport & Vector Fidelity:** Features pointer-centred wheel zooming, pointer-drag panning with grab feedback, and instant Fit-to-View reset with `non-scaling-stroke` vector clarity at all zoom levels.
-- **Dynamic Dimension Annotations:** Displays principal dimensions formatted cleanly in the active unit system (whole millimetres or imperial fractions) with zero rounding drift in canonical geometry.
-- **Safe State Handling:** Displays clear unavailable warnings if input drafts contain syntax errors or if dimensions violate physical woodworking geometry constraints.
-- **Renderer-Neutral Drawing Layer:** Pure projection models (`createFrontDrawing`, `createPlanDrawing`, `createEndDrawing`) decoupled from React DOM to enable direct reuse in future browser-side PDF generation.
+- **Interactive 3D Representation:** Real-time 3D model powered by Three.js, React Three Fiber, and Drei representing the toolbox as 11 distinct physical wooden components.
+- **Authoritative Captured Wedge & Compound Geometry:** Accurately visualises the compound tapered and bevelled locking lid batten, the captured tapered locking wedge (with matching Phase 5 plan taper $\alpha$ and undercut bevel $\beta$), and the locking-end fixed top batten bevel.
+- **Intuitive Camera Navigation & Standard Views:** Supports orbit (left-drag), zoom (wheel), and pan (right-drag) gestures alongside standard camera view shortcuts (`Perspective`, `Front`, `End`, `Top`) and instant `Fit to view` camera fitting.
+- **Live Parametric Updates & Code-Splitting:** Unsaved design edits immediately update the 3D model in real time; Three.js is lazy-loaded with React `Suspense` so 2D users do not download the 3D bundle unnecessarily.
+- **2D Technical Drawings:** Front elevation, Plan view, and End elevation selectable via view tabs with pointer-centred wheel zooming, pointer-drag panning, and dynamic dimension annotations.
+- **Safe State Handling:** Displays clear unavailable warnings if input drafts contain syntax errors or if dimensions violate physical woodworking geometry constraints, accompanied by WebGL error boundary fallbacks.
 
-_Note: Interactive 3D rendering with Three.js / React Three Fiber remains Phase 10, wood materials remain Phase 11, and cut lists, process planning, and PDF generation remain subsequent phases._
+_Note: Materials are currently kept deliberately simple with neutral wood tones and part outlines. Wood species selection and refined material appearance remain Phase 11, and cut lists, process planning, and PDF generation remain subsequent phases._
 
-For the full specification and architectural roadmap, see the [Product Requirements Document](.junie/plans/prd-v1.md), the [Sliding Lid Geometry Documentation](docs/lid-geometry.md), the [Locking Wedge Geometry Documentation](docs/wedge-geometry.md), and the [2D Technical Drawings Documentation](docs/technical-drawings.md).
+For the full specification and architectural roadmap, see the [Product Requirements Document](.junie/plans/prd-v1.md), the [Sliding Lid Geometry Documentation](docs/lid-geometry.md), the [Locking Wedge Geometry Documentation](docs/wedge-geometry.md), the [2D Technical Drawings Documentation](docs/technical-drawings.md), and the [3D Rendering Documentation](docs/three-d-rendering.md).
 
 ## Technology Stack
 
@@ -120,5 +119,5 @@ Implementation roadmap outlined in `.junie/plans/prd-v1.md`:
 - **Phase 7 (Complete):** Local storage persistence, multi-design management (New, Save, Open, Rename, Duplicate, Delete), and Zod schema validation
 - **Phase 8 (Complete):** Portable JSON single-design export and import with validation, ID conflict resolution, and pure serialization
 - **Phase 9 (Complete):** 2D technical drawing generation (front, plan, end views) using SVG with zoom/pan
-- **Phase 10:** Interactive 3D viewer (Three.js / React Three Fiber)
+- **Phase 10 (Complete):** Interactive 3D viewer (Three.js / React Three Fiber) with 11 distinct components, orbit/zoom/pan, standard camera views, and accurate captured locking wedge
 - **Phase 11–13:** Wood materials, automated cut lists, process planning, and browser-side PDF export

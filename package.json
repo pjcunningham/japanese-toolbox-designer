@@ -18,8 +18,11 @@
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test:run"
   },
   "dependencies": {
+    "@react-three/drei": "^10.7.8",
+    "@react-three/fiber": "^9.7.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "three": "^0.185.1",
     "zod": "^4.5.4"
   },
   "devDependencies": {
@@ -31,6 +34,7 @@
     "@types/node": "^26.4.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.7",
+    "@types/three": "^0.185.4",
     "@vitejs/plugin-react": "^6.1.1",
     "eslint": "^10.10.0",
     "eslint-config-prettier": "^10.1.8",

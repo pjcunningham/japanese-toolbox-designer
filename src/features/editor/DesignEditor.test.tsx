@@ -297,4 +297,28 @@ describe('DesignEditor Component', () => {
     lastCall = onDesignChangeSpy.mock.lastCall?.[0];
     expect(lastCall?.dimensions.stockThickness).toBe(12.7);
   });
+
+  // Phase 10: 2D vs 3D Visualization mode switching
+  it('switches between 2D Technical Drawings and 3D Interactive Model views', async () => {
+    const user = userEvent.setup();
+    render(<EditorTestWrapper initialDesign={createDefaultToolboxDesign()} />);
+
+    // 2D Drawings active by default
+    const twoDTab = screen.getByRole('tab', { name: /2D Drawings/i });
+    const threeDTab = screen.getByRole('tab', { name: /3D Model/i });
+    expect(twoDTab).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('heading', { name: /Technical drawings/i })).toBeInTheDocument();
+
+    // Switch to 3D Model
+    await user.click(threeDTab);
+    expect(threeDTab).toHaveAttribute('aria-selected', 'true');
+    expect(
+      await screen.findByRole('heading', { name: /3D Interactive Model/i }),
+    ).toBeInTheDocument();
+
+    // Switch back to 2D
+    await user.click(twoDTab);
+    expect(twoDTab).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByRole('heading', { name: /Technical drawings/i })).toBeInTheDocument();
+  });
 });

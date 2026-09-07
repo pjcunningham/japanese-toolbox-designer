@@ -18,6 +18,10 @@ import type {
 } from './types';
 import './editor.css';
 
+const LazyToolbox3DViewer = React.lazy(() =>
+  import('../../rendering/three-d').then((m) => ({ default: m.Toolbox3DViewer })),
+);
+
 function parseAngle(input: string): { ok: true; degrees: number } | { ok: false; error: string } {
   const trimmed = input.trim();
   if (trimmed === '') {
@@ -85,6 +89,7 @@ export const DesignEditor: React.FC<DesignEditorProps> = ({
 }) => {
   const [drafts, setDrafts] = useState<DraftValues>(() => getInitialDrafts(design));
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+  const [visualizerMode, setVisualizerMode] = useState<'2d' | '3d'>('2d');
   const [blockedUnitMessage, setBlockedUnitMessage] = useState<string | undefined>();
 
   const prevUnitSystemRef = useRef<UnitSystem>(design.unitSystem);
@@ -397,14 +402,67 @@ export const DesignEditor: React.FC<DesignEditorProps> = ({
           </section>
         </div>
 
-        {/* Right Column: Live Calculated Results & Technical Drawings */}
+        {/* Right Column: Live Calculated Results & Visualizations (2D Technical Drawings / 3D Model) */}
         <div className="editor-calculated-column">
-          <TechnicalDrawingViewer
-            geometryResult={geometryResult}
-            unitSystem={design.unitSystem}
-            hasInputErrors={hasInputErrors}
-            design={design}
-          />
+          <div
+            className="visualization-mode-bar"
+            role="tablist"
+            aria-label="Visualization View Mode"
+          >
+            <span className="visualization-mode-label">Visualization:</span>
+            <div className="visualization-toggle-group">
+              <button
+                type="button"
+                role="tab"
+                id="tab-view-2d"
+                aria-selected={visualizerMode === '2d'}
+                aria-controls="panel-view-2d"
+                className={`visualization-toggle-btn ${visualizerMode === '2d' ? 'active' : ''}`}
+                onClick={() => setVisualizerMode('2d')}
+              >
+                2D Drawings
+              </button>
+              <button
+                type="button"
+                role="tab"
+                id="tab-view-3d"
+                aria-selected={visualizerMode === '3d'}
+                aria-controls="panel-view-3d"
+                className={`visualization-toggle-btn ${visualizerMode === '3d' ? 'active' : ''}`}
+                onClick={() => setVisualizerMode('3d')}
+              >
+                3D Model
+              </button>
+            </div>
+          </div>
+
+          {visualizerMode === '2d' ? (
+            <div id="panel-view-2d" role="tabpanel" aria-labelledby="tab-view-2d">
+              <TechnicalDrawingViewer
+                geometryResult={geometryResult}
+                unitSystem={design.unitSystem}
+                hasInputErrors={hasInputErrors}
+                design={design}
+              />
+            </div>
+          ) : (
+            <div id="panel-view-3d" role="tabpanel" aria-labelledby="tab-view-3d">
+              <React.Suspense
+                fallback={
+                  <div className="viewer-fallback-loading" data-testid="3d-viewer-loading">
+                    <p>Loading 3D viewer…</p>
+                  </div>
+                }
+              >
+                <LazyToolbox3DViewer
+                  geometryResult={geometryResult}
+                  unitSystem={design.unitSystem}
+                  hasInputErrors={hasInputErrors}
+                />
+              </React.Suspense>
+            </div>
+          )}
+
           <CalculatedDimensionsPanel
             geometryResult={geometryResult}
             unitSystem={design.unitSystem}

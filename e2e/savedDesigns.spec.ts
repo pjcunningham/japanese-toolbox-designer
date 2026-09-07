@@ -28,7 +28,7 @@ test.describe('Phase 7 — Saved Designs End-to-End Workflows', () => {
     // 5. Verify saved design and value are restored
     await expect(page.locator('.persistence-badge-saved')).toBeVisible();
     await expect(page.getByLabel(/^Length/i)).toHaveValue('750');
-    await expect(page.getByText('714 mm')).toBeVisible(); // Internal length
+    await expect(page.getByText('642 mm')).toBeVisible(); // Internal length: 750 - 2*(36+18) = 642
 
     // 6. Further edit after saving now transitions to Unsaved changes
     await lengthInput.fill('780');

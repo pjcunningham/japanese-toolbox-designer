@@ -1,6 +1,6 @@
 export type UnitSystem = 'metric' | 'imperial';
 
-export const TOOLBOX_DESIGN_SCHEMA_VERSION = 1;
+export const TOOLBOX_DESIGN_SCHEMA_VERSION = 2;
 
 export interface ToolboxDimensions {
   length: number;
@@ -10,7 +10,11 @@ export interface ToolboxDimensions {
 }
 
 export interface ToolboxConstructionParameters {
+  bottomThickness: number;
   lidThickness: number;
+  endHandleDepth: number;
+  endHandleHeight: number;
+  housingDadoDepth: number;
   fixedTopBattenWidth: number;
   lidBattenWidth: number;
   lidSideClearance: number;

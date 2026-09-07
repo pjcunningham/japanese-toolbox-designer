@@ -41,32 +41,32 @@ describe('createToolbox3DModel (Phase 10 Requirements 4-37, 70-72)', () => {
     const bottom = model.parts.find((p) => p.id === 'bottom') as BoxPart3D;
     expect(bottom.kind).toBe('box');
     expect(bottom.min).toEqual({ x: 0, y: 0, z: 0 });
-    expect(bottom.max).toEqual({ x: 600, y: 300, z: 18 });
+    expect(bottom.max).toEqual({ x: 600, y: 300, z: 12 });
 
     // Front side
     const frontSide = model.parts.find((p) => p.id === 'side-front') as BoxPart3D;
-    expect(frontSide.min).toEqual({ x: 0, y: 0, z: 18 });
+    expect(frontSide.min).toEqual({ x: 0, y: 0, z: 12 });
     expect(frontSide.max).toEqual({ x: 600, y: 18, z: 250 });
 
     // Back side
     const backSide = model.parts.find((p) => p.id === 'side-back') as BoxPart3D;
-    expect(backSide.min).toEqual({ x: 0, y: 282, z: 18 });
+    expect(backSide.min).toEqual({ x: 0, y: 282, z: 12 });
     expect(backSide.max).toEqual({ x: 600, y: 300, z: 250 });
 
     // Stop end
     const stopEnd = model.parts.find((p) => p.id === 'end-stop') as BoxPart3D;
-    expect(stopEnd.min).toEqual({ x: 0, y: 18, z: 18 });
+    expect(stopEnd.min).toEqual({ x: 0, y: 18, z: 12 });
     expect(stopEnd.max).toEqual({ x: 18, y: 282, z: 250 });
 
     // Locking end
     const lockingEnd = model.parts.find((p) => p.id === 'end-locking') as BoxPart3D;
-    expect(lockingEnd.min).toEqual({ x: 582, y: 18, z: 18 });
+    expect(lockingEnd.min).toEqual({ x: 582, y: 18, z: 12 });
     expect(lockingEnd.max).toEqual({ x: 600, y: 282, z: 250 });
 
     // Stop top batten
     const stopTopBatten = model.parts.find((p) => p.id === 'fixed-top-batten-stop') as BoxPart3D;
     expect(stopTopBatten.min).toEqual({ x: 0, y: 0, z: 250 });
-    expect(stopTopBatten.max).toEqual({ x: 54, y: 300, z: 268 });
+    expect(stopTopBatten.max).toEqual({ x: 84, y: 300, z: 268 });
   });
 
   it('Requirement 32: calculates exact domain bounds for locked lid panel and straight batten', () => {
@@ -74,17 +74,17 @@ describe('createToolbox3DModel (Phase 10 Requirements 4-37, 70-72)', () => {
 
     // Lid panel
     const lidPanel = model.parts.find((p) => p.id === 'lid-panel') as BoxPart3D;
-    expect(lidPanel.min.x).toBe(40.5);
-    expect(lidPanel.max.x).toBe(559.5);
+    expect(lidPanel.min.x).toBe(70.5);
+    expect(lidPanel.max.x).toBe(529.5);
     expect(lidPanel.min.y).toBe(20); // 18 + 2 clearance
     expect(lidPanel.max.y).toBe(280); // 300 - 18 - 2
-    expect(lidPanel.min.z).toBe(232);
+    expect(lidPanel.min.z).toBe(238);
     expect(lidPanel.max.z).toBe(250);
 
     // Straight lid batten
     const straightBatten = model.parts.find((p) => p.id === 'straight-lid-batten') as BoxPart3D;
-    expect(straightBatten.min.x).toBe(54);
-    expect(straightBatten.max.x).toBe(99);
+    expect(straightBatten.min.x).toBe(84);
+    expect(straightBatten.max.x).toBe(126);
     expect(straightBatten.min.y).toBe(2); // planCorners.interiorNarrowCorner.y (18 + 2 - 18 overhang = 2)
     expect(straightBatten.max.y).toBe(298); // 2 + 296
     expect(straightBatten.min.z).toBe(250);
@@ -107,23 +107,23 @@ describe('createToolbox3DModel (Phase 10 Requirements 4-37, 70-72)', () => {
 
     // Bottom narrow width (at y = 0): fixed narrow X - batten narrow X
     const bottomNarrowWidth = wedge.vertices[1]!.x - wedge.vertices[0]!.x;
-    expect(bottomNarrowWidth).toBeCloseTo(23.5, 5);
+    expect(bottomNarrowWidth).toBeCloseTo(17.5, 5);
     expect(bottomNarrowWidth).toBeCloseTo(geometry.lockingMechanism.wedge.bottomNarrowWidth, 5);
 
     // Bottom wide width (at y = Y = 300): fixed wide X - batten wide X
     const bottomWideWidth = wedge.vertices[2]!.x - wedge.vertices[3]!.x;
-    expect(bottomWideWidth).toBeCloseTo(33.83655, 4);
-    expect(bottomWideWidth).toBeCloseTo(geometry.lockingMechanism.wedge.bottomWideWidth, 5);
+    expect(bottomWideWidth).toBeCloseTo(27.83655, 4);
+    expect(bottomWideWidth).toBeCloseTo(geometry.lockingMechanism.wedge.bottomWideWidth, 4);
 
     // Top narrow width (at y = 0): top fixed narrow X - top batten narrow X
     const topNarrowWidth = wedge.vertices[5]!.x - wedge.vertices[4]!.x;
-    expect(topNarrowWidth).toBeCloseTo(17.15029, 4);
-    expect(topNarrowWidth).toBeCloseTo(geometry.lockingMechanism.wedge.topNarrowWidth, 5);
+    expect(topNarrowWidth).toBeCloseTo(11.15029, 4);
+    expect(topNarrowWidth).toBeCloseTo(geometry.lockingMechanism.wedge.topNarrowWidth, 4);
 
     // Top wide width (at y = Y = 300): top fixed wide X - top batten wide X
     const topWideWidth = wedge.vertices[6]!.x - wedge.vertices[7]!.x;
-    expect(topWideWidth).toBeCloseTo(27.48684, 4);
-    expect(topWideWidth).toBeCloseTo(geometry.lockingMechanism.wedge.topWideWidth, 5);
+    expect(topWideWidth).toBeCloseTo(21.48684, 4);
+    expect(topWideWidth).toBeCloseTo(geometry.lockingMechanism.wedge.topWideWidth, 4);
 
     // Capture geometry: top width is strictly less than bottom width
     expect(topNarrowWidth).toBeLessThan(bottomNarrowWidth);

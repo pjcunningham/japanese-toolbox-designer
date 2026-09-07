@@ -15,7 +15,7 @@ test.describe('Application Shell & Design Editor Smoke Tests', () => {
     await expect(subtitle).toBeVisible();
 
     await expect(page.getByText('Design is geometrically valid')).toBeVisible();
-    await expect(page.getByText('564 mm')).toBeVisible();
+    await expect(page.getByText('492 mm')).toBeVisible();
   });
 
   test('interactively edits dimensions, switches to imperial units, and inspects advanced parameters', async ({
@@ -28,7 +28,7 @@ test.describe('Application Shell & Design Editor Smoke Tests', () => {
 
     // Edit basic dimension
     await lengthInput.fill('700');
-    await expect(page.getByText('664 mm')).toBeVisible();
+    await expect(page.getByText('592 mm')).toBeVisible();
 
     // Switch to Imperial
     const imperialRadio = page.getByRole('radio', { name: 'Imperial' });
@@ -37,7 +37,7 @@ test.describe('Application Shell & Design Editor Smoke Tests', () => {
 
     // Verify imperial formatting in input and calculated panels
     await expect(page.getByLabel(/^Stock thickness/i)).toHaveValue('11/16');
-    await expect(page.getByText('26 1/8"')).toBeVisible(); // 664 mm = 26 1/8"
+    await expect(page.getByText('23 5/16"')).toBeVisible(); // 592 mm = 23 5/16"
 
     // Open advanced lid & locking parameters
     const advancedDetails = page.locator('.advanced-details');
@@ -60,6 +60,6 @@ test.describe('Application Shell & Design Editor Smoke Tests', () => {
     await lengthInput.fill('650');
     await expect(page.getByText('Metric dimensions must be whole millimetres.')).not.toBeVisible();
     await expect(page.getByText('Design is geometrically valid')).toBeVisible();
-    await expect(page.getByText('614 mm')).toBeVisible();
+    await expect(page.getByText('542 mm')).toBeVisible();
   });
 });

@@ -291,22 +291,27 @@ Switching units must not progressively introduce rounding errors.
 
 # 9. Primary Design Parameters
 
-The basic design form should initially expose:
+The basic design form exposes:
 
 | Symbol | Description |
 |---|---|
 | X | Outside toolbox length |
 | Y | Outside toolbox width |
-| Z | Outside toolbox height |
+| Z | Outside toolbox body height |
 | T | Main stock thickness |
+| Tb | Bottom board thickness |
+| I | End handle depth / end-wall inset |
+| H | End grab handle height |
+| G | Housing dado depth in side walls |
 | P | Lid panel thickness |
-| R | Fixed top batten width |
+| R | Fixed top batten / end-cap width |
 | B | Lid batten width |
 | C | Lid side clearance |
 | O | Desired lid engagement/overlap |
 | E | Lid-batten end overhang |
 | α | Locking wedge taper angle |
 | β | Locking wedge retaining bevel angle |
+| Q | Locking batten travel clearance |
 
 Not every parameter needs to be prominent.
 
@@ -314,48 +319,57 @@ The interface should have:
 
 ### Basic dimensions
 
-- Length
-- Width
-- Height
-- Main timber thickness
+- Length ($X$)
+- Width ($Y$)
+- Height ($Z$)
+- Main timber thickness ($T$)
 
-### Lid and locking mechanism
+### Construction & Locking mechanism
 
-Advanced parameters initially populated with sensible defaults.
+Parameters populated with sensible defaults:
 
-These include:
-
-- lid thickness;
-- lid clearance;
-- batten width;
-- rail width;
-- overlap;
-- wedge taper;
-- wedge bevel.
-
-A user should therefore be able to create a sensible toolbox by changing only X, Y, Z and T.
+- bottom thickness ($T_b$);
+- end handle depth / inset ($I$);
+- end handle height ($H$);
+- housing dado depth ($G$);
+- lid thickness ($P$);
+- lid clearance ($C$);
+- fixed top batten width ($R$);
+- lid batten width ($B$);
+- overlap ($O$);
+- batten overhang ($E$);
+- wedge taper ($\alpha$);
+- wedge bevel ($\beta$);
+- travel clearance ($Q$).
 
 ---
 
-# 10. Default Geometry
+# 10. Default Geometry & Carcass Construction
 
-V1 should provide sensible default proportions based on stock thickness.
+V2 establishes authoritative traditional Japanese toolbox carcass construction:
 
-For example, initial defaults may derive values approximately from:
+1. **Inset Housed End Walls:** The end walls are inset from the extreme ends by $I$ and housed into shallow dados of depth $G$ in the long side boards.
+2. **Handle Bays & Grab Handles:** Inset end walls create handle bays ($x = 0..I$ and $x = X-I..X$) containing solid grab handle blocks.
+3. **Bottom Board:** Full-size bottom of thickness $T_b$ underneath the carcass.
+4. **Internal Dimensions:**
+   - $\text{internalLength} = X - 2(I + T)$
+   - $\text{internalWidth} = Y - 2T$
+   - $\text{internalHeight} = Z - T_b$
+5. **Lid Pocket Depth:**
+   - $\text{pocketDepth} = R - I - T$
+   - Rigid release condition: $2O < R - I - T$
 
+Default proportions for $T = 18\text{ mm}$:
 ```text
-R = 3 × T
-B = 2.5 × T
-O = 0.75 × T
+Tb = 12 mm ((2/3) * T)
+P  = 12 mm ((2/3) * T)
+I  = 36 mm (2 * T)
+H  = 72 mm (4 * T)
+G  = 3 mm (T / 6)
+R  = 84 mm ((14/3) * T)
+B  = 42 mm ((7/3) * T)
+O  = 13.5 mm (0.75 * T)
 ```
-
-with practical minimum clearances.
-
-These formulas must be isolated in the geometry/defaults layer.
-
-They should not be embedded in UI components.
-
-The precise formulas will be established and tested during the geometry implementation phase.
 
 ---
 

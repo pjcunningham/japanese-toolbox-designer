@@ -12,7 +12,11 @@ This document specifies the portable JSON interchange file format for Japanese T
 
 ## Schema Version
 
-The current schema version is `1`. The `schemaVersion` field is required and validated against `TOOLBOX_DESIGN_SCHEMA_VERSION`.
+The current schema version is `2`. The `schemaVersion` field is required and validated against `TOOLBOX_DESIGN_SCHEMA_VERSION`.
+
+### Legacy Schema V1 Migration
+
+Files created under Schema Version 1 are automatically recognized on JSON import and migrated in-memory to Version 2 using proportional inset-end rules derived from the stock thickness $T$. Newly exported files are always serialized as Schema Version 2.
 
 ## Top-Level Fields
 
@@ -20,12 +24,12 @@ The current schema version is `1`. The `schemaVersion` field is required and val
 | ------------------------ | ------------------------ | ------------------------------------------------------ |
 | `id`                     | `string` (UUID)          | Unique identifier for the design.                      |
 | `name`                   | `string` (1–100 chars)   | User-visible name of the design.                       |
-| `schemaVersion`          | `number` (`1`)           | Version of the serialized design schema.               |
+| `schemaVersion`          | `number` (`2`)           | Version of the serialized design schema.               |
 | `createdAt`              | `string` (ISO 8601)      | Timestamp of original creation.                        |
 | `updatedAt`              | `string` (ISO 8601)      | Timestamp of last modification.                        |
 | `unitSystem`             | `'metric' \| 'imperial'` | Preferred display unit system when opening the design. |
 | `dimensions`             | `object`                 | Carcass outer dimensions and stock thickness.          |
-| `constructionParameters` | `object`                 | Sliding lid and locking mechanism parameters.          |
+| `constructionParameters` | `object`                 | Inset ends, handles, sliding lid, and locking params.  |
 | `wood`                   | `object`                 | Wood species identifier.                               |
 
 ### `dimensions` Object
@@ -41,8 +45,12 @@ All values in canonical millimetres:
 
 All linear dimensions in canonical millimetres, angles in degrees:
 
+- `bottomThickness`: Bottom board thickness ($T_b$).
 - `lidThickness`: Sliding lid board thickness ($P$).
-- `fixedTopBattenWidth`: Width of fixed end battens ($R$).
+- `endHandleDepth`: End-wall inset depth / handle longitudinal depth ($I$).
+- `endHandleHeight`: End grab handle vertical height ($H$).
+- `housingDadoDepth`: Depth of shallow housing dados in side boards ($G$).
+- `fixedTopBattenWidth`: Width of fixed end battens / end caps ($R$).
 - `lidBattenWidth`: Width of sliding lid battens ($B$).
 - `lidSideClearance`: Lateral clearance per side between lid panel and carcass wall ($C$).
 - `desiredOverlap`: Longitudinal engagement per end under fixed battens ($O$).
@@ -55,13 +63,13 @@ All linear dimensions in canonical millimetres, angles in degrees:
 
 - `id`: Wood species identifier string (e.g. `"pine"`).
 
-## Example JSON
+## Example JSON (V2 Default)
 
 ```json
 {
   "id": "e4b27cb0-81f9-4b44-9fa7-3939637cfa90",
   "name": "Workshop Toolbox",
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "createdAt": "2026-09-07T10:00:00.000Z",
   "updatedAt": "2026-09-07T10:00:00.000Z",
   "unitSystem": "metric",
@@ -72,9 +80,13 @@ All linear dimensions in canonical millimetres, angles in degrees:
     "stockThickness": 18
   },
   "constructionParameters": {
-    "lidThickness": 18,
-    "fixedTopBattenWidth": 54,
-    "lidBattenWidth": 45,
+    "bottomThickness": 12,
+    "lidThickness": 12,
+    "endHandleDepth": 36,
+    "endHandleHeight": 72,
+    "housingDadoDepth": 3,
+    "fixedTopBattenWidth": 84,
+    "lidBattenWidth": 42,
     "lidSideClearance": 2,
     "desiredOverlap": 13.5,
     "lidBattenOverhang": 18,

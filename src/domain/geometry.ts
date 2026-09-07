@@ -2,7 +2,7 @@ import type { ToolboxDesign } from './design';
 
 /**
  * ---------------------------------------------------------------------------
- * Core Box & Sliding Lid Geometry (Phases 3 & 4)
+ * Core Box & Sliding Lid Geometry (Phases 3, 4, 5 & 10A)
  * ---------------------------------------------------------------------------
  *
  * AUTHORITATIVE WOODWORKING GEOMETRY CONVENTIONS:
@@ -10,32 +10,37 @@ import type { ToolboxDesign } from './design';
  * 1. Coordinate System (Right-handed conceptual space):
  *    - X: Toolbox length (parallel to sliding lid movement).
  *         x = 0 is the STOP END (contains straight lid batten).
- *         x = X is the LOCKING/WEDGE END (contains locking batten and wedge in Phase 5).
+ *         x = X is the LOCKING/WEDGE END (contains locking batten and wedge).
  *    - Y: Toolbox width (front/back across toolbox width).
  *    - Z: Toolbox body height (vertical from underside of bottom board to top of side/end walls).
  *
- * 2. V1 Carcass Construction Assumptions:
+ * 2. V2 Traditional Inset-End Carcass Construction:
  *    - The user-specified dimensions (X, Y, Z) define the outside dimensions of the main box body.
- *    - T = Main stock thickness (`design.dimensions.stockThickness`).
- *    - R = Fixed top batten width (`design.constructionParameters.fixedTopBattenWidth`).
+ *    - T  = Main stock thickness (`design.dimensions.stockThickness`).
+ *    - Tb = Bottom thickness (`design.constructionParameters.bottomThickness`).
+ *    - I  = End handle depth / end-wall inset (`design.constructionParameters.endHandleDepth`).
+ *    - H  = End handle height (`design.constructionParameters.endHandleHeight`).
+ *    - G  = Housing dado depth (`design.constructionParameters.housingDadoDepth`).
+ *    - R  = Fixed top batten / end-cap width (`design.constructionParameters.fixedTopBattenWidth`).
+ *    - Bottom board is full-size underneath the carcass:
+ *      blank = X × Y × Tb (quantity: 1).
  *    - Long side boards run full length X, attached on top of the bottom board:
- *      blank = X × (Z - T) × T (quantity: 2).
- *    - End boards fit between the long side boards, attached on top of the bottom board:
- *      blank = (Y - 2T) × (Z - T) × T (quantity: 2).
- *    - Bottom board is full-size and attached underneath the carcass:
- *      blank = X × Y × T (quantity: 1).
- *    - Fixed top battens (quantity: 2) sit ON TOP of the carcass body flush with each end,
- *      spanning the full outside width Y:
+ *      blank = X × (Z - Tb) × T (quantity: 2).
+ *    - End walls are inset from ends by I and housed into shallow dados of depth G in the side walls:
+ *      blank = (Y - 2T + 2G) × (Z - Tb) × T (quantity: 2).
+ *    - Solid grab handles fit between side walls at each end:
+ *      blank = (Y - 2T) × H × I (quantity: 2).
+ *    - Fixed top battens / end caps (quantity: 2) sit ON TOP of the carcass body flush with each end:
  *      blank = Y × R × T (quantity: 2).
- *    - Absolute height including fixed top battens = Z + T (since top battens project above Z).
+ *    - Absolute height including fixed top battens = Z + T.
  *
  * 3. Interior & Clear Opening Dimensions:
- *    - Internal length = X - 2T (end boards consume T at each end).
- *    - Internal width = Y - 2T (side boards consume T at each side).
- *    - Internal height = Z - T (bottom consumes T at bottom; top is open).
+ *    - Internal length = X - 2(I + T) (distance between inner faces of inset end walls).
+ *    - Internal width = Y - 2T (between inner faces of long side walls).
+ *    - Internal height = Z - Tb (from top of bottom board to top of side/end walls).
  *    - Clear top opening length = X - 2R (along X between inner edges of fixed top battens).
- *    - Clear top opening width = Y - 2T (along Y between inner faces of long side walls).
- *    - Fixed top batten interior projection (pocket depth) = R - T (inward projection past end wall).
+ *    - Clear top opening width = Y - 2T.
+ *    - Fixed top batten interior projection (pocket depth) = R - I - T (projection past inset end wall).
  *
  * 4. Sliding Lid Construction & Kinematics (Phase 4):
  *    - P = Lid panel thickness (`design.constructionParameters.lidThickness`).
@@ -45,13 +50,13 @@ import type { ToolboxDesign } from './design';
  *    - E = Lid batten overhang beyond lid panel edge PER SIDE (`design.constructionParameters.lidBattenOverhang`).
  *    - Lid panel width = topOpeningWidth - 2C = Y - 2T - 2C.
  *    - Lid panel length = topOpeningLength + 2O = X - 2R + 2O.
- *    - Straight lid batten blank = (lidPanelWidth + 2E) × B × T (quantity: 1 in Phase 4).
+ *    - Straight lid batten blank = (lidPanelWidth + 2E) × B × T (quantity: 1).
  *    - Straight lid batten attaches to lid panel at distance O from stop end.
  *    - Side-wall bearing per side = min(max(E - C, 0), T).
- *    - Available lid travel = pocketDepth - O = (R - T) - O.
+ *    - Available lid travel = pocketDepth - O = (R - I - T) - O.
  *    - Travel to release threshold = O.
- *    - Release travel margin = availableLidTravel - travelToReleaseEdge = (R - T) - 2O.
- *    - Fundamental rigid release condition: 2O < R - T (or releaseTravelMargin > 0).
+ *    - Release travel margin = availableLidTravel - travelToReleaseEdge = (R - I - T) - 2O.
+ *    - Fundamental rigid release condition: 2O < R - I - T (or releaseTravelMargin > 0).
  *    - Lid removal motion is purely longitudinal in +X direction without flexing or bending.
  *
  * 5. Locking Mechanism & Captured Wedge Geometry (Phase 5):
@@ -63,7 +68,7 @@ import type { ToolboxDesign } from './design';
  *    - beta = wedge vertical bevel angle (`design.constructionParameters.wedgeBevelAngle`).
  *    - Q = locking batten travel clearance (`design.constructionParameters.lockingBattenTravelClearance`).
  *    - Working length L = locking batten length = lidBattenLength = lidPanelWidth + 2E.
- *    - Available lid travel D = (R - T) - O.
+ *    - Available lid travel D = (R - I - T) - O.
  *    - Minimum wedge channel bottom width: Wmin = D + Q.
  *    - Residual minimum gap after full lid shift = Wmin - D = Q (> 0).
  *    - Plan taper delta = L * tan(alpha).
@@ -90,6 +95,67 @@ export interface PartDimensions {
   length: number;
   width: number;
   thickness: number;
+}
+
+export interface BoxEndWallCoordinates {
+  startX: number;
+  endX: number;
+  outsideFaceX: number;
+  insideFaceX: number;
+}
+
+export interface BoxHandleCoordinates {
+  startX: number;
+  endX: number;
+  startY: number;
+  endY: number;
+  startZ: number;
+  endZ: number;
+}
+
+export interface BoxHandleBayCoordinates {
+  startX: number;
+  endX: number;
+}
+
+export interface HousingDadoRange {
+  startY: number;
+  endY: number;
+}
+
+export interface HousingDadoCoordinates {
+  width: number;
+  depth: number;
+  verticalStart: number;
+  verticalEnd: number;
+  stopEnd: {
+    startX: number;
+    endX: number;
+    frontY: HousingDadoRange;
+    backY: HousingDadoRange;
+  };
+  lockingEnd: {
+    startX: number;
+    endX: number;
+    frontY: HousingDadoRange;
+    backY: HousingDadoRange;
+  };
+}
+
+export interface CalculatedBoxLayout {
+  endWalls: {
+    stop: BoxEndWallCoordinates;
+    locking: BoxEndWallCoordinates;
+  };
+  handles: {
+    stop: BoxHandleCoordinates;
+    locking: BoxHandleCoordinates;
+  };
+  handleBays: {
+    stop: BoxHandleBayCoordinates;
+    locking: BoxHandleBayCoordinates;
+  };
+  housingDados: HousingDadoCoordinates;
 }
 
 export interface CalculatedBoxGeometry {
@@ -121,12 +187,17 @@ export interface CalculatedBoxGeometry {
       quantity: 2;
       dimensions: PartDimensions;
     };
+    handle: {
+      quantity: 2;
+      dimensions: PartDimensions;
+    };
   };
   topOpening: {
     length: number;
     width: number;
     battenInteriorProjection: number;
   };
+  layout: CalculatedBoxLayout;
 }
 
 export type LidStateName = 'locked' | 'releaseThreshold' | 'shiftedForRelease';
@@ -262,10 +333,18 @@ export type GeometryErrorCode =
   | 'INVALID_WIDTH'
   | 'INVALID_HEIGHT'
   | 'INVALID_STOCK_THICKNESS'
+  | 'INVALID_BOTTOM_THICKNESS'
+  | 'INVALID_END_HANDLE_DEPTH'
+  | 'INVALID_END_HANDLE_HEIGHT'
+  | 'INVALID_HOUSING_DADO_DEPTH'
   | 'INVALID_FIXED_TOP_BATTEN_WIDTH'
   | 'LENGTH_TOO_SMALL'
+  | 'LENGTH_TOO_SMALL_FOR_INSET_ENDS'
   | 'WIDTH_TOO_SMALL'
   | 'HEIGHT_TOO_SMALL'
+  | 'BOTTOM_TOO_THICK'
+  | 'END_HANDLE_TOO_TALL'
+  | 'HOUSING_DADO_TOO_DEEP'
   | 'FIXED_TOP_BATTENS_TOO_WIDE'
   | 'FIXED_TOP_BATTEN_TOO_NARROW'
   | 'INVALID_LID_THICKNESS'
@@ -362,7 +441,13 @@ export function validateBoxGeometry(design: ToolboxDesign): {
   const warnings: GeometryWarning[] = [];
 
   const { length: x, width: y, height: z, stockThickness: t } = design.dimensions;
-  const { fixedTopBattenWidth: r } = design.constructionParameters;
+  const {
+    bottomThickness: tb,
+    endHandleDepth: i,
+    endHandleHeight: h,
+    housingDadoDepth: g,
+    fixedTopBattenWidth: r,
+  } = design.constructionParameters;
 
   // 1. Basic finite & positive checks
   if (!Number.isFinite(x) || x <= 0) {
@@ -389,6 +474,30 @@ export function validateBoxGeometry(design: ToolboxDesign): {
       message: 'Stock thickness must be a finite number greater than 0.',
     });
   }
+  if (!Number.isFinite(tb) || tb <= 0) {
+    errors.push({
+      code: 'INVALID_BOTTOM_THICKNESS',
+      message: 'Bottom thickness must be a finite number greater than 0.',
+    });
+  }
+  if (!Number.isFinite(i) || i <= 0) {
+    errors.push({
+      code: 'INVALID_END_HANDLE_DEPTH',
+      message: 'End handle depth must be a finite number greater than 0.',
+    });
+  }
+  if (!Number.isFinite(h) || h <= 0) {
+    errors.push({
+      code: 'INVALID_END_HANDLE_HEIGHT',
+      message: 'End handle height must be a finite number greater than 0.',
+    });
+  }
+  if (!Number.isFinite(g) || g <= 0) {
+    errors.push({
+      code: 'INVALID_HOUSING_DADO_DEPTH',
+      message: 'Housing dado depth must be a finite number greater than 0.',
+    });
+  }
   if (!Number.isFinite(r) || r <= 0) {
     errors.push({
       code: 'INVALID_FIXED_TOP_BATTEN_WIDTH',
@@ -401,13 +510,25 @@ export function validateBoxGeometry(design: ToolboxDesign): {
   const isYValid = Number.isFinite(y) && y > 0;
   const isZValid = Number.isFinite(z) && z > 0;
   const isTValid = Number.isFinite(t) && t > 0;
+  const isTbValid = Number.isFinite(tb) && tb > 0;
+  const isIValid = Number.isFinite(i) && i > 0;
+  const isHValid = Number.isFinite(h) && h > 0;
+  const isGValid = Number.isFinite(g) && g > 0;
   const isRValid = Number.isFinite(r) && r > 0;
 
-  if (isXValid && isTValid && x <= 2 * t) {
+  if (isTbValid && isZValid && tb >= z) {
     errors.push({
-      code: 'LENGTH_TOO_SMALL',
+      code: 'BOTTOM_TOO_THICK',
       message:
-        'Toolbox length must be greater than 2x stock thickness (X > 2T) for internal space.',
+        'Bottom thickness must be less than toolbox body height (Tb < Z) to leave positive wall height.',
+    });
+  }
+
+  if (isXValid && isIValid && isTValid && x <= 2 * (i + t)) {
+    errors.push({
+      code: 'LENGTH_TOO_SMALL_FOR_INSET_ENDS',
+      message:
+        'Toolbox length must be greater than 2x (end handle depth + stock thickness) (X > 2(I + T)) to leave an internal cavity.',
     });
   }
 
@@ -418,18 +539,37 @@ export function validateBoxGeometry(design: ToolboxDesign): {
     });
   }
 
-  if (isZValid && isTValid && z <= t) {
+  if (isZValid && isTbValid && z <= tb) {
+    if (!errors.some((e) => e.code === 'BOTTOM_TOO_THICK')) {
+      errors.push({
+        code: 'HEIGHT_TOO_SMALL',
+        message:
+          'Toolbox height must be greater than bottom thickness (Z > Tb) for internal space.',
+      });
+    }
+  }
+
+  if (isHValid && isZValid && isTbValid && z > tb && h >= z - tb) {
     errors.push({
-      code: 'HEIGHT_TOO_SMALL',
-      message: 'Toolbox height must be greater than stock thickness (Z > T) for internal space.',
+      code: 'END_HANDLE_TOO_TALL',
+      message:
+        'End handle height must be less than internal body height (H < Z - Tb) to leave a hand grip opening.',
     });
   }
 
-  if (isRValid && isTValid && r <= t) {
+  if (isGValid && isTValid && g >= t) {
+    errors.push({
+      code: 'HOUSING_DADO_TOO_DEEP',
+      message:
+        'Housing dado depth must be less than side stock thickness (G < T) to avoid cutting through the side wall.',
+    });
+  }
+
+  if (isRValid && isIValid && isTValid && r <= i + t) {
     errors.push({
       code: 'FIXED_TOP_BATTEN_TOO_NARROW',
       message:
-        'Fixed top batten width must be greater than stock thickness (R > T) to project inside the end wall.',
+        'Fixed top batten width must be greater than end handle depth plus stock thickness (R > I + T) to project inside the inset end wall.',
     });
   }
 
@@ -446,7 +586,7 @@ export function validateBoxGeometry(design: ToolboxDesign): {
 
 /**
  * Validates the sliding lid parameters for physical feasibility.
- * Enforces non-flexing rigid removal condition (2O < R - T).
+ * Enforces non-flexing rigid removal condition (2O < R - I - T).
  */
 export function validateLidGeometry(design: ToolboxDesign): {
   errors: GeometryError[];
@@ -457,6 +597,8 @@ export function validateLidGeometry(design: ToolboxDesign): {
 
   const { length: x, width: y, height: z, stockThickness: t } = design.dimensions;
   const {
+    bottomThickness: tb,
+    endHandleDepth: i,
     lidThickness: p,
     lidSideClearance: c,
     desiredOverlap: o,
@@ -512,14 +654,16 @@ export function validateLidGeometry(design: ToolboxDesign): {
   const isYValid = Number.isFinite(y) && y > 0;
   const isZValid = Number.isFinite(z) && z > 0;
   const isTValid = Number.isFinite(t) && t > 0;
+  const isTbValid = Number.isFinite(tb) && tb > 0;
+  const isIValid = Number.isFinite(i) && i > 0;
   const isRValid = Number.isFinite(r) && r > 0;
 
-  // P < Z - T (lid panel fits vertically inside the box body)
-  if (isPValid && isZValid && isTValid && z > t && p >= z - t) {
+  // P < Z - Tb (lid panel fits vertically inside the box body)
+  if (isPValid && isZValid && isTbValid && z > tb && p >= z - tb) {
     errors.push({
       code: 'LID_TOO_THICK',
       message:
-        'Lid thickness must be less than internal body height (P < Z - T) to prevent colliding with the bottom.',
+        'Lid thickness must be less than internal body height (P < Z - Tb) to prevent colliding with the bottom.',
     });
   }
 
@@ -531,12 +675,12 @@ export function validateLidGeometry(design: ToolboxDesign): {
     });
   }
 
-  // 2O < R - T (fundamental release condition: positive release travel margin)
-  if (isOValid && isRValid && isTValid && r > t && 2 * o >= r - t) {
+  // 2O < R - I - T (fundamental release condition: positive release travel margin)
+  if (isOValid && isRValid && isIValid && isTValid && r > i + t && 2 * o >= r - i - t) {
     errors.push({
       code: 'INSUFFICIENT_LID_RELEASE_TRAVEL',
       message:
-        'Lid overlap requires more travel than available pocket depth (2O < R - T) for positive release clearance.',
+        'Lid overlap requires more travel than available pocket depth (2O < R - I - T) for positive release clearance.',
     });
   }
 
@@ -593,10 +737,22 @@ export function calculateBoxGeometry(design: ToolboxDesign): BoxGeometryResult {
   }
 
   const { length: x, width: y, height: z, stockThickness: t } = design.dimensions;
-  const { fixedTopBattenWidth: r } = design.constructionParameters;
+  const {
+    bottomThickness: tb,
+    endHandleDepth: i,
+    endHandleHeight: h,
+    housingDadoDepth: g,
+    fixedTopBattenWidth: r,
+  } = design.constructionParameters;
 
-  const sideWallWidth = z - t;
-  const endWallLength = y - 2 * t;
+  const sideWallWidth = z - tb;
+  const endWallLength = y - 2 * t + 2 * g;
+  const handleLength = y - 2 * t;
+
+  const stopEndWallStartX = i;
+  const stopEndWallEndX = i + t;
+  const lockingEndWallStartX = x - i - t;
+  const lockingEndWallEndX = x - i;
 
   const geometry: CalculatedBoxGeometry = {
     outside: {
@@ -606,9 +762,9 @@ export function calculateBoxGeometry(design: ToolboxDesign): BoxGeometryResult {
       overallHeightWithTopBattens: z + t,
     },
     internal: {
-      length: x - 2 * t,
+      length: x - 2 * (i + t),
       width: y - 2 * t,
-      height: z - t,
+      height: z - tb,
     },
     parts: {
       side: {
@@ -632,7 +788,7 @@ export function calculateBoxGeometry(design: ToolboxDesign): BoxGeometryResult {
         dimensions: {
           length: x,
           width: y,
-          thickness: t,
+          thickness: tb,
         },
       },
       fixedTopBatten: {
@@ -643,11 +799,81 @@ export function calculateBoxGeometry(design: ToolboxDesign): BoxGeometryResult {
           thickness: t,
         },
       },
+      handle: {
+        quantity: 2,
+        dimensions: {
+          length: handleLength,
+          width: h,
+          thickness: i,
+        },
+      },
     },
     topOpening: {
       length: x - 2 * r,
       width: y - 2 * t,
-      battenInteriorProjection: r - t,
+      battenInteriorProjection: r - i - t,
+    },
+    layout: {
+      endWalls: {
+        stop: {
+          startX: stopEndWallStartX,
+          endX: stopEndWallEndX,
+          outsideFaceX: stopEndWallStartX,
+          insideFaceX: stopEndWallEndX,
+        },
+        locking: {
+          startX: lockingEndWallStartX,
+          endX: lockingEndWallEndX,
+          outsideFaceX: lockingEndWallEndX,
+          insideFaceX: lockingEndWallStartX,
+        },
+      },
+      handles: {
+        stop: {
+          startX: 0,
+          endX: i,
+          startY: t,
+          endY: y - t,
+          startZ: z - h,
+          endZ: z,
+        },
+        locking: {
+          startX: x - i,
+          endX: x,
+          startY: t,
+          endY: y - t,
+          startZ: z - h,
+          endZ: z,
+        },
+      },
+      handleBays: {
+        stop: {
+          startX: 0,
+          endX: i,
+        },
+        locking: {
+          startX: x - i,
+          endX: x,
+        },
+      },
+      housingDados: {
+        width: t,
+        depth: g,
+        verticalStart: tb,
+        verticalEnd: z,
+        stopEnd: {
+          startX: stopEndWallStartX,
+          endX: stopEndWallEndX,
+          frontY: { startY: t - g, endY: t },
+          backY: { startY: y - t, endY: y - t + g },
+        },
+        lockingEnd: {
+          startX: lockingEndWallStartX,
+          endX: lockingEndWallEndX,
+          frontY: { startY: t - g, endY: t },
+          backY: { startY: y - t, endY: y - t + g },
+        },
+      },
     },
   };
 
@@ -695,6 +921,7 @@ export function calculateLidGeometry(
 
   const { length: x, height: z, stockThickness: t } = design.dimensions;
   const {
+    endHandleDepth: i,
     lidThickness: p,
     lidSideClearance: c,
     desiredOverlap: o,
@@ -762,7 +989,7 @@ export function calculateLidGeometry(
     translationFromLocked: availableTravel,
     panel: {
       startX: lockedState.panel.startX + availableTravel,
-      endX: x - t,
+      endX: x - i - t,
     },
     straightLidBatten: {
       startX: r + availableTravel,

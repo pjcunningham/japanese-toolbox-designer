@@ -6,20 +6,19 @@ Japanese Toolbox Designer is a browser-only web application designed for woodwor
 
 ## Current Status
 
-**Phase 10 Complete — Interactive 3D Viewer**
+**Phase 10A Complete — Correct Traditional Carcass Geometry**
 
-The application provides an interactive, browser-only 3D representation and 2D SVG technical drawings generated directly and deterministically from the authoritative geometry engine:
+The domain model and authoritative geometry engine have been corrected to represent authentic traditional Japanese toolbox construction:
 
-- **Interactive 3D Representation:** Real-time 3D model powered by Three.js, React Three Fiber, and Drei representing the toolbox as 11 distinct physical wooden components.
-- **Authoritative Captured Wedge & Compound Geometry:** Accurately visualises the compound tapered and bevelled locking lid batten, the captured tapered locking wedge (with matching Phase 5 plan taper $\alpha$ and undercut bevel $\beta$), and the locking-end fixed top batten bevel.
-- **Intuitive Camera Navigation & Standard Views:** Supports orbit (left-drag), zoom (wheel), and pan (right-drag) gestures alongside standard camera view shortcuts (`Perspective`, `Front`, `End`, `Top`) and instant `Fit to view` camera fitting.
-- **Live Parametric Updates & Code-Splitting:** Unsaved design edits immediately update the 3D model in real time; Three.js is lazy-loaded with React `Suspense` so 2D users do not download the 3D bundle unnecessarily.
-- **2D Technical Drawings:** Front elevation, Plan view, and End elevation selectable via view tabs with pointer-centred wheel zooming, pointer-drag panning, and dynamic dimension annotations.
-- **Safe State Handling:** Displays clear unavailable warnings if input drafts contain syntax errors or if dimensions violate physical woodworking geometry constraints, accompanied by WebGL error boundary fallbacks.
+- **Inset Housed End Walls:** End walls are inset from the carcass ends to create functional handle bays and housed into shallow dados ($G$) in the long side walls.
+- **Integral Handle Bays & Solid Grab Handles:** Includes two solid grab handle blocks fitted between the long side boards at the top of each end bay.
+- **Independent Thicknesses:** Bottom thickness ($T_b$) and lid thickness ($P$) are independently specified rather than constrained to main stock thickness ($T$).
+- **Corrected Pocket Depth & Kinematics:** Lid pocket depth ($R - I - T$), available sliding lid travel, and locking wedge channel dimensions correctly reference the inner face of the inset end walls.
+- **Schema Version 2 & Migration:** Design schema is version 2 with in-memory backwards-compatible migration for version 1 saved designs and JSON imports.
 
-_Note: Materials are currently kept deliberately simple with neutral wood tones and part outlines. Wood species selection and refined material appearance remain Phase 11, and cut lists, process planning, and PDF generation remain subsequent phases._
+> **Note on Visualisation:** 2D and 3D visualisation updates for this corrected carcass are Phase 10B. (The current 2D and 3D views will be updated to display the inset housed end walls, handle openings, and solid handle components in Phase 10B).
 
-For the full specification and architectural roadmap, see the [Product Requirements Document](.junie/plans/prd-v1.md), the [Sliding Lid Geometry Documentation](docs/lid-geometry.md), the [Locking Wedge Geometry Documentation](docs/wedge-geometry.md), the [2D Technical Drawings Documentation](docs/technical-drawings.md), and the [3D Rendering Documentation](docs/three-d-rendering.md).
+For the full specification and architectural roadmap, see the [Product Requirements Document](.junie/plans/prd-v1.md), the [Carcass Geometry Documentation](docs/carcass-geometry.md), the [Sliding Lid Geometry Documentation](docs/lid-geometry.md), the [Locking Wedge Geometry Documentation](docs/wedge-geometry.md), the [Design JSON Format Documentation](docs/design-json-format.md), the [2D Technical Drawings Documentation](docs/technical-drawings.md), and the [3D Rendering Documentation](docs/three-d-rendering.md).
 
 ## Technology Stack
 

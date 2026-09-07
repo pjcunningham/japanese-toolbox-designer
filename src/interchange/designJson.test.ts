@@ -58,8 +58,12 @@ describe('Phase 8 — JSON Interchange', () => {
       const parsed = JSON.parse(result.json);
       expect(parsed.id).toBe(design.id);
       expect(parsed.name).toBe('Standard Pine Box');
-      expect(parsed.schemaVersion).toBe(1);
+      expect(parsed.schemaVersion).toBe(2);
       expect(parsed.dimensions.length).toBe(600);
+      expect(parsed.constructionParameters.bottomThickness).toBe(12);
+      expect(parsed.constructionParameters.endHandleDepth).toBe(36);
+      expect(parsed.constructionParameters.endHandleHeight).toBe(72);
+      expect(parsed.constructionParameters.housingDadoDepth).toBe(3);
     });
 
     it('does NOT include derived geometry in serialized output', () => {
@@ -199,7 +203,7 @@ describe('Phase 8 — JSON Interchange', () => {
     it('rejects unsupported schema versions', () => {
       const unsupported = {
         ...createDefaultToolboxDesign(),
-        schemaVersion: 2,
+        schemaVersion: 999,
       };
 
       const result = parseToolboxDesignJson(JSON.stringify(unsupported));
@@ -208,6 +212,124 @@ describe('Phase 8 — JSON Interchange', () => {
 
       expect(result.code).toBe('UNSUPPORTED_DESIGN_VERSION');
       expect(result.error).toContain('unsupported schema version');
+    });
+
+    it('imports and automatically migrates schema-v1 JSON designs (Sections 53, 75)', () => {
+      const v1Json = JSON.stringify({
+        id: 'imported-v1-id',
+        name: 'Exported V1 Design',
+        schemaVersion: 1,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+        unitSystem: 'metric',
+        dimensions: {
+          length: 600,
+          width: 300,
+          height: 250,
+          stockThickness: 18,
+        },
+        constructionParameters: {
+          lidThickness: 18,
+          fixedTopBattenWidth: 54,
+          lidBattenWidth: 45,
+          lidSideClearance: 2,
+          desiredOverlap: 13.5,
+          lidBattenOverhang: 18,
+          wedgeTaperAngle: 2,
+          wedgeBevelAngle: 10,
+          lockingBattenTravelClearance: 1,
+        },
+        wood: { id: 'pine' },
+      });
+
+      const result = parseToolboxDesignJson(v1Json);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+
+      expect(result.design.schemaVersion).toBe(2);
+      expect(result.design.constructionParameters.bottomThickness).toBe(12);
+      expect(result.design.constructionParameters.endHandleDepth).toBe(36);
+      expect(result.design.constructionParameters.endHandleHeight).toBe(72);
+      expect(result.design.constructionParameters.housingDadoDepth).toBe(3);
+      expect(result.design.constructionParameters.fixedTopBattenWidth).toBe(84);
+      expect(result.design.constructionParameters.lidBattenWidth).toBe(42);
+      expect(result.migratedFromVersion).toBe(1);
+    });
+
+    it('preserves fractional millimetre numbers on V1 import without rounding (Section 75)', () => {
+      const fractionalV1Json = JSON.stringify({
+        id: 'frac-v1-id',
+        name: 'Fractional V1 Design',
+        schemaVersion: 1,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+        unitSystem: 'metric',
+        dimensions: {
+          length: 450,
+          width: 240,
+          height: 200,
+          stockThickness: 15,
+        },
+        constructionParameters: {
+          lidThickness: 15,
+          fixedTopBattenWidth: 45,
+          lidBattenWidth: 35,
+          lidSideClearance: 1.5,
+          desiredOverlap: 10,
+          lidBattenOverhang: 15,
+          wedgeTaperAngle: 2,
+          wedgeBevelAngle: 10,
+          lockingBattenTravelClearance: 1,
+        },
+        wood: { id: 'pine' },
+      });
+
+      const result = parseToolboxDesignJson(fractionalV1Json);
+      expect(result.ok).toBe(true);
+      if (!result.ok) return;
+
+      expect(result.design.constructionParameters.bottomThickness).toBe(10);
+      expect(result.design.constructionParameters.lidThickness).toBe(10);
+      expect(result.design.constructionParameters.endHandleDepth).toBe(30);
+      expect(result.design.constructionParameters.endHandleHeight).toBe(60);
+      expect(result.design.constructionParameters.housingDadoDepth).toBe(2.5);
+      expect(result.design.constructionParameters.fixedTopBattenWidth).toBe(70);
+      expect(result.design.constructionParameters.lidBattenWidth).toBe(35);
+    });
+
+    it('rejects V1 design that results in physically invalid geometry', () => {
+      const invalidV1Json = JSON.stringify({
+        id: 'invalid-v1-id',
+        name: 'Invalid V1 Design',
+        schemaVersion: 1,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-01-01T00:00:00.000Z',
+        unitSystem: 'metric',
+        dimensions: {
+          length: 60, // length too small for inset ends 2(I + T) = 108
+          width: 300,
+          height: 250,
+          stockThickness: 18,
+        },
+        constructionParameters: {
+          lidThickness: 18,
+          fixedTopBattenWidth: 54,
+          lidBattenWidth: 45,
+          lidSideClearance: 2,
+          desiredOverlap: 13.5,
+          lidBattenOverhang: 18,
+          wedgeTaperAngle: 2,
+          wedgeBevelAngle: 10,
+          lockingBattenTravelClearance: 1,
+        },
+        wood: { id: 'pine' },
+      });
+
+      const result = parseToolboxDesignJson(invalidV1Json);
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(result.code).toBe('INVALID_GEOMETRY');
+      }
     });
 
     it('rejects missing or wrong-typed properties', () => {
@@ -277,9 +399,13 @@ describe('Phase 8 — JSON Interchange', () => {
           stockThickness: 20,
         },
         constructionParameters: {
-          lidThickness: 19,
-          fixedTopBattenWidth: 55,
-          lidBattenWidth: 46,
+          bottomThickness: 14,
+          lidThickness: 14,
+          endHandleDepth: 40,
+          endHandleHeight: 80,
+          housingDadoDepth: 3.5,
+          fixedTopBattenWidth: 95,
+          lidBattenWidth: 48,
           lidSideClearance: 2.5,
           desiredOverlap: 14,
           lidBattenOverhang: 19,
@@ -314,9 +440,13 @@ describe('Phase 8 — JSON Interchange', () => {
           stockThickness: 18.75,
         },
         constructionParameters: {
-          lidThickness: 18.75,
-          fixedTopBattenWidth: 54.25,
-          lidBattenWidth: 45.125,
+          bottomThickness: 12.5,
+          lidThickness: 12.5,
+          endHandleDepth: 37.5,
+          endHandleHeight: 75.0,
+          housingDadoDepth: 3.125,
+          fixedTopBattenWidth: 87.5,
+          lidBattenWidth: 43.75,
           lidSideClearance: 2.125,
           desiredOverlap: 13.5625,
           lidBattenOverhang: 18.75,

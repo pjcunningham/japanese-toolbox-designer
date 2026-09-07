@@ -46,7 +46,7 @@ describe('DesignEditor Component', () => {
     expect(screen.getByText('Design is geometrically valid')).toBeInTheDocument();
 
     // Internal box dimensions displayed
-    expect(screen.getByText('564 mm')).toBeInTheDocument(); // 600 - 2*18 = 564
+    expect(screen.getByText('492 mm')).toBeInTheDocument(); // 600 - 2*(36 + 18) = 492
   });
 
   // 41. Metric edit
@@ -63,8 +63,8 @@ describe('DesignEditor Component', () => {
     const lastCallArg = onDesignChangeSpy.mock.lastCall?.[0];
     expect(lastCallArg?.dimensions.length).toBe(700);
 
-    // Calculated internal length updates: 700 - 2*18 = 664 mm
-    expect(screen.getByText('664 mm')).toBeInTheDocument();
+    // Calculated internal length updates: 700 - 2*(36 + 18) = 592 mm
+    expect(screen.getByText('592 mm')).toBeInTheDocument();
   });
 
   // 42. Invalid metric input
@@ -96,7 +96,7 @@ describe('DesignEditor Component', () => {
       screen.queryByText('Metric dimensions must be whole millimetres.'),
     ).not.toBeInTheDocument();
     expect(screen.getByText('Design is geometrically valid')).toBeInTheDocument();
-    expect(screen.getByText('614 mm')).toBeInTheDocument(); // 650 - 2*18 = 614
+    expect(screen.getByText('542 mm')).toBeInTheDocument(); // 650 - 2*(36 + 18) = 542
   });
 
   // 43. Imperial switching
@@ -122,7 +122,7 @@ describe('DesignEditor Component', () => {
 
     // Calculated results displayed in imperial with quotes
     expect(screen.getByText('Design is geometrically valid')).toBeInTheDocument();
-    expect(screen.getByText('22 3/16"')).toBeInTheDocument(); // 564 mm in imperial = 22 3/16"
+    expect(screen.getByText('19 3/8"')).toBeInTheDocument(); // 492 mm in imperial = 19 3/8"
   });
 
   // 44. Imperial editing
@@ -217,12 +217,12 @@ describe('DesignEditor Component', () => {
 
     const overlapInput = screen.getByLabelText(/Desired overlap/i);
     await user.clear(overlapInput);
-    await user.type(overlapInput, '15');
+    await user.type(overlapInput, '14');
 
-    // Lid panel length: X - 2R + 2O = 600 - 108 + 30 = 522 mm
-    expect(screen.getByText('522 mm')).toBeInTheDocument();
+    // Lid panel length: X - 2R + 2O = 600 - 168 + 28 = 460 mm
+    expect(screen.getByText('460 mm')).toBeInTheDocument();
 
-    // Set excessive overlap that violates release travel: 2*O >= R - T (2*25 = 50 >= 54 - 18 = 36)
+    // Set excessive overlap that violates release travel: 2*O >= R - I - T (2*25 = 50 >= 84 - 36 - 18 = 30)
     await user.clear(overlapInput);
     await user.type(overlapInput, '25');
 

@@ -48,13 +48,14 @@ x = 0 (Stop End)                                                 x = X (Locking 
 
 ### Preserving Phase 4 Lid Travel
 
-Phase 4 defines the available lid travel required to release the lid:
+Phase 4 & 10A define the available lid travel required to release the lid:
 
-$$D = \text{availableLidTravel} = (R - T) - O$$
+$$D = \text{availableLidTravel} = (R - I - T) - O$$
 
 where:
 
 - $R$ is the fixed top batten width (`fixedTopBattenWidth`).
+- $I$ is the end handle depth / end-wall inset (`endHandleDepth`).
 - $T$ is the stock thickness (`stockThickness`).
 - $O$ is the locked longitudinal overlap per end (`desiredOverlap`).
 
@@ -78,9 +79,9 @@ $$\text{remainingGapAfterFullLidShift} = W_{\min} - D = (D + Q) - D = Q$$
 
 For the default design:
 
-- $D = 22.5\text{ mm}$
+- $D = 16.5\text{ mm}$
 - $Q = 1.0\text{ mm}$
-- $W_{\min} = 23.5\text{ mm}$
+- $W_{\min} = 17.5\text{ mm}$
 - $\text{remainingGapAfterFullLidShift} = 1.0\text{ mm} > 0$
 
 ---
@@ -112,7 +113,7 @@ At the bottom face (adjacent to the lid panel):
 
 ### Locking Lid Batten Taper
 
-The locking batten has maximum width $B = \text{lidBattenWidth}$ (default $45\text{ mm}$):
+The locking batten has maximum width $B = \text{lidBattenWidth}$ (default $42\text{ mm}$):
 
 - $\text{maximumWidth} = B$
 - $\text{minimumWidth} = B - \text{taperDelta}$
@@ -200,36 +201,37 @@ This allowance is provided for cut lists and material preparation; mechanical ge
 
 ---
 
-## 7. Default Reference Worked Example
+## 7. Default Reference Worked Example (V2 Default)
 
 For the canonical default design:
 
 - Dimensions: $X = 600\text{ mm}, Y = 300\text{ mm}, Z = 250\text{ mm}, T = 18\text{ mm}$
-- Construction parameters: $R = 54\text{ mm}, B = 45\text{ mm}, E = 18\text{ mm}, O = 13.5\text{ mm}, C = 2\text{ mm}, P = 18\text{ mm}$
+- Construction parameters: $T_b = 12\text{ mm}, I = 36\text{ mm}, H = 72\text{ mm}, G = 3\text{ mm}, R = 84\text{ mm}, B = 42\text{ mm}, E = 18\text{ mm}, O = 13.5\text{ mm}, C = 2\text{ mm}, P = 12\text{ mm}$
 - Locking parameters: $\alpha = 2^\circ, \beta = 10^\circ, Q = 1.0\text{ mm}$
 
 ### Calculated Values:
 
 1. **Kinematics & Opening:**
-   - Locking opening edge $F = X - R = 546.0\text{ mm}$
-   - Available lid travel $D = (54 - 18) - 13.5 = 22.5\text{ mm}$
+   - Locking opening edge $F = X - R = 516.0\text{ mm}$
+   - Available lid travel $D = (84 - 36 - 18) - 13.5 = 16.5\text{ mm}$
    - Working length $L = 260 + 2(18) = 296.0\text{ mm}$
 2. **Channel & Bottom Profile:**
-   - Minimum channel width $W_{\min} = 22.5 + 1.0 = 23.5\text{ mm}$
+   - Minimum channel width $W_{\min} = 16.5 + 1.0 = 17.5\text{ mm}$
    - Taper delta $= 296 \times \tan(2^\circ) \approx 10.33655\text{ mm}$
-   - Maximum wedge bottom width $\approx 33.83655\text{ mm}$
-   - Residual gap after full lid shift $= 1.0\text{ mm}$
-3. **Locking Lid Batten:**
-   - Maximum width $= 45.0\text{ mm}$
-   - Minimum width $\approx 34.66345\text{ mm}$
-   - Interior edge $X = 546 - 23.5 - 45 = 477.5\text{ mm}$
-   - Narrow-end wedge face $X = 546 - 23.5 = 522.5\text{ mm}$
-   - Wide-end wedge face $X = 546 - 23.5 - 10.33655 \approx 512.16345\text{ mm}$
-4. **Bevel & Capture Profile:**
-   - Bevel normal offset $H = 18 \times \tan(10^\circ) \approx 3.17389\text{ mm}$
+   - Wedge bottom narrow width $= 17.5\text{ mm}$
+   - Wedge bottom wide width $= 17.5 + 10.33655 \approx 27.83655\text{ mm}$
+   - Locking lid batten maximum width $= 42.0\text{ mm}$
+   - Locking lid batten minimum width $= 42.0 - 10.33655 \approx 31.66345\text{ mm}$
+   - Combined locking blank width $= 42.0 + 17.5 = 59.5\text{ mm}$
+3. **Bevel Profile & Top Dimensions:**
+   - Normal bevel offset $H = 18 \times \tan(10^\circ) \approx 3.17389\text{ mm}$
    - Top width reduction $= 3.17389 \times (1 + \sec(2^\circ)) \approx 6.34971\text{ mm}$
-   - Wedge top narrow width $\approx 17.15029\text{ mm}$
-   - Wedge top wide width $\approx 27.48684\text{ mm}$
+   - Wedge top narrow width $\approx 17.5 - 6.34971 \approx 11.15029\text{ mm}$
+   - Wedge top wide width $\approx 27.83655 - 6.34971 \approx 21.48684\text{ mm}$
+4. **Physical Coordinates:**
+   - Locking batten interior edge $X = 516.0 - 17.5 - 42.0 = 456.5\text{ mm}$
+   - Narrow wedge-face $X = 516.0 - 17.5 = 498.5\text{ mm}$
+   - Wide wedge-face $X \approx 498.5 - 10.33655 \approx 488.16345\text{ mm}$
 5. **Manufacturing:**
-   - Combined blank width $= 45 + 23.5 = 68.5\text{ mm}$
+   - Combined blank width $= 42.0 + 17.5 = 59.5\text{ mm}$
    - Recommended wedge blank length $= 296 + 36 = 332.0\text{ mm}$

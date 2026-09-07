@@ -3,7 +3,11 @@ import {
   TOOLBOX_DESIGN_SCHEMA_VERSION,
   calculateToolboxGeometry,
 } from '../domain';
-import { ToolboxDesignSchema } from '../persistence';
+import {
+  ToolboxDesignSchema,
+  ToolboxDesignV1Schema,
+  migrateToolboxDesignV1ToV2,
+} from '../persistence';
 
 export const MAX_DESIGN_FILE_SIZE_BYTES = 1024 * 1024; // 1 MiB
 export const DEFAULT_EXPORT_FILENAME = 'japanese-toolbox-design.json';
@@ -37,6 +41,7 @@ export type JsonImportErrorCode =
 export interface JsonImportSuccess {
   ok: true;
   design: ToolboxDesign;
+  migratedFromVersion?: number;
 }
 
 export interface JsonImportFailure {
@@ -165,7 +170,7 @@ export function parseToolboxDesignJson(jsonText: string): JsonImportResult {
   if (
     'schemaVersion' in rawObj &&
     typeof rawObj.schemaVersion === 'number' &&
-    rawObj.schemaVersion !== TOOLBOX_DESIGN_SCHEMA_VERSION
+    rawObj.schemaVersion > TOOLBOX_DESIGN_SCHEMA_VERSION
   ) {
     return {
       ok: false,
@@ -174,27 +179,45 @@ export function parseToolboxDesignJson(jsonText: string): JsonImportResult {
     };
   }
 
-  const parseResult = ToolboxDesignSchema.safeParse(raw);
-  if (!parseResult.success) {
-    const versionIssue = parseResult.error.issues.find((i) => i.path[0] === 'schemaVersion');
-    if (versionIssue) {
+  const version = rawObj.schemaVersion;
+  let designToValidate: ToolboxDesign;
+  let migratedFromVersion: number | undefined;
+
+  if (version === 1) {
+    const v1ParseResult = ToolboxDesignV1Schema.safeParse(raw);
+    if (!v1ParseResult.success) {
       return {
         ok: false,
-        code: 'UNSUPPORTED_DESIGN_VERSION',
-        error: versionIssue.message,
+        code: 'INVALID_DESIGN_SCHEMA',
+        error: 'The file does not conform to the Japanese Toolbox schema version 1.',
+        details: v1ParseResult.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
       };
     }
+    designToValidate = migrateToolboxDesignV1ToV2(v1ParseResult.data);
+    migratedFromVersion = 1;
+  } else {
+    const parseResult = ToolboxDesignSchema.safeParse(raw);
+    if (!parseResult.success) {
+      const versionIssue = parseResult.error.issues.find((i) => i.path[0] === 'schemaVersion');
+      if (versionIssue) {
+        return {
+          ok: false,
+          code: 'UNSUPPORTED_DESIGN_VERSION',
+          error: versionIssue.message,
+        };
+      }
 
-    return {
-      ok: false,
-      code: 'INVALID_DESIGN_SCHEMA',
-      error: 'The file does not conform to the Japanese Toolbox design schema.',
-      details: parseResult.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
-    };
+      return {
+        ok: false,
+        code: 'INVALID_DESIGN_SCHEMA',
+        error: 'The file does not conform to the Japanese Toolbox design schema.',
+        details: parseResult.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
+      };
+    }
+    designToValidate = parseResult.data;
   }
 
-  const design = parseResult.data;
-  const geometryResult = calculateToolboxGeometry(design);
+  const geometryResult = calculateToolboxGeometry(designToValidate);
   if (!geometryResult.ok) {
     return {
       ok: false,
@@ -206,7 +229,8 @@ export function parseToolboxDesignJson(jsonText: string): JsonImportResult {
 
   return {
     ok: true,
-    design,
+    design: designToValidate,
+    ...(migratedFromVersion !== undefined ? { migratedFromVersion } : {}),
   };
 }
 

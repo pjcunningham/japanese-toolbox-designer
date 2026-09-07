@@ -30,36 +30,36 @@ describe('2D Technical Drawing Projections (Phase 9)', () => {
       expect(bodyRect?.width).toBe(600);
       expect(bodyRect?.height).toBe(300);
 
-      // Stop fixed top batten (0..54, full width 300)
+      // Stop fixed top batten (0..84, full width 300)
       const stopBattenRect = model.rectangles.find((r) => r.id === 'plan-fixed-top-batten-stop');
       expect(stopBattenRect).toBeDefined();
       expect(stopBattenRect?.x).toBe(0);
-      expect(stopBattenRect?.width).toBe(54);
+      expect(stopBattenRect?.width).toBe(84);
       expect(stopBattenRect?.height).toBe(300);
 
-      // Locking fixed top batten (546..600, full width 300)
+      // Locking fixed top batten (516..600, full width 300)
       const lockingBattenRect = model.rectangles.find(
         (r) => r.id === 'plan-fixed-top-batten-locking',
       );
       expect(lockingBattenRect).toBeDefined();
-      expect(lockingBattenRect?.x).toBe(546);
-      expect(lockingBattenRect?.width).toBe(54);
+      expect(lockingBattenRect?.x).toBe(516);
+      expect(lockingBattenRect?.width).toBe(84);
       expect(lockingBattenRect?.height).toBe(300);
 
-      // Locked lid panel (40.5..559.5, Y: 20..280, length 519, width 260)
+      // Locked lid panel (70.5..529.5, Y: 20..280, length 459, width 260)
       const lidPanelRect = model.rectangles.find((r) => r.id === 'plan-lid-panel');
       expect(lidPanelRect).toBeDefined();
-      expect(lidPanelRect?.x).toBeCloseTo(40.5, 4);
+      expect(lidPanelRect?.x).toBeCloseTo(70.5, 4);
       expect(lidPanelRect?.y).toBe(20);
-      expect(lidPanelRect?.width).toBeCloseTo(519, 4);
+      expect(lidPanelRect?.width).toBeCloseTo(459, 4);
       expect(lidPanelRect?.height).toBe(260);
 
-      // Straight lid batten (54..99, Y: 2..298, length 296, width 45)
+      // Straight lid batten (84..126, Y: 2..298, length 296, width 42)
       const straightBattenRect = model.rectangles.find((r) => r.id === 'plan-straight-lid-batten');
       expect(straightBattenRect).toBeDefined();
-      expect(straightBattenRect?.x).toBe(54);
+      expect(straightBattenRect?.x).toBe(84);
       expect(straightBattenRect?.y).toBe(2);
-      expect(straightBattenRect?.width).toBe(45);
+      expect(straightBattenRect?.width).toBe(42);
       expect(straightBattenRect?.height).toBe(296);
 
       // Locking lid batten corners match authoritative Phase 5 planCorners
@@ -71,13 +71,13 @@ describe('2D Technical Drawing Projections (Phase 9)', () => {
         geometry.lockingMechanism.lockingLidBatten.planCorners.wedgeWideCorner,
         geometry.lockingMechanism.lockingLidBatten.planCorners.interiorWideCorner,
       ]);
-      expect(lockingPoly?.points[0]?.x).toBeCloseTo(477.5, 4);
+      expect(lockingPoly?.points[0]?.x).toBeCloseTo(456.5, 4);
       expect(lockingPoly?.points[0]?.y).toBe(2);
-      expect(lockingPoly?.points[1]?.x).toBeCloseTo(522.5, 4);
+      expect(lockingPoly?.points[1]?.x).toBeCloseTo(498.5, 4);
       expect(lockingPoly?.points[1]?.y).toBe(2);
-      expect(lockingPoly?.points[2]?.x).toBeCloseTo(512.16345, 4);
+      expect(lockingPoly?.points[2]?.x).toBeCloseTo(488.16345, 4);
       expect(lockingPoly?.points[2]?.y).toBe(298);
-      expect(lockingPoly?.points[3]?.x).toBeCloseTo(477.5, 4);
+      expect(lockingPoly?.points[3]?.x).toBeCloseTo(456.5, 4);
       expect(lockingPoly?.points[3]?.y).toBe(298);
 
       // Wedge corners match authoritative Phase 5 planCorners
@@ -89,8 +89,8 @@ describe('2D Technical Drawing Projections (Phase 9)', () => {
         geometry.lockingMechanism.wedge.planCorners.fixedBattenWideCorner,
         geometry.lockingMechanism.wedge.planCorners.battenMatingWideCorner,
       ]);
-      expect(wedgePoly?.points[1]?.x).toBe(546);
-      expect(wedgePoly?.points[2]?.x).toBe(546);
+      expect(wedgePoly?.points[1]?.x).toBe(516);
+      expect(wedgePoly?.points[2]?.x).toBe(516);
 
       // Dimensions include overall length, width, top opening, and locked overlap O
       const dimLength = model.dimensions.find((d) => d.id === 'plan-dim-overall-length');
@@ -100,7 +100,7 @@ describe('2D Technical Drawing Projections (Phase 9)', () => {
 
       expect(dimLength?.valueMillimetres).toBe(600);
       expect(dimWidth?.valueMillimetres).toBe(300);
-      expect(dimOpening?.valueMillimetres).toBe(492);
+      expect(dimOpening?.valueMillimetres).toBe(432);
       expect(dimOverlap?.valueMillimetres).toBeCloseTo(13.5, 4);
 
       // Annotations
@@ -133,25 +133,25 @@ describe('2D Technical Drawing Projections (Phase 9)', () => {
       expect(sideWallRect?.width).toBe(600);
       expect(sideWallRect?.height).toBe(232);
 
-      // Hidden lid panel: Z = 232..250, startX = 40.5, endX = 559.5
+      // Hidden lid panel: Z = 238..250, startX = 70.5, endX = 529.5
       const hiddenLidRect = model.rectangles.find((r) => r.id === 'front-lid-panel');
       expect(hiddenLidRect?.hidden).toBe(true);
-      expect(hiddenLidRect?.x).toBeCloseTo(40.5, 4);
-      expect(hiddenLidRect?.y).toBe(232);
-      expect(hiddenLidRect?.height).toBe(18);
+      expect(hiddenLidRect?.x).toBeCloseTo(70.5, 4);
+      expect(hiddenLidRect?.y).toBe(238);
+      expect(hiddenLidRect?.height).toBe(12);
 
-      // Stop top batten: Z = 250..268, X = 0..54
+      // Stop top batten: Z = 250..268, X = 0..84
       const stopBatten = model.rectangles.find((r) => r.id === 'front-fixed-top-batten-stop');
       expect(stopBatten?.x).toBe(0);
       expect(stopBatten?.y).toBe(250);
-      expect(stopBatten?.width).toBe(54);
+      expect(stopBatten?.width).toBe(84);
       expect(stopBatten?.height).toBe(18);
 
-      // Straight lid batten: Z = 250..268, X = 54..99
+      // Straight lid batten: Z = 250..268, X = 84..126
       const straightBatten = model.rectangles.find((r) => r.id === 'front-straight-lid-batten');
-      expect(straightBatten?.x).toBe(54);
+      expect(straightBatten?.x).toBe(84);
       expect(straightBatten?.y).toBe(250);
-      expect(straightBatten?.width).toBe(45);
+      expect(straightBatten?.width).toBe(42);
       expect(straightBatten?.height).toBe(18);
 
       // Captured wedge cross-section profile
@@ -211,12 +211,12 @@ describe('2D Technical Drawing Projections (Phase 9)', () => {
       expect(leftSide?.width).toBe(18);
       expect(rightSide?.width).toBe(18);
 
-      // Lid panel: Y = 20..280 (width 260), Z = 232..250
+      // Lid panel: Y = 20..280 (width 260), Z = 238..250
       const lidPanel = model.rectangles.find((r) => r.id === 'end-lid-panel');
       expect(lidPanel?.x).toBe(20);
-      expect(lidPanel?.y).toBe(232);
+      expect(lidPanel?.y).toBe(238);
       expect(lidPanel?.width).toBe(260);
-      expect(lidPanel?.height).toBe(18);
+      expect(lidPanel?.height).toBe(12);
 
       // Dimensions
       const dimWidth = model.dimensions.find((d) => d.id === 'end-dim-overall-width');

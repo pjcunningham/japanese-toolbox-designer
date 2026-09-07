@@ -8,6 +8,8 @@ import {
   type UnitSystem,
 } from '../domain';
 
+export * from './migrations/migrateV1ToV2';
+
 export const DESIGNS_STORAGE_KEY = 'jtd.designs.v1';
 export const SETTINGS_STORAGE_KEY = 'jtd.settings.v1';
 export const DESIGN_STORAGE_VERSION = 1;
@@ -24,7 +26,23 @@ export const ToolboxDimensionsSchema: z.ZodType<ToolboxDimensions> = z.object({
 
 export const ToolboxConstructionParametersSchema: z.ZodType<ToolboxConstructionParameters> =
   z.object({
+    bottomThickness: z
+      .number()
+      .finite()
+      .positive('Bottom thickness must be a positive finite number.'),
     lidThickness: z.number().finite().positive('Lid thickness must be a positive finite number.'),
+    endHandleDepth: z
+      .number()
+      .finite()
+      .positive('End handle depth must be a positive finite number.'),
+    endHandleHeight: z
+      .number()
+      .finite()
+      .positive('End handle height must be a positive finite number.'),
+    housingDadoDepth: z
+      .number()
+      .finite()
+      .positive('Housing dado depth must be a positive finite number.'),
     fixedTopBattenWidth: z
       .number()
       .finite()
@@ -64,7 +82,7 @@ export const ToolboxDesignSchema: z.ZodType<ToolboxDesign> = z.object({
     .trim()
     .min(1, 'Design name must not be empty.')
     .max(100, 'Design name must not exceed 100 characters.'),
-  schemaVersion: z.literal(1, {
+  schemaVersion: z.literal(2, {
     message: `Unsupported design schema version. Expected ${TOOLBOX_DESIGN_SCHEMA_VERSION}.`,
   }),
   createdAt: z.string().datetime({ message: 'createdAt must be a valid ISO 8601 timestamp.' }),

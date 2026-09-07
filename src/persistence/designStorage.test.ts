@@ -221,7 +221,7 @@ describe('designStorage persistence functions', () => {
 
     const unsupportedSchemaDesign = {
       ...createDefaultToolboxDesign({ name: 'Future Box' }),
-      schemaVersion: 2,
+      schemaVersion: 999,
     };
 
     const invalidNumberDesign = {
@@ -248,6 +248,103 @@ describe('designStorage persistence functions', () => {
       expect(result.warnings[0]).toContain('unsupported design schema version');
       expect(result.warnings[1]).toContain('skipped because it was corrupted or invalid');
     }
+  });
+
+  it('loads and migrates schema-v1 designs in-memory without rewriting storage (Sections 51, 52, 74)', () => {
+    const v1Design = {
+      id: 'v1-saved-id',
+      name: 'V1 Box In Storage',
+      schemaVersion: 1,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+      unitSystem: 'metric',
+      dimensions: {
+        length: 600,
+        width: 300,
+        height: 250,
+        stockThickness: 18,
+      },
+      constructionParameters: {
+        lidThickness: 18,
+        fixedTopBattenWidth: 54,
+        lidBattenWidth: 45,
+        lidSideClearance: 2,
+        desiredOverlap: 13.5,
+        lidBattenOverhang: 18,
+        wedgeTaperAngle: 2,
+        wedgeBevelAngle: 10,
+        lockingBattenTravelClearance: 1,
+      },
+      wood: { id: 'pine' },
+    };
+
+    const initialJson = JSON.stringify({
+      storageVersion: 1,
+      designs: [v1Design],
+    });
+
+    const storage = createMockStorage({
+      [DESIGNS_STORAGE_KEY]: initialJson,
+    });
+
+    const result = loadDesignStore(storage);
+    expect(result.status).toBe('ok');
+    expect(result.designs).toHaveLength(1);
+    expect(result.designs[0]?.schemaVersion).toBe(2);
+    expect(result.designs[0]?.constructionParameters.bottomThickness).toBe(12);
+    expect(result.designs[0]?.constructionParameters.endHandleDepth).toBe(36);
+    expect(result.designs[0]?.constructionParameters.housingDadoDepth).toBe(3);
+    if (result.status === 'ok') {
+      expect(result.warnings.some((w) => w.includes('automatically migrated'))).toBe(true);
+    }
+
+    // Storage was NOT rewritten merely from loading (Section 52)
+    expect(storage.getItem(DESIGNS_STORAGE_KEY)).toBe(initialJson);
+  });
+
+  it('loads a mixed store with both V1 and V2 designs', () => {
+    const v1Design = {
+      id: 'v1-mixed-id',
+      name: 'V1 Box',
+      schemaVersion: 1,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+      unitSystem: 'metric',
+      dimensions: {
+        length: 600,
+        width: 300,
+        height: 250,
+        stockThickness: 18,
+      },
+      constructionParameters: {
+        lidThickness: 18,
+        fixedTopBattenWidth: 54,
+        lidBattenWidth: 45,
+        lidSideClearance: 2,
+        desiredOverlap: 13.5,
+        lidBattenOverhang: 18,
+        wedgeTaperAngle: 2,
+        wedgeBevelAngle: 10,
+        lockingBattenTravelClearance: 1,
+      },
+      wood: { id: 'pine' },
+    };
+    const v2Design = createDefaultToolboxDesign({
+      name: 'V2 Box',
+      idGenerator: () => 'v2-mixed-id',
+    });
+
+    const storage = createMockStorage({
+      [DESIGNS_STORAGE_KEY]: JSON.stringify({
+        storageVersion: 1,
+        designs: [v1Design, v2Design],
+      }),
+    });
+
+    const result = loadDesignStore(storage);
+    expect(result.status).toBe('ok');
+    expect(result.designs).toHaveLength(2);
+    expect(result.designs.every((d) => d.schemaVersion === 2)).toBe(true);
   });
 
   it('handles storage read exception gracefully', () => {

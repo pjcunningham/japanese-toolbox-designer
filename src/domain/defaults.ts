@@ -15,12 +15,16 @@ export const DEFAULT_DIMENSIONS: Readonly<ToolboxDimensions> = Object.freeze({
 
 export const DEFAULT_CONSTRUCTION_PARAMETERS: Readonly<ToolboxConstructionParameters> =
   Object.freeze({
-    lidThickness: 18,
-    fixedTopBattenWidth: 54, // ~3 * T (3 * 18 = 54)
-    lidBattenWidth: 45, // ~2.5 * T (2.5 * 18 = 45)
-    lidSideClearance: 2,
-    desiredOverlap: 13.5, // ~0.75 * T (0.75 * 18 = 13.5)
-    lidBattenOverhang: 18,
+    bottomThickness: 12, // Tb = (2/3) * T = 12 mm
+    lidThickness: 12, // P = (2/3) * T = 12 mm
+    endHandleDepth: 36, // I = 2 * T = 36 mm
+    endHandleHeight: 72, // H = 4 * T = 72 mm
+    housingDadoDepth: 3, // G = T / 6 = 3 mm
+    fixedTopBattenWidth: 84, // R = (14/3) * T = 84 mm
+    lidBattenWidth: 42, // B = (7/3) * T = 42 mm
+    lidSideClearance: 2, // C = 2 mm
+    desiredOverlap: 13.5, // O = 0.75 * T = 13.5 mm
+    lidBattenOverhang: 18, // E = T = 18 mm
     wedgeTaperAngle: 2, // degrees (alpha)
     wedgeBevelAngle: 10, // degrees (beta)
     lockingBattenTravelClearance: 1, // mm (Q)
@@ -116,7 +120,11 @@ export function duplicateToolboxDesign(
       stockThickness: source.dimensions.stockThickness,
     },
     constructionParameters: {
+      bottomThickness: source.constructionParameters.bottomThickness,
       lidThickness: source.constructionParameters.lidThickness,
+      endHandleDepth: source.constructionParameters.endHandleDepth,
+      endHandleHeight: source.constructionParameters.endHandleHeight,
+      housingDadoDepth: source.constructionParameters.housingDadoDepth,
       fixedTopBattenWidth: source.constructionParameters.fixedTopBattenWidth,
       lidBattenWidth: source.constructionParameters.lidBattenWidth,
       lidSideClearance: source.constructionParameters.lidSideClearance,

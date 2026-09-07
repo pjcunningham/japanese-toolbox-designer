@@ -8,6 +8,8 @@ import {
   PersistedDesignStoreSchema,
   PersistedSettingsSchema,
   ToolboxDesignSchema,
+  ToolboxDesignV1Schema,
+  migrateToolboxDesignV1ToV2,
   type PersistedDesignStore,
   type PersistedSettings,
 } from './designSchema';
@@ -174,27 +176,43 @@ export function loadDesignStore(
   const warnings: string[] = [];
 
   for (const item of envelope.designs) {
-    const parseResult = ToolboxDesignSchema.safeParse(item);
-    if (parseResult.success) {
-      validDesigns.push(parseResult.data);
-    } else {
-      if (
-        typeof item === 'object' &&
-        item !== null &&
-        'schemaVersion' in item &&
-        (item as { schemaVersion: unknown }).schemaVersion !== TOOLBOX_DESIGN_SCHEMA_VERSION
-      ) {
-        const itemObj = item as { name?: unknown; schemaVersion?: unknown };
-        const designName =
-          typeof itemObj.name === 'string' && itemObj.name.trim()
-            ? `"${itemObj.name.trim()}"`
-            : 'Unknown';
+    if (typeof item !== 'object' || item === null) {
+      warnings.push('A saved design was skipped because it was corrupted or invalid.');
+      continue;
+    }
+
+    const itemObj = item as Record<string, unknown>;
+    const version = itemObj.schemaVersion;
+
+    if (version === 2) {
+      const parseResult = ToolboxDesignSchema.safeParse(item);
+      if (parseResult.success) {
+        validDesigns.push(parseResult.data);
+      } else {
+        warnings.push('A saved design was skipped because it was corrupted or invalid.');
+      }
+    } else if (version === 1) {
+      const v1Result = ToolboxDesignV1Schema.safeParse(item);
+      if (v1Result.success) {
+        const migrated = migrateToolboxDesignV1ToV2(v1Result.data);
+        validDesigns.push(migrated);
+        const designName = migrated.name ? `"${migrated.name}"` : 'Unknown';
         warnings.push(
-          `Design ${designName} was skipped due to unsupported design schema version (${String(itemObj.schemaVersion)}).`,
+          `Design ${designName} was automatically migrated from schema version 1 to version 2.`,
         );
       } else {
         warnings.push('A saved design was skipped because it was corrupted or invalid.');
       }
+    } else if (typeof version === 'number' && version > TOOLBOX_DESIGN_SCHEMA_VERSION) {
+      const designName =
+        typeof itemObj.name === 'string' && itemObj.name.trim()
+          ? `"${itemObj.name.trim()}"`
+          : 'Unknown';
+      warnings.push(
+        `Design ${designName} was skipped due to unsupported design schema version (${String(version)}).`,
+      );
+    } else {
+      warnings.push('A saved design was skipped because it was corrupted or invalid.');
     }
   }
 

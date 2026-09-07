@@ -1,6 +1,6 @@
-# Sliding Lid Geometry (Phase 4)
+# Sliding Lid Geometry (Phases 4 & 10A)
 
-This document specifies the authoritative mathematical model and kinematic conventions for the V1 Japanese toolbox sliding lid mechanism.
+This document specifies the authoritative mathematical model and kinematic conventions for the Japanese toolbox sliding lid mechanism.
 
 ---
 
@@ -35,6 +35,8 @@ Stop End                                                  Locking End
 - $Y$: Outside toolbox width (`dimensions.width`)
 - $Z$: Outside body height (`dimensions.height`)
 - $T$: Main stock thickness (`dimensions.stockThickness`)
+- $T_b$: Bottom thickness (`constructionParameters.bottomThickness`)
+- $I$: End handle depth / end-wall inset (`constructionParameters.endHandleDepth`)
 - $R$: Fixed top batten width (`constructionParameters.fixedTopBattenWidth`)
 
 ### Lid Parameters
@@ -49,33 +51,36 @@ Stop End                                                  Locking End
 
 ## 3. Box Clear Opening & Pocket Depth
 
-From the carcass geometry (Phase 3):
+From the traditional inset-end carcass geometry (Phase 10A):
 
 $$\text{topOpeningLength} = X - 2R$$
 
 $$\text{topOpeningWidth} = Y - 2T$$
 
-$$\text{pocketDepth} = R - T$$
+$$\text{pocketDepth} = R - I - T$$
 
 ### Physical Interpretation of Pocket Depth
 
-Each fixed top batten sits on top of the end wall and projects inward past the inner face of the end board by:
+Each fixed top batten spans from the outside end ($x = 0$ or $x = X$) and projects past the inner face of the inset end wall ($x = I + T$ or $x = X - I - T$) into the internal cavity by:
 
-$$\text{pocketDepth} = R - T$$
+$$\text{pocketDepth} = R - (I + T) = R - I - T$$
 
 In longitudinal cross-section:
 
 ```text
-Outside End                          Box Interior
+Outside End (x=0)                          Box Interior (x > I+T)
 │
-│<────────────── R fixed top batten ─────────────>│
-│                                                 │
-│<── T end wall ──>│                              │
-                   │<────────── R - T ───────────>│
-                             lid pocket
+│<────────────────── R fixed top batten / end cap ───────────────────>│
+│                                                                     │
+│<── I handle bay ──>│<── T end wall ──>│                             │
+                                        │<─────── R - I - T ─────────>│
+                                                   lid pocket
 ```
 
-The lid panel can slide underneath this pocket, but cannot pass through the end wall ($x = T$ or $x = X - T$).
+The lid panel can slide underneath this pocket, but cannot pass through the inset end wall ($x = I + T$ or $x = X - I - T$).
+
+For the V2 default ($R = 84\text{ mm}, I = 36\text{ mm}, T = 18\text{ mm}$):
+$$\text{pocketDepth} = 84 - 36 - 18 = 30\text{ mm}$$
 
 ---
 
@@ -88,6 +93,12 @@ The lid panel can slide underneath this pocket, but cannot pass through the end 
   $$\text{lidPanelLength} = \text{topOpeningLength} + 2O = X - 2R + 2O$$
 
 - **Thickness:** $P$
+
+For the V2 default ($X=600, Y=300, R=84, T=18, C=2, O=13.5, P=12\text{ mm}$):
+
+- $\text{lidPanelWidth} = 300 - 36 - 4 = 260\text{ mm}$
+- $\text{lidPanelLength} = (600 - 168) + 2(13.5) = 432 + 27 = 459\text{ mm}$
+- $\text{lidPanelDimensions} = 459 \times 260 \times 12\text{ mm}$
 
 ---
 
@@ -123,6 +134,9 @@ The stop end features a straight rectangular batten attached to the upper face o
   $$\text{lidBattenBottomZ} = Z$$
   $$\text{lidBattenTopZ} = Z + T$$
 
+- Lid vertical clearance check:
+  $$P < Z - T_b$$
+
 ---
 
 ## 7. Release Kinematics & Fundamental Inequality
@@ -137,45 +151,50 @@ To remove the lid (after the locking wedge is removed), the rigid lid is slid in
    At this position, stop overlap is $0$, and locking overlap is $2O$.
 
 2. **Maximum Available Travel:**
-   The locking-end edge can slide until it contacts the inner face of the locking end board ($x = X - T$):
-   $$\text{availableLidTravel} = \text{pocketDepth} - O = (R - T) - O$$
+   The locking-end edge can slide until it contacts the inner face of the locking inset end wall ($x = X - I - T$):
+   $$\text{availableLidTravel} = \text{pocketDepth} - O = (R - I - T) - O$$
 
 3. **Release Travel Margin:**
    The positive clearance at the stop end once fully shifted:
-   $$\text{releaseTravelMargin} = \text{availableLidTravel} - \text{travelToReleaseEdge} = (R - T) - 2O$$
+   $$\text{releaseTravelMargin} = \text{availableLidTravel} - \text{travelToReleaseEdge} = (R - I - T) - 2O$$
 
 ### Fundamental Rigid Release Condition
 
 For a rigid lid to be lifted and removed without flexing or bending:
 
-$$\text{releaseTravelMargin} > 0 \iff 2O < R - T$$
+$$\text{releaseTravelMargin} > 0 \iff 2O < R - I - T$$
 
-Strict inequality is required because $2O = R - T$ yields zero clearance, making physical lifting impossible.
+Strict inequality is required because $2O = R - I - T$ yields zero clearance, making physical lifting impossible.
+
+For the V2 default ($O = 13.5\text{ mm}, \text{pocketDepth} = 30\text{ mm}$):
+
+- $\text{availableLidTravel} = 30 - 13.5 = 16.5\text{ mm}$
+- $\text{releaseTravelMargin} = 30 - 2(13.5) = 3\text{ mm}$
 
 ---
 
-## 8. Reference Kinematic States
+## 8. Reference Kinematic States (V2 Default)
 
 ### 1. LOCKED ($\Delta x = 0$)
 
-- $\text{stopOverlap} = O$
-- $\text{lockingOverlap} = O$
-- $\text{stopReleaseClearance} = 0$
-- Panel range: $[R - O,\; X - R + O]$
-- Straight batten range: $[R,\; R + B]$
+- $\text{stopOverlap} = 13.5\text{ mm}$
+- $\text{lockingOverlap} = 13.5\text{ mm}$
+- $\text{stopReleaseClearance} = 0\text{ mm}$
+- Panel range: $[R - O,\; X - R + O] = [70.5,\; 529.5]$
+- Straight batten range: $[R,\; R + B] = [84,\; 126]$
 
-### 2. RELEASE_THRESHOLD ($\Delta x = O$)
+### 2. RELEASE_THRESHOLD ($\Delta x = O = 13.5\text{ mm}$)
 
-- $\text{stopOverlap} = 0$
-- $\text{lockingOverlap} = 2O$
-- $\text{stopReleaseClearance} = 0$
-- Panel range: $[R,\; X - R + 2O]$
-- Straight batten range: $[R + O,\; R + O + B]$
+- $\text{stopOverlap} = 0\text{ mm}$
+- $\text{lockingOverlap} = 2O = 27\text{ mm}$
+- $\text{stopReleaseClearance} = 0\text{ mm}$
+- Panel range: $[R,\; X - R + 2O] = [84,\; 543]$
+- Straight batten range: $[R + O,\; R + O + B] = [97.5,\; 139.5]$
 
-### 3. SHIFTED_FOR_RELEASE ($\Delta x = (R - T) - O$)
+### 3. SHIFTED_FOR_RELEASE ($\Delta x = (R - I - T) - O = 16.5\text{ mm}$)
 
-- $\text{stopOverlap} = 0$
-- $\text{lockingOverlap} = R - T = \text{pocketDepth}$
-- $\text{stopReleaseClearance} = R - T - 2O = \text{releaseTravelMargin}$
-- Panel range: $[2R - T - 2O,\; X - T]$
-- Straight batten range: $[2R - T - O,\; 2R - T - O + B]$
+- $\text{stopOverlap} = 0\text{ mm}$
+- $\text{lockingOverlap} = R - I - T = 30\text{ mm} = \text{pocketDepth}$
+- $\text{stopReleaseClearance} = 3\text{ mm} = \text{releaseTravelMargin}$
+- Panel range: $[87,\; 546]$ ($546 = X - I - T$, contacting locking inset wall)
+- Straight batten range: $[100.5,\; 142.5]$

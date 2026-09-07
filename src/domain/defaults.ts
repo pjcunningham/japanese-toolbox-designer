@@ -21,8 +21,9 @@ export const DEFAULT_CONSTRUCTION_PARAMETERS: Readonly<ToolboxConstructionParame
     lidSideClearance: 2,
     desiredOverlap: 13.5, // ~0.75 * T (0.75 * 18 = 13.5)
     lidBattenOverhang: 18,
-    wedgeTaperAngle: 2, // degrees
-    wedgeBevelAngle: 10, // degrees
+    wedgeTaperAngle: 2, // degrees (alpha)
+    wedgeBevelAngle: 10, // degrees (beta)
+    lockingBattenTravelClearance: 1, // mm (Q)
   });
 
 export const DEFAULT_WOOD: Readonly<ToolboxWoodParameters> = Object.freeze({

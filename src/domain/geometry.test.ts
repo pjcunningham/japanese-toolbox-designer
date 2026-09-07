@@ -5,9 +5,11 @@ import { setDesignUnitSystem } from './design';
 import {
   calculateBoxGeometry,
   calculateLidGeometry,
+  calculateLockingMechanismGeometry,
   calculateToolboxGeometry,
   validateBoxGeometry,
   validateLidGeometry,
+  validateLockingMechanismGeometry,
   validateToolboxGeometry,
 } from './geometry';
 
@@ -1193,5 +1195,490 @@ describe('calculateLidGeometry & Sliding Lid Mechanics (Phase 4)', () => {
         ).toBe(lid.straightLidBatten.dimensions.width);
       });
     });
+  });
+});
+
+describe('calculateLockingMechanismGeometry', () => {
+  describe('Default worked fixture (600 × 300 × 250 × 18 mm, α = 2°, β = 10°, Q = 1 mm)', () => {
+    it('calculates exact hand-calculated reference values for the locking mechanism', () => {
+      const design = createDefaultToolboxDesign();
+      const result = calculateLockingMechanismGeometry(design);
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) {
+        return;
+      }
+
+      const {
+        lockingFixedTopBatten,
+        lockingLidBatten,
+        wedge,
+        channel,
+        capture,
+        vertical,
+        manufacturing,
+      } = result.geometry;
+
+      // 1. Locking-end fixed top batten
+      expect(lockingFixedTopBatten.dimensions).toEqual({
+        length: 300,
+        width: 54,
+        thickness: 18,
+      });
+      expect(lockingFixedTopBatten.bevelAngle).toBe(10);
+      expect(lockingFixedTopBatten.bevelOffsetNormal).toBeCloseTo(3.17388565, 6);
+      expect(lockingFixedTopBatten.innerEdgeX).toBe(546);
+
+      // 2. Locking lid batten
+      expect(lockingLidBatten.blankDimensions).toEqual({
+        length: 296,
+        width: 45,
+        thickness: 18,
+      });
+      expect(lockingLidBatten.maximumWidth).toBe(45);
+      expect(lockingLidBatten.minimumWidth).toBeCloseTo(34.66345223, 6);
+      expect(lockingLidBatten.taperDelta).toBeCloseTo(10.33654777, 6);
+      expect(lockingLidBatten.interiorEdgeX).toBe(477.5);
+      expect(lockingLidBatten.narrowEndWedgeFaceX).toBe(522.5);
+      expect(lockingLidBatten.wideEndWedgeFaceX).toBeCloseTo(512.16345223, 6);
+
+      // Plan corners for locking lid batten (yStart = 2, yEnd = 298)
+      expect(lockingLidBatten.planCorners.interiorNarrowCorner).toEqual({ x: 477.5, y: 2 });
+      expect(lockingLidBatten.planCorners.interiorWideCorner).toEqual({ x: 477.5, y: 298 });
+      expect(lockingLidBatten.planCorners.wedgeNarrowCorner).toEqual({ x: 522.5, y: 2 });
+      expect(lockingLidBatten.planCorners.wedgeWideCorner.x).toBeCloseTo(512.16345223, 6);
+      expect(lockingLidBatten.planCorners.wedgeWideCorner.y).toBe(298);
+
+      // 3. Removable Locking Wedge
+      expect(wedge.workingLength).toBe(296);
+      expect(wedge.recommendedOverlength).toBe(36);
+      expect(wedge.recommendedBlankLength).toBe(332);
+      expect(wedge.blankDimensions).toEqual({
+        length: 332,
+        width: 68.5,
+        thickness: 18,
+      });
+      expect(wedge.bottomNarrowWidth).toBe(23.5);
+      expect(wedge.bottomWideWidth).toBeCloseTo(33.83654777, 6);
+      expect(wedge.topNarrowWidth).toBeCloseTo(17.15029407, 6);
+      expect(wedge.topWideWidth).toBeCloseTo(27.48684184, 6);
+      expect(wedge.taperAngle).toBe(2);
+      expect(wedge.bevelAngle).toBe(10);
+      expect(wedge.bevelOffsetNormalPerSide).toBeCloseTo(3.17388565, 6);
+      expect(wedge.taperRate).toBeCloseTo(0.03492077, 6);
+      expect(wedge.insertionDirection).toBe('+Y');
+
+      // Plan corners for wedge (yStart = 2, yEnd = 298)
+      expect(wedge.planCorners.fixedBattenNarrowCorner).toEqual({ x: 546, y: 2 });
+      expect(wedge.planCorners.fixedBattenWideCorner).toEqual({ x: 546, y: 298 });
+      expect(wedge.planCorners.battenMatingNarrowCorner).toEqual({ x: 522.5, y: 2 });
+      expect(wedge.planCorners.battenMatingWideCorner.x).toBeCloseTo(512.16345223, 6);
+      expect(wedge.planCorners.battenMatingWideCorner.y).toBe(298);
+
+      // 4. Channel
+      expect(channel.minimumBottomWidth).toBe(23.5);
+      expect(channel.maximumBottomWidth).toBeCloseTo(33.83654777, 6);
+      expect(channel.residualGapAfterFullLidShift).toBe(1.0);
+
+      // 5. Vertical Capture
+      expect(capture.topWidthReduction).toBeCloseTo(6.34970593, 6);
+      expect(capture.verticallyCaptured).toBe(true);
+
+      // 6. Vertical Z-levels
+      expect(vertical).toEqual({
+        wedgeBottomZ: 250,
+        wedgeTopZ: 268,
+        lockingBattenBottomZ: 250,
+        lockingBattenTopZ: 268,
+      });
+
+      // 7. Manufacturing dimensions
+      expect(manufacturing.combinedLockingBlankWidth).toBe(68.5);
+      expect(manufacturing.recommendedWedgeOverlength).toBe(36);
+      expect(manufacturing.recommendedWedgeBlankLength).toBe(332);
+      expect(lockingLidBatten.minimumWidth + wedge.bottomWideWidth).toBeCloseTo(68.5, 6);
+
+      expect(result.warnings).toEqual([]);
+    });
+  });
+
+  describe('Second hand-calculated fixture (450 × 240 × 200 × 15 mm, α = 2°, β = 10°, Q = 1 mm)', () => {
+    it('calculates exact hand-calculated reference values with non-default proportions', () => {
+      const design = createDefaultToolboxDesign({
+        dimensions: {
+          length: 450,
+          width: 240,
+          height: 200,
+          stockThickness: 15,
+        },
+        constructionParameters: {
+          fixedTopBattenWidth: 45,
+          lidThickness: 12,
+          lidSideClearance: 1.5,
+          desiredOverlap: 10,
+          lidBattenWidth: 37.5,
+          lidBattenOverhang: 15,
+          wedgeTaperAngle: 2,
+          wedgeBevelAngle: 10,
+          lockingBattenTravelClearance: 1,
+        },
+      });
+
+      const result = calculateLockingMechanismGeometry(design);
+
+      expect(result.ok).toBe(true);
+      if (!result.ok) {
+        return;
+      }
+
+      const {
+        lockingFixedTopBatten,
+        lockingLidBatten,
+        wedge,
+        channel,
+        capture,
+        vertical,
+        manufacturing,
+      } = result.geometry;
+
+      // 1. Locking-end fixed top batten
+      expect(lockingFixedTopBatten.dimensions).toEqual({
+        length: 240,
+        width: 45,
+        thickness: 15,
+      });
+      expect(lockingFixedTopBatten.bevelAngle).toBe(10);
+      expect(lockingFixedTopBatten.bevelOffsetNormal).toBeCloseTo(2.64490471, 6);
+      expect(lockingFixedTopBatten.innerEdgeX).toBe(405);
+
+      // 2. Locking lid batten (L = 237, B = 37.5)
+      expect(lockingLidBatten.blankDimensions).toEqual({
+        length: 237,
+        width: 37.5,
+        thickness: 15,
+      });
+      expect(lockingLidBatten.maximumWidth).toBe(37.5);
+      expect(lockingLidBatten.minimumWidth).toBeCloseTo(29.22377763, 6);
+      expect(lockingLidBatten.taperDelta).toBeCloseTo(8.27622237, 6);
+      expect(lockingLidBatten.interiorEdgeX).toBe(405 - 21 - 37.5); // 346.5
+      expect(lockingLidBatten.narrowEndWedgeFaceX).toBe(405 - 21); // 384
+      expect(lockingLidBatten.wideEndWedgeFaceX).toBeCloseTo(405 - 21 - 8.27622237, 6);
+
+      // 3. Wedge (D = 20, Q = 1 -> Wmin = 21)
+      expect(wedge.workingLength).toBe(237);
+      expect(wedge.recommendedOverlength).toBe(30);
+      expect(wedge.recommendedBlankLength).toBe(267);
+      expect(wedge.blankDimensions).toEqual({
+        length: 267,
+        width: 58.5,
+        thickness: 15,
+      });
+      expect(wedge.bottomNarrowWidth).toBe(21);
+      expect(wedge.bottomWideWidth).toBeCloseTo(29.27622237, 6);
+      expect(wedge.topNarrowWidth).toBeCloseTo(15.70857839, 6);
+      expect(wedge.topWideWidth).toBeCloseTo(23.98480076, 6);
+      expect(wedge.bevelOffsetNormalPerSide).toBeCloseTo(2.64490471, 6);
+
+      // 4. Channel
+      expect(channel.minimumBottomWidth).toBe(21);
+      expect(channel.maximumBottomWidth).toBeCloseTo(29.27622237, 6);
+      expect(channel.residualGapAfterFullLidShift).toBe(1.0);
+
+      // 5. Capture & manufacturing
+      expect(capture.topWidthReduction).toBeCloseTo(5.29142161, 6);
+      expect(capture.verticallyCaptured).toBe(true);
+      expect(manufacturing.combinedLockingBlankWidth).toBe(58.5);
+      expect(manufacturing.recommendedWedgeOverlength).toBe(30);
+      expect(manufacturing.recommendedWedgeBlankLength).toBe(267);
+
+      // 6. Vertical Z-levels
+      expect(vertical).toEqual({
+        wedgeBottomZ: 200,
+        wedgeTopZ: 215,
+        lockingBattenBottomZ: 200,
+        lockingBattenTopZ: 215,
+      });
+    });
+  });
+
+  describe('Algebraic invariants for locking mechanism', () => {
+    const testCases: CreateToolboxDesignOptions[] = [
+      {},
+      {
+        dimensions: { length: 500, width: 280, height: 220, stockThickness: 16 },
+        constructionParameters: {
+          fixedTopBattenWidth: 48,
+          lidThickness: 16,
+          lidSideClearance: 1.5,
+          desiredOverlap: 12,
+          lidBattenWidth: 40,
+          lidBattenOverhang: 16,
+          wedgeTaperAngle: 1.8,
+          wedgeBevelAngle: 12,
+          lockingBattenTravelClearance: 1.5,
+        },
+      },
+      {
+        dimensions: { length: 700, width: 350, height: 300, stockThickness: 20 },
+        constructionParameters: {
+          fixedTopBattenWidth: 60,
+          lidThickness: 20,
+          lidSideClearance: 2.5,
+          desiredOverlap: 15,
+          lidBattenWidth: 50,
+          lidBattenOverhang: 22,
+          wedgeTaperAngle: 2.5,
+          wedgeBevelAngle: 8,
+          lockingBattenTravelClearance: 2,
+        },
+      },
+    ];
+
+    testCases.forEach((testCase, idx) => {
+      it(`preserves all locking geometry invariants for configuration #${idx + 1}`, () => {
+        const design = createDefaultToolboxDesign(testCase);
+        const result = calculateToolboxGeometry(design);
+
+        expect(result.ok).toBe(true);
+        if (!result.ok) {
+          return;
+        }
+
+        const { lid, lockingMechanism } = result.geometry;
+        const q = design.constructionParameters.lockingBattenTravelClearance;
+
+        // Invariant 1: wedgeBottomNarrowWidth = availableLidTravel + lockingBattenTravelClearance
+        expect(lockingMechanism.wedge.bottomNarrowWidth).toBe(
+          lid.longitudinalFit.availableTravel + q,
+        );
+
+        // Invariant 2: remainingGapAfterFullLidShift = lockingBattenTravelClearance
+        expect(lockingMechanism.channel.residualGapAfterFullLidShift).toBe(q);
+
+        // Invariant 3: wedgeBottomWideWidth - wedgeBottomNarrowWidth = taperDelta
+        expect(
+          lockingMechanism.wedge.bottomWideWidth - lockingMechanism.wedge.bottomNarrowWidth,
+        ).toBeCloseTo(lockingMechanism.lockingLidBatten.taperDelta, 9);
+
+        // Invariant 4: lockingBattenMaximumWidth - lockingBattenMinimumWidth = taperDelta
+        expect(
+          lockingMechanism.lockingLidBatten.maximumWidth -
+            lockingMechanism.lockingLidBatten.minimumWidth,
+        ).toBeCloseTo(lockingMechanism.lockingLidBatten.taperDelta, 9);
+
+        // Invariant 5: One-blank invariant: maximumWidth + bottomNarrowWidth = minimumWidth + bottomWideWidth
+        expect(
+          lockingMechanism.lockingLidBatten.maximumWidth + lockingMechanism.wedge.bottomNarrowWidth,
+        ).toBeCloseTo(
+          lockingMechanism.lockingLidBatten.minimumWidth + lockingMechanism.wedge.bottomWideWidth,
+          9,
+        );
+
+        // Invariant 6: combinedLockingBlankWidth = lidBattenWidth + wedgeBottomNarrowWidth
+        expect(lockingMechanism.manufacturing.combinedLockingBlankWidth).toBe(
+          design.constructionParameters.lidBattenWidth + lockingMechanism.wedge.bottomNarrowWidth,
+        );
+
+        // Invariant 7: Vertical capture top width < bottom width
+        expect(lockingMechanism.wedge.topNarrowWidth).toBeLessThan(
+          lockingMechanism.wedge.bottomNarrowWidth,
+        );
+        expect(lockingMechanism.wedge.topWideWidth).toBeLessThan(
+          lockingMechanism.wedge.bottomWideWidth,
+        );
+        expect(lockingMechanism.wedge.topNarrowWidth).toBeGreaterThan(0);
+        expect(lockingMechanism.capture.verticallyCaptured).toBe(true);
+
+        // Invariant 8: Recommended wedge blank length = workingLength + 2 * T
+        expect(lockingMechanism.wedge.recommendedBlankLength).toBe(
+          lockingMechanism.wedge.workingLength + 2 * design.dimensions.stockThickness,
+        );
+      });
+    });
+  });
+
+  describe('Fractional-millimetre inputs, unit independence, and immutability', () => {
+    it('handles precise fractional-millimetre inputs accurately', () => {
+      const design = createDefaultToolboxDesign({
+        dimensions: {
+          length: 609.6,
+          width: 304.8,
+          height: 254.0,
+          stockThickness: 19.05,
+        },
+        constructionParameters: {
+          lidThickness: 19.05,
+          fixedTopBattenWidth: 57.15,
+          lidBattenWidth: 47.625,
+          lidSideClearance: 1.5875,
+          desiredOverlap: 14.2875,
+          lidBattenOverhang: 19.05,
+          wedgeTaperAngle: 2,
+          wedgeBevelAngle: 10,
+          lockingBattenTravelClearance: 1.5875,
+        },
+      });
+
+      const result = calculateLockingMechanismGeometry(design);
+      expect(result.ok).toBe(true);
+    });
+
+    it('produces identical locking geometry regardless of presentation unitSystem', () => {
+      const metricDesign = createDefaultToolboxDesign();
+      const imperialDesign = setDesignUnitSystem(metricDesign, 'imperial');
+
+      const metricResult = calculateToolboxGeometry(metricDesign);
+      const imperialResult = calculateToolboxGeometry(imperialDesign);
+
+      expect(metricResult.ok).toBe(true);
+      expect(imperialResult.ok).toBe(true);
+      if (metricResult.ok && imperialResult.ok) {
+        expect(metricResult.geometry.lockingMechanism).toEqual(
+          imperialResult.geometry.lockingMechanism,
+        );
+      }
+    });
+
+    it('does not mutate input design or calculated geometries during calculation', () => {
+      const design = createDefaultToolboxDesign();
+      const designSnapshot = JSON.stringify(design);
+
+      const boxResult = calculateBoxGeometry(design);
+      const lidResult = calculateLidGeometry(design, boxResult.ok ? boxResult.geometry : undefined);
+      const boxSnapshot = JSON.stringify(boxResult);
+      const lidSnapshot = JSON.stringify(lidResult);
+
+      const lockingResult = calculateLockingMechanismGeometry(
+        design,
+        boxResult.ok ? boxResult.geometry : undefined,
+        lidResult.ok ? lidResult.geometry : undefined,
+      );
+
+      expect(JSON.stringify(design)).toBe(designSnapshot);
+      expect(JSON.stringify(boxResult)).toBe(boxSnapshot);
+      expect(JSON.stringify(lidResult)).toBe(lidSnapshot);
+      expect(lockingResult.ok).toBe(true);
+    });
+
+    it('aggregate calculateToolboxGeometry preserves exact Phase 4 box and lid results', () => {
+      const design = createDefaultToolboxDesign();
+      const boxOnly = calculateBoxGeometry(design);
+      const lidOnly = calculateLidGeometry(design);
+      const combined = calculateToolboxGeometry(design);
+
+      expect(boxOnly.ok).toBe(true);
+      expect(lidOnly.ok).toBe(true);
+      expect(combined.ok).toBe(true);
+
+      if (boxOnly.ok && lidOnly.ok && combined.ok) {
+        expect(combined.geometry.box).toEqual(boxOnly.geometry);
+        expect(combined.geometry.lid).toEqual(lidOnly.geometry);
+        expect(combined.geometry.lockingMechanism).toBeDefined();
+      }
+    });
+  });
+});
+
+describe('validateLockingMechanismGeometry', () => {
+  it('rejects non-positive and non-finite locking batten travel clearance', () => {
+    const invalidClearances = [0, -1, NaN, Infinity, -Infinity];
+
+    invalidClearances.forEach((clearance) => {
+      const design = createDefaultToolboxDesign({
+        constructionParameters: { lockingBattenTravelClearance: clearance },
+      });
+
+      const { errors } = validateLockingMechanismGeometry(design);
+      expect(errors.some((e) => e.code === 'INVALID_LOCKING_BATTEN_TRAVEL_CLEARANCE')).toBe(true);
+    });
+  });
+
+  it('rejects invalid wedge taper angle α (<= 0 or >= 45 degrees or non-finite)', () => {
+    const invalidAlphas = [0, -2, 45, 50, NaN, Infinity, -Infinity];
+
+    invalidAlphas.forEach((alpha) => {
+      const design = createDefaultToolboxDesign({
+        constructionParameters: { wedgeTaperAngle: alpha },
+      });
+
+      const { errors } = validateLockingMechanismGeometry(design);
+      expect(errors.some((e) => e.code === 'INVALID_WEDGE_TAPER_ANGLE')).toBe(true);
+    });
+  });
+
+  it('rejects invalid wedge bevel angle β (<= 0 or >= 45 degrees or non-finite)', () => {
+    const invalidBetas = [0, -10, 45, 60, NaN, Infinity, -Infinity];
+
+    invalidBetas.forEach((beta) => {
+      const design = createDefaultToolboxDesign({
+        constructionParameters: { wedgeBevelAngle: beta },
+      });
+
+      const { errors } = validateLockingMechanismGeometry(design);
+      expect(errors.some((e) => e.code === 'INVALID_WEDGE_BEVEL_ANGLE')).toBe(true);
+    });
+  });
+
+  it('rejects taper angle when taperDelta >= lidBattenWidth (WEDGE_TAPER_TOO_STEEP_FOR_LID_BATTEN)', () => {
+    // With L = 296, B = 45, taper angle alpha = 10 deg -> taperDelta = 296 * tan(10 deg) = 52.19 > 45
+    const design = createDefaultToolboxDesign({
+      constructionParameters: { wedgeTaperAngle: 10 },
+    });
+
+    const { errors } = validateLockingMechanismGeometry(design);
+    expect(errors.some((e) => e.code === 'WEDGE_TAPER_TOO_STEEP_FOR_LID_BATTEN')).toBe(true);
+  });
+
+  it('rejects bevel angle when topWidthReduction removes entire narrow wedge top (WEDGE_BEVEL_TOO_STEEP_FOR_WIDTH)', () => {
+    // Default Wmin = 23.5. If T = 50, beta = 30 deg -> H = 50 * tan(30) = 28.86 > 23.5
+    const design = createDefaultToolboxDesign({
+      dimensions: { stockThickness: 40, height: 350 },
+      constructionParameters: {
+        fixedTopBattenWidth: 100,
+        wedgeBevelAngle: 30,
+        desiredOverlap: 20,
+      },
+    });
+
+    const { errors } = validateLockingMechanismGeometry(design);
+    expect(errors.some((e) => e.code === 'WEDGE_BEVEL_TOO_STEEP_FOR_WIDTH')).toBe(true);
+  });
+
+  it('rejects locking lid batten when it extends outside the lid panel (LOCKING_LID_BATTEN_OUTSIDE_PANEL)', () => {
+    // If length X is small relative to battens and wedge width
+    const design = createDefaultToolboxDesign({
+      dimensions: { length: 200, width: 200, height: 150, stockThickness: 15 },
+      constructionParameters: {
+        fixedTopBattenWidth: 50,
+        lidBattenWidth: 40,
+        desiredOverlap: 10,
+        lockingBattenTravelClearance: 10,
+      },
+    });
+
+    const { errors } = validateLockingMechanismGeometry(design);
+    expect(
+      errors.some(
+        (e) => e.code === 'LOCKING_LID_BATTEN_OUTSIDE_PANEL' || e.code === 'LID_BATTENS_OVERLAP',
+      ),
+    ).toBe(true);
+  });
+
+  it('accumulates box, lid, and locking mechanism errors in validateToolboxGeometry', () => {
+    const design = createDefaultToolboxDesign({
+      dimensions: { length: -10 },
+      constructionParameters: {
+        lidThickness: -5,
+        lockingBattenTravelClearance: -1,
+      },
+    });
+
+    const { errors } = validateToolboxGeometry(design);
+    const codes = errors.map((e) => e.code);
+
+    expect(codes).toContain('INVALID_LENGTH');
+    expect(codes).toContain('INVALID_LID_THICKNESS');
+    expect(codes).toContain('INVALID_LOCKING_BATTEN_TRAVEL_CLEARANCE');
+    expect(errors.length).toBe(3);
   });
 });

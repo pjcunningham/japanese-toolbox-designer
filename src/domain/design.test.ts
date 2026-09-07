@@ -45,6 +45,7 @@ describe('ToolboxDesign Domain Model', () => {
       lidBattenOverhang: 18,
       wedgeTaperAngle: 2,
       wedgeBevelAngle: 10,
+      lockingBattenTravelClearance: 1,
     });
 
     expect(design.wood).toEqual(DEFAULT_WOOD);
@@ -126,6 +127,7 @@ describe('Unit Switching Behavior', () => {
         lidBattenOverhang: 19.05,
         wedgeTaperAngle: 2,
         wedgeBevelAngle: 10,
+        lockingBattenTravelClearance: 1.5875,
       },
     });
 

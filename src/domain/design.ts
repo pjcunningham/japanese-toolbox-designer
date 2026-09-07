@@ -18,6 +18,11 @@ export interface ToolboxConstructionParameters {
   lidBattenOverhang: number;
   wedgeTaperAngle: number;
   wedgeBevelAngle: number;
+  /**
+   * The minimum longitudinal gap remaining between the locking lid batten and locking-end
+   * fixed top batten after the lid has completed its full Phase 4 release travel with the wedge removed (Q).
+   */
+  lockingBattenTravelClearance: number;
 }
 
 export interface ToolboxWoodParameters {

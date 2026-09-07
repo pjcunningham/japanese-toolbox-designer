@@ -54,10 +54,37 @@ import type { ToolboxDesign } from './design';
  *    - Fundamental rigid release condition: 2O < R - T (or releaseTravelMargin > 0).
  *    - Lid removal motion is purely longitudinal in +X direction without flexing or bending.
  *
- * 5. Units & Precision:
+ * 5. Locking Mechanism & Captured Wedge Geometry (Phase 5):
+ *    - The locking mechanism consists of:
+ *      1. Locking-end fixed top batten on the carcass body (inner edge bevelled by beta).
+ *      2. Locking lid batten on the lid (tapered in plan by alpha, compound bevel beta).
+ *      3. Removable locking wedge between them (tapered in plan by alpha, bevelled on both sides by beta).
+ *    - alpha = wedge plan taper angle (`design.constructionParameters.wedgeTaperAngle`).
+ *    - beta = wedge vertical bevel angle (`design.constructionParameters.wedgeBevelAngle`).
+ *    - Q = locking batten travel clearance (`design.constructionParameters.lockingBattenTravelClearance`).
+ *    - Working length L = locking batten length = lidBattenLength = lidPanelWidth + 2E.
+ *    - Available lid travel D = (R - T) - O.
+ *    - Minimum wedge channel bottom width: Wmin = D + Q.
+ *    - Residual minimum gap after full lid shift = Wmin - D = Q (> 0).
+ *    - Plan taper delta = L * tan(alpha).
+ *    - Locking batten finished widths: maximum = B, minimum = B - taperDelta.
+ *    - Wedge plan widths (bottom face): narrow = Wmin, wide = Wmin + taperDelta.
+ *    - One-blank manufacturing invariant: combined width = B + Wmin = lockingBattenMinimumWidth + wedgeBottomWideWidth.
+ *    - Vertical captured bevel offset: H = T * tan(beta).
+ *    - Top width reduction: topWidthReduction = H * (1 + sec(alpha)) = H * (1 + 1 / cos(alpha)).
+ *    - Wedge top widths: topNarrowWidth = Wmin - topWidthReduction, topWideWidth = bottomWideWidth - topWidthReduction.
+ *    - Capture condition: beta > 0 and topNarrowWidth > 0 ensure the wider bottom prevents vertical extraction.
+ *    - Recommended wedge blank length: L + 2T (including 2T overlength allowance for fitting/trimming).
+ *
+ * 6. Units & Precision:
  *    - All calculations are pure, deterministic, and use canonical millimetres directly.
  *    - No display rounding or precision truncation is performed in the geometry engine.
  */
+
+export interface Point2D {
+  x: number;
+  y: number;
+}
 
 export interface PartDimensions {
   length: number;
@@ -159,9 +186,75 @@ export interface CalculatedLidGeometry {
   };
 }
 
+export interface CalculatedLockingMechanismGeometry {
+  lockingFixedTopBatten: {
+    dimensions: PartDimensions;
+    bevelAngle: number;
+    bevelOffsetNormal: number;
+    innerEdgeX: number;
+  };
+  lockingLidBatten: {
+    blankDimensions: PartDimensions;
+    maximumWidth: number;
+    minimumWidth: number;
+    taperDelta: number;
+    interiorEdgeX: number;
+    narrowEndWedgeFaceX: number;
+    wideEndWedgeFaceX: number;
+    planCorners: {
+      interiorNarrowCorner: Point2D;
+      interiorWideCorner: Point2D;
+      wedgeNarrowCorner: Point2D;
+      wedgeWideCorner: Point2D;
+    };
+  };
+  wedge: {
+    workingLength: number;
+    recommendedBlankLength: number;
+    recommendedOverlength: number;
+    blankDimensions: PartDimensions;
+    bottomNarrowWidth: number;
+    bottomWideWidth: number;
+    topNarrowWidth: number;
+    topWideWidth: number;
+    taperAngle: number;
+    bevelAngle: number;
+    bevelOffsetNormalPerSide: number;
+    taperRate: number;
+    insertionDirection: '+Y';
+    planCorners: {
+      fixedBattenNarrowCorner: Point2D;
+      fixedBattenWideCorner: Point2D;
+      battenMatingNarrowCorner: Point2D;
+      battenMatingWideCorner: Point2D;
+    };
+  };
+  channel: {
+    minimumBottomWidth: number;
+    maximumBottomWidth: number;
+    residualGapAfterFullLidShift: number;
+  };
+  capture: {
+    topWidthReduction: number;
+    verticallyCaptured: boolean;
+  };
+  vertical: {
+    wedgeBottomZ: number;
+    wedgeTopZ: number;
+    lockingBattenBottomZ: number;
+    lockingBattenTopZ: number;
+  };
+  manufacturing: {
+    combinedLockingBlankWidth: number;
+    recommendedWedgeOverlength: number;
+    recommendedWedgeBlankLength: number;
+  };
+}
+
 export interface CalculatedToolboxGeometry {
   box: CalculatedBoxGeometry;
   lid: CalculatedLidGeometry;
+  lockingMechanism: CalculatedLockingMechanismGeometry;
 }
 
 export type GeometryErrorCode =
@@ -184,7 +277,15 @@ export type GeometryErrorCode =
   | 'INVALID_LID_BATTEN_WIDTH'
   | 'LID_BATTEN_TOO_WIDE'
   | 'INVALID_LID_BATTEN_OVERHANG'
-  | 'LID_BATTEN_HAS_NO_SIDE_BEARING';
+  | 'LID_BATTEN_HAS_NO_SIDE_BEARING'
+  | 'INVALID_LOCKING_BATTEN_TRAVEL_CLEARANCE'
+  | 'INVALID_WEDGE_TAPER_ANGLE'
+  | 'INVALID_WEDGE_BEVEL_ANGLE'
+  | 'WEDGE_TAPER_TOO_STEEP_FOR_LID_BATTEN'
+  | 'WEDGE_BEVEL_TOO_STEEP_FOR_WIDTH'
+  | 'LOCKING_LID_BATTEN_OUTSIDE_PANEL'
+  | 'LID_BATTENS_OVERLAP'
+  | 'LOCKING_BATTEN_RESTRICTS_LID_TRAVEL';
 
 export interface GeometryError {
   code: GeometryErrorCode;
@@ -212,6 +313,18 @@ export type LidGeometryResult =
   | {
       ok: true;
       geometry: CalculatedLidGeometry;
+      warnings: GeometryWarning[];
+    }
+  | {
+      ok: false;
+      errors: GeometryError[];
+      warnings: GeometryWarning[];
+    };
+
+export type LockingMechanismGeometryResult =
+  | {
+      ok: true;
+      geometry: CalculatedLockingMechanismGeometry;
       warnings: GeometryWarning[];
     }
   | {
@@ -448,7 +561,7 @@ export function validateLidGeometry(design: ToolboxDesign): {
 }
 
 /**
- * Validates the entire toolbox geometry (both box and lid).
+ * Validates the entire toolbox geometry (box, lid, and locking mechanism).
  */
 export function validateToolboxGeometry(design: ToolboxDesign): {
   errors: GeometryError[];
@@ -456,10 +569,11 @@ export function validateToolboxGeometry(design: ToolboxDesign): {
 } {
   const boxValidation = validateBoxGeometry(design);
   const lidValidation = validateLidGeometry(design);
+  const lockingValidation = validateLockingMechanismGeometry(design);
 
   return {
-    errors: [...boxValidation.errors, ...lidValidation.errors],
-    warnings: [...boxValidation.warnings, ...lidValidation.warnings],
+    errors: [...boxValidation.errors, ...lidValidation.errors, ...lockingValidation.errors],
+    warnings: [...boxValidation.warnings, ...lidValidation.warnings, ...lockingValidation.warnings],
   };
 }
 
@@ -714,20 +828,357 @@ export function calculateLidGeometry(
 }
 
 /**
- * Authoritative aggregate calculation for the complete toolbox geometry (box + lid).
+ * Validates the locking mechanism parameters (clearance, taper angle, bevel angle, fitting).
+ */
+export function validateLockingMechanismGeometry(
+  design: ToolboxDesign,
+  precalculatedBox?: CalculatedBoxGeometry,
+  precalculatedLid?: CalculatedLidGeometry,
+): {
+  errors: GeometryError[];
+  warnings: GeometryWarning[];
+} {
+  const errors: GeometryError[] = [];
+  const warnings: GeometryWarning[] = [];
+
+  const { length: x, stockThickness: t } = design.dimensions;
+  const {
+    fixedTopBattenWidth: r,
+    lidBattenWidth: b,
+    desiredOverlap: o,
+    wedgeTaperAngle: alpha,
+    wedgeBevelAngle: beta,
+    lockingBattenTravelClearance: q,
+  } = design.constructionParameters;
+
+  // 1. Basic finite & range checks for Phase 5 inputs
+  if (!Number.isFinite(q) || q <= 0) {
+    errors.push({
+      code: 'INVALID_LOCKING_BATTEN_TRAVEL_CLEARANCE',
+      message: 'Locking batten travel clearance must be a finite number greater than 0.',
+    });
+  }
+
+  if (!Number.isFinite(alpha) || alpha <= 0 || alpha >= 45) {
+    errors.push({
+      code: 'INVALID_WEDGE_TAPER_ANGLE',
+      message: 'Wedge taper angle must be a finite number greater than 0 and less than 45 degrees.',
+    });
+  }
+
+  if (!Number.isFinite(beta) || beta <= 0 || beta >= 45) {
+    errors.push({
+      code: 'INVALID_WEDGE_BEVEL_ANGLE',
+      message: 'Wedge bevel angle must be a finite number greater than 0 and less than 45 degrees.',
+    });
+  }
+
+  // 2. Relational checks (only evaluate if prerequisite inputs and structures are valid)
+  const isQValid = Number.isFinite(q) && q > 0;
+  const isAlphaValid = Number.isFinite(alpha) && alpha > 0 && alpha < 45;
+  const isBetaValid = Number.isFinite(beta) && beta > 0 && beta < 45;
+
+  const isXValid = Number.isFinite(x) && x > 0;
+  const isTValid = Number.isFinite(t) && t > 0;
+  const isRValid = Number.isFinite(r) && r > 0;
+  const isBValid = Number.isFinite(b) && b > 0;
+  const isOValid = Number.isFinite(o) && o > 0;
+
+  let box = precalculatedBox;
+  if (!box && isXValid && isTValid && isRValid) {
+    const boxResult = calculateBoxGeometry(design);
+    if (boxResult.ok) {
+      box = boxResult.geometry;
+    }
+  }
+
+  let lid = precalculatedLid;
+  if (!lid && box && isBValid && isOValid) {
+    const lidResult = calculateLidGeometry(design, box);
+    if (lidResult.ok) {
+      lid = lidResult.geometry;
+    }
+  }
+
+  if (
+    isQValid &&
+    isAlphaValid &&
+    isBetaValid &&
+    box &&
+    lid &&
+    isTValid &&
+    isBValid &&
+    isRValid &&
+    isXValid &&
+    isOValid
+  ) {
+    const availableLidTravel = lid.longitudinalFit.availableTravel; // D
+    const lockingBattenLength = lid.straightLidBatten.dimensions.length; // L
+    const alphaRad = (alpha * Math.PI) / 180;
+    const betaRad = (beta * Math.PI) / 180;
+
+    const taperDelta = lockingBattenLength * Math.tan(alphaRad);
+    const lockingBattenMinimumWidth = b - taperDelta;
+
+    if (lockingBattenMinimumWidth <= 0) {
+      errors.push({
+        code: 'WEDGE_TAPER_TOO_STEEP_FOR_LID_BATTEN',
+        message:
+          'Wedge taper angle is too steep for the selected lid batten width (B <= taperDelta).',
+      });
+    }
+
+    const wedgeMinimumBottomWidth = availableLidTravel + q; // Wmin = D + Q
+    const bevelOffsetNormalPerSide = t * Math.tan(betaRad); // H
+    const topWidthReduction = bevelOffsetNormalPerSide * (1 + 1 / Math.cos(alphaRad));
+    const wedgeTopNarrowWidth = wedgeMinimumBottomWidth - topWidthReduction;
+
+    if (wedgeTopNarrowWidth <= 0) {
+      errors.push({
+        code: 'WEDGE_BEVEL_TOO_STEEP_FOR_WIDTH',
+        message:
+          'Wedge bevel angle is too steep for the minimum wedge width, removing the entire top section.',
+      });
+    }
+
+    const lockingOpeningEdgeX = x - r;
+    const lockingBattenInteriorEdgeX = lockingOpeningEdgeX - wedgeMinimumBottomWidth - b;
+    const panelStartX = r - o;
+    const straightBattenEndX = r + b;
+
+    if (lockingBattenInteriorEdgeX < panelStartX) {
+      errors.push({
+        code: 'LOCKING_LID_BATTEN_OUTSIDE_PANEL',
+        message: 'Locking lid batten extends beyond the stop end of the lid panel.',
+      });
+    }
+
+    if (lockingBattenInteriorEdgeX <= straightBattenEndX) {
+      errors.push({
+        code: 'LID_BATTENS_OVERLAP',
+        message: 'Locking lid batten overlaps with the straight stop lid batten.',
+      });
+    }
+
+    const remainingMinimumGapAfterFullLidShift = wedgeMinimumBottomWidth - availableLidTravel;
+    if (remainingMinimumGapAfterFullLidShift <= 0) {
+      errors.push({
+        code: 'LOCKING_BATTEN_RESTRICTS_LID_TRAVEL',
+        message: 'Locking batten does not preserve the required lid release travel margin.',
+      });
+    }
+  }
+
+  return { errors, warnings };
+}
+
+/**
+ * Calculates the authoritative locking mechanism geometry (fixed top batten profile, locking lid batten, wedge, channel, and capture).
+ * Pure, deterministic, non-mutating calculation in canonical millimetres.
+ */
+export function calculateLockingMechanismGeometry(
+  design: ToolboxDesign,
+  precalculatedBox?: CalculatedBoxGeometry,
+  precalculatedLid?: CalculatedLidGeometry,
+): LockingMechanismGeometryResult {
+  let box = precalculatedBox;
+  let boxErrors: GeometryError[] = [];
+  let boxWarnings: GeometryWarning[] = [];
+
+  if (!box) {
+    const boxResult = calculateBoxGeometry(design);
+    if (boxResult.ok) {
+      box = boxResult.geometry;
+      boxWarnings = boxResult.warnings;
+    } else {
+      boxErrors = boxResult.errors;
+      boxWarnings = boxResult.warnings;
+    }
+  }
+
+  let lid = precalculatedLid;
+  let lidErrors: GeometryError[] = [];
+  let lidWarnings: GeometryWarning[] = [];
+
+  if (!lid && box) {
+    const lidResult = calculateLidGeometry(design, box);
+    if (lidResult.ok) {
+      lid = lidResult.geometry;
+      lidWarnings = lidResult.warnings;
+    } else {
+      lidErrors = lidResult.errors;
+      lidWarnings = lidResult.warnings;
+    }
+  }
+
+  const lockingValidation = validateLockingMechanismGeometry(design, box, lid);
+  const errors = [...boxErrors, ...lidErrors, ...lockingValidation.errors];
+  const warnings = [...boxWarnings, ...lidWarnings, ...lockingValidation.warnings];
+
+  if (errors.length > 0 || !box || !lid) {
+    return {
+      ok: false,
+      errors,
+      warnings,
+    };
+  }
+
+  const { length: x, width: y, height: z, stockThickness: t } = design.dimensions;
+  const {
+    fixedTopBattenWidth: r,
+    lidBattenWidth: b,
+    lidBattenOverhang: e,
+    lidSideClearance: c,
+    wedgeTaperAngle: alpha,
+    wedgeBevelAngle: beta,
+    lockingBattenTravelClearance: q,
+  } = design.constructionParameters;
+
+  const alphaRad = (alpha * Math.PI) / 180;
+  const betaRad = (beta * Math.PI) / 180;
+
+  const availableLidTravel = lid.longitudinalFit.availableTravel; // D
+  const workingLength = lid.straightLidBatten.dimensions.length; // L = lidPanelWidth + 2E
+  const lockingOpeningEdgeX = x - r; // F
+
+  const minimumBottomWidth = availableLidTravel + q; // Wmin = D + Q
+  const taperRate = Math.tan(alphaRad);
+  const taperDelta = workingLength * taperRate;
+  const maximumBottomWidth = minimumBottomWidth + taperDelta;
+
+  const lockingBattenMaximumWidth = b;
+  const lockingBattenMinimumWidth = b - taperDelta;
+
+  const lockingBattenInteriorEdgeX = lockingOpeningEdgeX - minimumBottomWidth - b;
+  const narrowEndWedgeFaceX = lockingOpeningEdgeX - minimumBottomWidth;
+  const wideEndWedgeFaceX = lockingOpeningEdgeX - minimumBottomWidth - taperDelta;
+
+  const bevelOffsetNormalPerSide = t * Math.tan(betaRad); // H
+  const secAlpha = 1 / Math.cos(alphaRad);
+  const topWidthReduction = bevelOffsetNormalPerSide * (1 + secAlpha);
+
+  const topNarrowWidth = minimumBottomWidth - topWidthReduction;
+  const topWideWidth = maximumBottomWidth - topWidthReduction;
+
+  const combinedLockingBlankWidth = b + minimumBottomWidth;
+  const recommendedWedgeOverlength = 2 * t;
+  const recommendedWedgeBlankLength = workingLength + recommendedWedgeOverlength;
+
+  const residualGapAfterFullLidShift = minimumBottomWidth - availableLidTravel; // Q
+
+  // Lateral coordinates along Y for plan corners:
+  const yStart = t + c - e;
+  const yEnd = yStart + workingLength;
+
+  const lockingBattenPlanCorners = {
+    interiorNarrowCorner: { x: lockingBattenInteriorEdgeX, y: yStart },
+    interiorWideCorner: { x: lockingBattenInteriorEdgeX, y: yEnd },
+    wedgeNarrowCorner: { x: narrowEndWedgeFaceX, y: yStart },
+    wedgeWideCorner: { x: wideEndWedgeFaceX, y: yEnd },
+  };
+
+  const wedgePlanCorners = {
+    fixedBattenNarrowCorner: { x: lockingOpeningEdgeX, y: yStart },
+    fixedBattenWideCorner: { x: lockingOpeningEdgeX, y: yEnd },
+    battenMatingNarrowCorner: { x: narrowEndWedgeFaceX, y: yStart },
+    battenMatingWideCorner: { x: wideEndWedgeFaceX, y: yEnd },
+  };
+
+  const geometry: CalculatedLockingMechanismGeometry = {
+    lockingFixedTopBatten: {
+      dimensions: {
+        length: y,
+        width: r,
+        thickness: t,
+      },
+      bevelAngle: beta,
+      bevelOffsetNormal: bevelOffsetNormalPerSide,
+      innerEdgeX: lockingOpeningEdgeX,
+    },
+    lockingLidBatten: {
+      blankDimensions: {
+        length: workingLength,
+        width: b,
+        thickness: t,
+      },
+      maximumWidth: lockingBattenMaximumWidth,
+      minimumWidth: lockingBattenMinimumWidth,
+      taperDelta,
+      interiorEdgeX: lockingBattenInteriorEdgeX,
+      narrowEndWedgeFaceX,
+      wideEndWedgeFaceX,
+      planCorners: lockingBattenPlanCorners,
+    },
+    wedge: {
+      workingLength,
+      recommendedBlankLength: recommendedWedgeBlankLength,
+      recommendedOverlength: recommendedWedgeOverlength,
+      blankDimensions: {
+        length: recommendedWedgeBlankLength,
+        width: combinedLockingBlankWidth,
+        thickness: t,
+      },
+      bottomNarrowWidth: minimumBottomWidth,
+      bottomWideWidth: maximumBottomWidth,
+      topNarrowWidth,
+      topWideWidth,
+      taperAngle: alpha,
+      bevelAngle: beta,
+      bevelOffsetNormalPerSide,
+      taperRate,
+      insertionDirection: '+Y',
+      planCorners: wedgePlanCorners,
+    },
+    channel: {
+      minimumBottomWidth,
+      maximumBottomWidth,
+      residualGapAfterFullLidShift,
+    },
+    capture: {
+      topWidthReduction,
+      verticallyCaptured: beta > 0 && topNarrowWidth > 0,
+    },
+    vertical: {
+      wedgeBottomZ: z,
+      wedgeTopZ: z + t,
+      lockingBattenBottomZ: z,
+      lockingBattenTopZ: z + t,
+    },
+    manufacturing: {
+      combinedLockingBlankWidth,
+      recommendedWedgeOverlength,
+      recommendedWedgeBlankLength,
+    },
+  };
+
+  return {
+    ok: true,
+    geometry,
+    warnings,
+  };
+}
+
+/**
+ * Authoritative aggregate calculation for the complete toolbox geometry (box + lid + locking mechanism).
  * Pure, deterministic, non-mutating calculation in canonical millimetres.
  */
 export function calculateToolboxGeometry(design: ToolboxDesign): ToolboxGeometryResult {
   const boxResult = calculateBoxGeometry(design);
   const lidResult = calculateLidGeometry(design, boxResult.ok ? boxResult.geometry : undefined);
+  const lockingResult = calculateLockingMechanismGeometry(
+    design,
+    boxResult.ok ? boxResult.geometry : undefined,
+    lidResult.ok ? lidResult.geometry : undefined,
+  );
 
   const errors = [
     ...(boxResult.ok ? [] : boxResult.errors),
     ...(lidResult.ok ? [] : lidResult.errors),
+    ...(lockingResult.ok ? [] : lockingResult.errors),
   ];
-  const warnings = [...boxResult.warnings, ...lidResult.warnings];
+  const warnings = [...boxResult.warnings, ...lidResult.warnings, ...lockingResult.warnings];
 
-  if (!boxResult.ok || !lidResult.ok) {
+  if (!boxResult.ok || !lidResult.ok || !lockingResult.ok) {
     return {
       ok: false,
       errors,
@@ -740,6 +1191,7 @@ export function calculateToolboxGeometry(design: ToolboxDesign): ToolboxGeometry
     geometry: {
       box: boxResult.geometry,
       lid: lidResult.geometry,
+      lockingMechanism: lockingResult.geometry,
     },
     warnings,
   };

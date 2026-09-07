@@ -6,13 +6,19 @@ Japanese Toolbox Designer is a browser-only web application designed for woodwor
 
 ## Current Status
 
-**Phase 4 Complete — Sliding Lid Geometry**
+**Phase 5 Complete — Captured Locking Wedge Geometry**
 
-The pure TypeScript geometry engine calculates authoritative carcass dimensions (`calculateBoxGeometry`), sliding lid dimensions and kinematic states (`calculateLidGeometry`), and combined toolbox geometry (`calculateToolboxGeometry`). The mathematical model validates that the rigid V1 lid can be inserted and removed kinematically without relying on bending or flexing the wood ($2O < R - T$).
+The pure TypeScript geometry engine calculates authoritative carcass dimensions (`calculateBoxGeometry`), sliding lid dimensions and kinematic states (`calculateLidGeometry`), captured locking wedge and tapered locking batten geometry (`calculateLockingMechanismGeometry`), and combined aggregate toolbox geometry (`calculateToolboxGeometry`).
 
-Locking wedge and tapered locking batten geometry (Phase 5), design editor UI (Phase 6), local storage persistence (Phase 7), 2D technical drawings, 3D interactive rendering, materials management, cut lists, and PDF export will be implemented in subsequent phases.
+The mathematical model validates that:
 
-For the full specification and architectural roadmap, see the [Product Requirements Document](.junie/plans/prd-v1.md) and the [Sliding Lid Geometry Documentation](docs/lid-geometry.md).
+- Core carcass geometry and internal spaces are physically feasible.
+- The rigid V1 lid can be inserted and removed kinematically without relying on bending or flexing the wood ($2O < R - T$).
+- The removable tapered locking wedge positively prevents $+X$ lid motion when seated, tightens progressively along $Y$, vertically captures the wedge via complementary bevels ($\beta$), and preserves full Phase 4 lid release travel when removed ($W_{\min} = D + Q$).
+
+Visual designer UI (Phase 6), local storage persistence (Phase 7), 2D technical drawings, 3D interactive rendering, materials management, cut lists, and PDF export will be implemented in subsequent phases.
+
+For the full specification and architectural roadmap, see the [Product Requirements Document](.junie/plans/prd-v1.md), the [Sliding Lid Geometry Documentation](docs/lid-geometry.md), and the [Locking Wedge Geometry Documentation](docs/wedge-geometry.md).
 
 ## Technology Stack
 
@@ -107,7 +113,7 @@ Implementation roadmap outlined in `.junie/plans/prd-v1.md`:
 - **Phase 2 (Complete):** Domain model, unit system (metric and imperial fractions), and default design state
 - **Phase 3 (Complete):** Pure TypeScript core box geometry calculation engine and physical validation
 - **Phase 4 (Complete):** Sliding lid geometry, kinematic reference states, and non-flexing release validation
-- **Phase 5:** Locking wedge and tapered batten geometry
+- **Phase 5 (Complete):** Locking wedge and tapered batten geometry
 - **Phase 6 & 7:** Interactive design parameters editor and local storage persistence
 - **Phase 8 & 9:** 2D technical drawing generation (plan, elevation, cross-sections) using SVG
 - **Phase 10:** Interactive 3D viewer (Three.js / React Three Fiber)

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React, { useState } from 'react';
 import { DesignEditor } from './DesignEditor';
@@ -220,7 +220,7 @@ describe('DesignEditor Component', () => {
     await user.type(overlapInput, '14');
 
     // Lid panel length: X - 2R + 2O = 600 - 168 + 28 = 460 mm
-    expect(screen.getByText('460 mm')).toBeInTheDocument();
+    expect(screen.getAllByText('460 mm').length).toBeGreaterThan(0);
 
     // Set excessive overlap that violates release travel: 2*O >= R - I - T (2*25 = 50 >= 84 - 36 - 18 = 30)
     await user.clear(overlapInput);
@@ -464,5 +464,44 @@ describe('DesignEditor Component', () => {
 
     // Fallback description rendered
     expect(screen.getByText(/Neutral medium-light timber tone for custom/i)).toBeInTheDocument();
+  });
+
+  it('Requirement 84: live updates Workshop Cut List and Process Plan when editing dimensions without manual save', async () => {
+    const user = userEvent.setup();
+    render(<EditorTestWrapper />);
+
+    // Check default Cut list dimensions
+    expect(within(screen.getByTestId('cutlist-row-side')).getByText('600 mm')).toBeInTheDocument();
+
+    // Edit length to 700
+    const lengthInput = screen.getByLabelText(/^Length/i);
+    await user.clear(lengthInput);
+    await user.type(lengthInput, '700');
+
+    // Workshop cut list updates live
+    expect(within(screen.getByTestId('cutlist-row-side')).getByText('700 mm')).toBeInTheDocument();
+
+    // Switch to Process plan tab and verify live update
+    const processPlanTab = screen.getByRole('tab', { name: 'Process plan' });
+    await user.click(processPlanTab);
+
+    expect(screen.getByTestId('workshop-processplan-view')).toBeInTheDocument();
+    expect(
+      within(screen.getByTestId('process-step-cut-sides')).getByText('700 mm'),
+    ).toBeInTheDocument();
+  });
+
+  it('shows workshop unavailable message when invalid input draft exists in editor', async () => {
+    const user = userEvent.setup();
+    render(<EditorTestWrapper />);
+
+    const lengthInput = screen.getByLabelText(/^Length/i);
+    await user.clear(lengthInput);
+    await user.type(lengthInput, 'abc');
+
+    expect(
+      screen.getByText('Fix input errors to update workshop information.'),
+    ).toBeInTheDocument();
+    expect(screen.queryByTestId('workshop-cutlist-view')).not.toBeInTheDocument();
   });
 });

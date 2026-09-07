@@ -6,20 +6,20 @@ Japanese Toolbox Designer is a browser-only web application designed for woodwor
 
 ## Current Status
 
-**Phase 11 Complete — Materials & Wood Species Selection**
+**Phase 12 Complete — Cut List and Construction Process Plan**
 
-The application provides a bundled, browser-local wood material catalogue and species-sensitive 3D visualization:
+The application provides a formal workshop-ready Cut List and a deterministic Construction Process Plan derived directly from authoritative schema-v2 geometry:
 
-- **Wood Species Selection:** Choose from 9 built-in timber species (_Hinoki, Japanese Cedar, Pine, Douglas Fir, Paulownia, Ash, Oak, Beech, and Other/Custom_).
-- **Browser-Local Material Catalogue:** Renderer-neutral plain TypeScript catalogue requiring no external assets, network requests, or CDNs.
-- **Species-Sensitive 3D Appearance:** 3D interactive model dynamically applies approximate timber colour, roughness, zero metalness, and restrained deterministic part-family differentiation (carcass, lid assembly, locking wedge, and high-contrast timber edges).
-- **Strict Physical Geometry Independence:** Material selection alters appearance and design metadata (`wood.id`) only, with zero impact on physical geometry calculations, 2D technical drawings, or cut dimensions.
-- **Persistence & JSON Interchange:** Preserves selected species across local storage Save/Open/Reload and portable JSON export/import, with robust forward-compatible fallback for unrecognized wood IDs.
-- **V1 Material Scope:** V1 appearance uses subdued approximate colour and roughness only; photographic grain and procedural shaders are intentionally out of scope.
+- **Formal Cut List:** Defines the rectangular stock blanks the woodworker should initially prepare before cutting joinery housing dados, tapers, and bevels. Grouped by identical blank dimensions into 8 line items (12 stock blanks yielding 13 finished parts for the default design).
+- **Combined Locking-Set Blank:** The tapered locking lid batten and captured wedge are prepared from a single combined stock blank left overlength for final fitting.
+- **Construction Process Plan:** A deterministic 23-step workshop construction sequence covering housed end walls, grab handles, end caps, compound locking face machining, and rigid lid-release verification.
+- **Live Unit Formatting:** Both cut list and process plan format dimensions live in either Metric (`mm`) or Imperial (simplified woodworking fractions to 1/16"), updating immediately with valid design changes.
+- **Zero Recalculation & Pure Architecture:** Pure renderer-neutral domain models without dependencies on React, Three.js, or external AI/APIs, ready for Phase 13 PDF generation.
+- **Scope Clarification:** Stock optimization, board nesting, cost estimation, and PDF export are deliberately not included in Phase 12. PDF export is Phase 13.
 
-**Next Phase:** Phase 12 — Cut List & Process Plan.
+**Next Phase:** Phase 13 — Browser-Only Workshop PDF Generation.
 
-For the full specification and architectural roadmap, see the [Product Requirements Document](.junie/plans/prd-v1.md), the [Wood Materials Documentation](docs/wood-materials.md), the [Carcass Geometry Documentation](docs/carcass-geometry.md), the [Sliding Lid Geometry Documentation](docs/lid-geometry.md), the [Locking Wedge Geometry Documentation](docs/wedge-geometry.md), the [Design JSON Format Documentation](docs/design-json-format.md), the [2D Technical Drawings Documentation](docs/technical-drawings.md), and the [3D Rendering Documentation](docs/three-d-rendering.md).
+For the full specification and architectural roadmap, see the [Product Requirements Document](.junie/plans/prd-v1.md), the [Manufacturing Documentation](docs/manufacturing.md), the [Wood Materials Documentation](docs/wood-materials.md), the [Carcass Geometry Documentation](docs/carcass-geometry.md), the [Sliding Lid Geometry Documentation](docs/lid-geometry.md), the [Locking Wedge Geometry Documentation](docs/wedge-geometry.md), the [Design JSON Format Documentation](docs/design-json-format.md), the [2D Technical Drawings Documentation](docs/technical-drawings.md), and the [3D Rendering Documentation](docs/three-d-rendering.md).
 
 ## Technology Stack
 
@@ -121,4 +121,5 @@ Implementation roadmap outlined in `.junie/plans/prd-v1.md`:
 - **Phase 9 (Complete):** 2D technical drawing generation (front, plan, end views) using SVG with zoom/pan
 - **Phase 10 (Complete):** Interactive 3D viewer (Three.js / React Three Fiber) with 13 semantic components, compound side parts with housing dados, solid grab handles, orbit/zoom/pan, standard camera views, and accurate captured locking wedge
 - **Phase 11 (Complete):** Bundled wood material catalogue, species selector, persistence/JSON interchange, and species-sensitive 3D appearance
-- **Phase 12–13:** Automated cut lists, construction process planning, and browser-side PDF export
+- **Phase 12 (Complete):** Workshop Cut List (nominal stock blanks, one combined locking set) and deterministic Construction Process Plan (23-step joinery sequence, lid verification)
+- **Phase 13:** Browser-side PDF export

@@ -8,9 +8,9 @@ test.describe('Phase 9 — Technical Drawings E2E Workflows', () => {
     const heading = page.getByRole('heading', { level: 2, name: /Technical drawings/i });
     await expect(heading).toBeVisible();
 
-    const planTab = page.getByRole('tab', { name: 'Plan' });
-    const frontTab = page.getByRole('tab', { name: 'Front' });
-    const endTab = page.getByRole('tab', { name: 'End' });
+    const planTab = page.getByRole('tab', { name: 'Plan', exact: true });
+    const frontTab = page.getByRole('tab', { name: 'Front', exact: true });
+    const endTab = page.getByRole('tab', { name: 'End', exact: true });
 
     await expect(planTab).toHaveAttribute('aria-selected', 'true');
     const svg = page.locator('.technical-drawing-svg');

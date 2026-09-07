@@ -8,6 +8,7 @@ import { AngleField } from './AngleField';
 import { UnitSelector } from './UnitSelector';
 import { ValidationPanel } from './ValidationPanel';
 import { CalculatedDimensionsPanel } from './CalculatedDimensionsPanel';
+import { WorkshopPanel } from '../workshop';
 import { TechnicalDrawingViewer } from '../../rendering/two-d';
 import { getWoodDefinitions, getWoodDefinition, MATERIAL_DISCLAIMER } from '../../materials';
 import type {
@@ -623,6 +624,13 @@ export const DesignEditor: React.FC<DesignEditorProps> = ({
             unitSystem={design.unitSystem}
             hasInputErrors={hasInputErrors}
             woodId={design.wood.id}
+          />
+
+          <WorkshopPanel
+            geometryResult={geometryResult}
+            unitSystem={design.unitSystem}
+            design={design}
+            hasInputErrors={hasInputErrors}
           />
         </div>
       </div>

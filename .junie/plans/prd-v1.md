@@ -829,54 +829,59 @@ This is particularly valuable when investigating the sliding-lid mechanism.
 
 A calculated cut list must be available in the browser.
 
-Typical columns:
+The V1 Cut List defines the nominal rectangular stock blanks required before cutting joinery housing dados, tapers, and bevels:
 
 | Part | Qty | Length | Width | Thickness | Notes |
 |---|---:|---:|---:|---:|---|
-| Long side | 2 | ... | ... | ... | |
-| End | 2 | ... | ... | ... | |
-| Bottom | 1 | ... | ... | ... | |
-| Fixed top batten | 2 | ... | ... | ... | |
-| Lid panel | 1 | ... | ... | ... | |
-| Fixed lid batten | 1 | ... | ... | ... | |
-| Locking lid batten | 1 | ... | ... | ... | compound cut |
-| Locking wedge | 1 | ... | ... | ... | fit after assembly |
+| Long sides | 2 | ... | ... | ... | Cut housing dados for both inset end walls after preparing the blank. |
+| End walls | 2 | ... | ... | ... | Includes the housed portion entering both side-board dados. |
+| Bottom | 1 | ... | ... | ... | Full-size bottom fitted beneath the carcass. |
+| Grab handles | 2 | ... | ... | ... | Fit between the long sides at the two inset end bays. |
+| End caps | 2 | ... | ... | ... | Stop-end cap keeps a square inner edge; locking-end cap receives the captured-wedge bevel. |
+| Lid panel | 1 | ... | ... | ... | Final longitudinal fit is governed by locked overlap and release travel. |
+| Straight lid batten | 1 | ... | ... | ... | Stop-end lid batten. |
+| Locking batten + wedge blank | 1 | ... | ... | ... | Machined to produce both the tapered locking lid batten and the captured wedge; wedge is left overlength for final fitting. |
 
-All values must originate from the calculated design.
+Summary metrics:
+- 8 line items
+- 12 stock blanks
+- 13 finished physical parts
 
-The cut list must honour the selected display units.
+All values must originate directly from `CalculatedToolboxGeometry`.
+
+The cut list must honour the selected display units (Metric or Imperial).
 
 ---
 
 # 28. Construction Process Plan
 
-V1 should generate a deterministic construction sequence.
-
-No AI/API is required.
-
-Initial sequence:
+V1 generates a deterministic, 23-step construction sequence based on authoritative geometry without AI or external APIs:
 
 1. Prepare and dimension stock.
 2. Cut long sides.
-3. Cut end boards.
-4. Assemble and square carcass.
-5. Fit bottom.
-6. Prepare fixed top battens.
-7. Install fixed top battens.
-8. Prepare lid panel.
-9. Fit fixed lid batten.
-10. Prepare locking lid batten.
-11. Cut compound/tapered locking geometry.
-12. Prepare locking wedge from mating geometry.
-13. Dry-fit lid.
-14. Verify lid overlap.
-15. Verify lid release travel.
-16. Fit wedge.
-17. Trim wedge after fitting.
-18. Ease exposed edges.
-19. Sand and finish.
+3. Mark the inset end-wall positions.
+4. Cut the end-wall housing dados.
+5. Fit inset end walls.
+6. Cut and fit the bottom.
+7. Assemble and square the carcass.
+8. Fit grab handles.
+9. Level top surfaces.
+10. Prepare and fit end caps.
+11. Prepare the lid panel.
+12. Fit straight stop lid batten.
+13. Prepare the locking batten/wedge blank.
+14. Lay out the plan taper.
+15. Cut the compound tapered locking face.
+16. Separate locking batten and wedge.
+17. Fit locking lid batten.
+18. Bevel locking-end cap.
+19. Fit the wedge.
+20. Verify captured profile.
+21. Verify lid operation.
+22. Trim wedge after final fitting.
+23. Ease edges and finish.
 
-Where practical the process plan should include dimensions specific to the current design.
+The process plan includes dynamic structured measurements formatted in the active unit system.
 
 ---
 
@@ -1502,11 +1507,11 @@ Add bundled wood definitions:
 
 Generate:
 
-- complete cut list;
-- construction sequence;
-- design-specific measurements.
+- complete workshop Cut List (8 line items, 12 stock blanks, 13 finished parts, one combined locking set);
+- deterministic 23-step construction process sequence (housed dados, handles, compound locking set, lid verification);
+- structured design-specific measurements formatted in active unit system.
 
-Both must use `CalculatedToolboxDesign`.
+Both must use authoritative `CalculatedToolboxGeometry` directly with zero independent recalculations.
 
 ---
 

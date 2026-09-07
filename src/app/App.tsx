@@ -1,10 +1,281 @@
-import React, { useState } from 'react';
-import { createDefaultToolboxDesign, type ToolboxDesign } from '../domain';
+import React, { useState, useCallback, useMemo } from 'react';
+import { createDefaultToolboxDesign, duplicateToolboxDesign, type ToolboxDesign } from '../domain';
 import { DesignEditor } from '../features/editor';
+import {
+  DesignManager,
+  type PersistenceMessage,
+  type PersistenceStatus,
+} from '../features/designManager';
+import {
+  loadDesignStore,
+  loadSettings,
+  upsertDesignInStore,
+  deleteDesignFromStore,
+  writeSettings,
+  SETTINGS_STORAGE_VERSION,
+  type StorageLike,
+} from '../persistence';
 import './App.css';
 
-export const App: React.FC = () => {
-  const [design, setDesign] = useState<ToolboxDesign>(() => createDefaultToolboxDesign());
+export interface AppProps {
+  storage?: StorageLike;
+}
+
+export const App: React.FC<AppProps> = ({ storage }) => {
+  // Initial state setup from storage
+  const [initialData] = useState(() => {
+    const storeResult = loadDesignStore(storage);
+    const settingsResult = loadSettings(storage);
+
+    let initialWorkingDesign: ToolboxDesign;
+    let initialMessage: PersistenceMessage | null = null;
+
+    if (storeResult.status === 'unsupported_version') {
+      initialMessage = { text: storeResult.error, type: 'warning' };
+      initialWorkingDesign = createDefaultToolboxDesign();
+    } else if (storeResult.status === 'corrupted') {
+      initialMessage = { text: storeResult.error, type: 'warning' };
+      initialWorkingDesign = createDefaultToolboxDesign();
+    } else if (storeResult.status === 'storage_unavailable') {
+      initialMessage = { text: storeResult.error, type: 'warning' };
+      initialWorkingDesign = createDefaultToolboxDesign();
+    } else {
+      if (storeResult.warnings.length > 0) {
+        initialMessage = { text: storeResult.warnings.join(' '), type: 'warning' };
+      }
+
+      const activeId = settingsResult.settings.activeDesignId;
+      const matchingDesign = activeId
+        ? storeResult.designs.find((d) => d.id === activeId)
+        : undefined;
+
+      if (matchingDesign) {
+        initialWorkingDesign = duplicateToolboxDesign(matchingDesign, {
+          idGenerator: () => matchingDesign.id,
+          timestampGenerator: () => matchingDesign.updatedAt,
+          name: matchingDesign.name,
+        });
+      } else if (storeResult.designs.length > 0 && storeResult.designs[0]) {
+        const topDesign = storeResult.designs[0];
+        initialWorkingDesign = duplicateToolboxDesign(topDesign, {
+          idGenerator: () => topDesign.id,
+          timestampGenerator: () => topDesign.updatedAt,
+          name: topDesign.name,
+        });
+      } else {
+        initialWorkingDesign = createDefaultToolboxDesign();
+      }
+    }
+
+    return {
+      workingDesign: initialWorkingDesign,
+      savedDesigns: storeResult.designs,
+      isReadOnly: storeResult.isReadOnly,
+      message: initialMessage,
+    };
+  });
+
+  const [workingDesign, setWorkingDesign] = useState<ToolboxDesign>(initialData.workingDesign);
+  const [savedDesigns, setSavedDesigns] = useState<ToolboxDesign[]>(initialData.savedDesigns);
+  const [isReadOnly] = useState<boolean>(initialData.isReadOnly);
+  const [isDirty, setIsDirty] = useState<boolean>(false);
+  const [hasInputErrors, setHasInputErrors] = useState<boolean>(false);
+  const [message, setMessage] = useState<PersistenceMessage | null>(initialData.message);
+
+  const persistenceStatus: PersistenceStatus = useMemo(() => {
+    const isSaved = savedDesigns.some((d) => d.id === workingDesign.id);
+    if (!isSaved) {
+      return 'not_saved';
+    }
+    if (isDirty) {
+      return 'unsaved_changes';
+    }
+    return 'saved';
+  }, [savedDesigns, workingDesign.id, isDirty]);
+
+  const handleDesignChange = useCallback((updatedDesign: ToolboxDesign) => {
+    setWorkingDesign(updatedDesign);
+    setIsDirty(true);
+    setMessage(null);
+  }, []);
+
+  const handleInputValidityChange = useCallback((hasErrors: boolean) => {
+    setHasInputErrors(hasErrors);
+  }, []);
+
+  const confirmDiscardUnsaved = useCallback((): boolean => {
+    const hasUnsavedChanges =
+      hasInputErrors ||
+      persistenceStatus === 'unsaved_changes' ||
+      persistenceStatus === 'not_saved';
+
+    if (!hasUnsavedChanges) {
+      return true;
+    }
+
+    return window.confirm('Discard unsaved changes to this design?');
+  }, [hasInputErrors, persistenceStatus]);
+
+  const handleNew = useCallback(() => {
+    if (!confirmDiscardUnsaved()) {
+      return;
+    }
+    const fresh = createDefaultToolboxDesign();
+    setWorkingDesign(fresh);
+    setIsDirty(false);
+    setMessage(null);
+  }, [confirmDiscardUnsaved]);
+
+  const handleSave = useCallback(() => {
+    if (hasInputErrors || isReadOnly) {
+      return;
+    }
+
+    const now = new Date().toISOString();
+    const toSave: ToolboxDesign = {
+      ...workingDesign,
+      updatedAt: now,
+    };
+
+    const saveResult = upsertDesignInStore(toSave, storage);
+    if (!saveResult.ok) {
+      setMessage({ text: saveResult.error, type: 'error' });
+      return;
+    }
+
+    const nextSavedDesigns = saveResult.data ?? savedDesigns;
+    setWorkingDesign(toSave);
+    setSavedDesigns(nextSavedDesigns);
+    setIsDirty(false);
+
+    const settingsRes = writeSettings(
+      {
+        storageVersion: SETTINGS_STORAGE_VERSION,
+        activeDesignId: toSave.id,
+      },
+      storage,
+    );
+
+    if (!settingsRes.ok) {
+      setMessage({
+        text: 'Design saved, but last-opened preference could not be stored.',
+        type: 'warning',
+      });
+    } else {
+      setMessage({ text: 'Design saved.', type: 'success' });
+    }
+  }, [hasInputErrors, isReadOnly, workingDesign, storage, savedDesigns]);
+
+  const handleRename = useCallback((newName: string) => {
+    const now = new Date().toISOString();
+    setWorkingDesign((prev) => ({
+      ...prev,
+      name: newName,
+      updatedAt: now,
+    }));
+    setIsDirty(true);
+    setMessage(null);
+  }, []);
+
+  const handleDuplicate = useCallback(() => {
+    if (hasInputErrors) {
+      return;
+    }
+
+    const dup = duplicateToolboxDesign(workingDesign);
+    setWorkingDesign(dup);
+    setIsDirty(false);
+    setMessage(null);
+  }, [hasInputErrors, workingDesign]);
+
+  const handleOpen = useCallback(
+    (designId: string) => {
+      if (designId === workingDesign.id && persistenceStatus === 'saved') {
+        return;
+      }
+
+      if (!confirmDiscardUnsaved()) {
+        return;
+      }
+
+      const target = savedDesigns.find((d) => d.id === designId);
+      if (!target) {
+        return;
+      }
+
+      const copy = duplicateToolboxDesign(target, {
+        idGenerator: () => target.id,
+        timestampGenerator: () => target.updatedAt,
+        name: target.name,
+      });
+
+      setWorkingDesign(copy);
+      setIsDirty(false);
+      writeSettings(
+        {
+          storageVersion: SETTINGS_STORAGE_VERSION,
+          activeDesignId: target.id,
+        },
+        storage,
+      );
+      setMessage(null);
+    },
+    [workingDesign.id, persistenceStatus, confirmDiscardUnsaved, savedDesigns, storage],
+  );
+
+  const handleDelete = useCallback(() => {
+    if (persistenceStatus === 'not_saved' || isReadOnly) {
+      return;
+    }
+
+    const confirmMsg = isDirty
+      ? `Delete "${workingDesign.name}"? Unsaved working changes will also be discarded. This cannot be undone.`
+      : `Delete "${workingDesign.name}"? This cannot be undone.`;
+
+    if (!window.confirm(confirmMsg)) {
+      return;
+    }
+
+    const deleteResult = deleteDesignFromStore(workingDesign.id, storage);
+    if (!deleteResult.ok) {
+      setMessage({ text: deleteResult.error, type: 'error' });
+      return;
+    }
+
+    const remaining = deleteResult.data ?? [];
+    setSavedDesigns(remaining);
+
+    if (remaining.length > 0 && remaining[0]) {
+      const nextDesign = remaining[0];
+      const copy = duplicateToolboxDesign(nextDesign, {
+        idGenerator: () => nextDesign.id,
+        timestampGenerator: () => nextDesign.updatedAt,
+        name: nextDesign.name,
+      });
+      setWorkingDesign(copy);
+      setIsDirty(false);
+      writeSettings(
+        {
+          storageVersion: SETTINGS_STORAGE_VERSION,
+          activeDesignId: nextDesign.id,
+        },
+        storage,
+      );
+    } else {
+      const fresh = createDefaultToolboxDesign();
+      setWorkingDesign(fresh);
+      setIsDirty(false);
+      writeSettings(
+        {
+          storageVersion: SETTINGS_STORAGE_VERSION,
+          activeDesignId: null,
+        },
+        storage,
+      );
+    }
+
+    setMessage({ text: 'Design deleted.', type: 'info' });
+  }, [persistenceStatus, isReadOnly, isDirty, workingDesign, storage]);
 
   return (
     <div className="app-container">
@@ -53,7 +324,26 @@ export const App: React.FC = () => {
           <p className="workspace-subtitle">Parametric Japanese toolbox design in your browser.</p>
         </div>
 
-        <DesignEditor design={design} onDesignChange={setDesign} />
+        <DesignManager
+          workingDesign={workingDesign}
+          savedDesigns={savedDesigns}
+          persistenceStatus={persistenceStatus}
+          hasInputErrors={hasInputErrors}
+          isReadOnly={isReadOnly}
+          message={message}
+          onNew={handleNew}
+          onSave={handleSave}
+          onRename={handleRename}
+          onDuplicate={handleDuplicate}
+          onDelete={handleDelete}
+          onOpen={handleOpen}
+        />
+
+        <DesignEditor
+          design={workingDesign}
+          onDesignChange={handleDesignChange}
+          onInputValidityChange={handleInputValidityChange}
+        />
       </main>
 
       <footer className="app-footer">

@@ -24,6 +24,7 @@ export type FieldErrors = Partial<Record<EditorFieldKey, string>>;
 export interface DesignEditorProps {
   design: ToolboxDesign;
   onDesignChange: (updatedDesign: ToolboxDesign) => void;
+  onInputValidityChange?: (hasInputErrors: boolean) => void;
   className?: string;
 }
 

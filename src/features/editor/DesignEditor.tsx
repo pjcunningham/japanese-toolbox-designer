@@ -79,6 +79,7 @@ function getInitialDrafts(design: ToolboxDesign): DraftValues {
 export const DesignEditor: React.FC<DesignEditorProps> = ({
   design,
   onDesignChange,
+  onInputValidityChange,
   className = '',
 }) => {
   const [drafts, setDrafts] = useState<DraftValues>(() => getInitialDrafts(design));
@@ -87,6 +88,12 @@ export const DesignEditor: React.FC<DesignEditorProps> = ({
 
   const prevUnitSystemRef = useRef<UnitSystem>(design.unitSystem);
   const prevDesignIdRef = useRef<string>(design.id);
+
+  const hasInputErrors = Object.keys(fieldErrors).length > 0;
+
+  useEffect(() => {
+    onInputValidityChange?.(hasInputErrors);
+  }, [hasInputErrors, onInputValidityChange]);
 
   // Sync drafts when design ID or unit system changes externally
   useEffect(() => {
@@ -101,8 +108,6 @@ export const DesignEditor: React.FC<DesignEditorProps> = ({
       setBlockedUnitMessage(undefined);
     }
   }, [design]);
-
-  const hasInputErrors = Object.keys(fieldErrors).length > 0;
 
   const geometryResult = useMemo(() => {
     return calculateToolboxGeometry(design);

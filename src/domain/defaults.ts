@@ -83,3 +83,51 @@ export function createDefaultToolboxDesign(options?: CreateToolboxDesignOptions)
     },
   };
 }
+
+export interface DuplicateToolboxDesignOptions {
+  idGenerator?: () => string;
+  timestampGenerator?: () => string;
+  name?: string;
+}
+
+/**
+ * Creates an independent clone of a ToolboxDesign with a fresh ID, new timestamps,
+ * and a copy-style name without mutating or sharing object references with the original.
+ */
+export function duplicateToolboxDesign(
+  source: ToolboxDesign,
+  options?: DuplicateToolboxDesignOptions,
+): ToolboxDesign {
+  const generateId = options?.idGenerator ?? defaultIdGenerator;
+  const generateTimestamp = options?.timestampGenerator ?? (() => new Date().toISOString());
+  const now = generateTimestamp();
+
+  return {
+    id: generateId(),
+    name: options?.name ?? `${source.name} (copy)`,
+    schemaVersion: source.schemaVersion,
+    createdAt: now,
+    updatedAt: now,
+    unitSystem: source.unitSystem,
+    dimensions: {
+      length: source.dimensions.length,
+      width: source.dimensions.width,
+      height: source.dimensions.height,
+      stockThickness: source.dimensions.stockThickness,
+    },
+    constructionParameters: {
+      lidThickness: source.constructionParameters.lidThickness,
+      fixedTopBattenWidth: source.constructionParameters.fixedTopBattenWidth,
+      lidBattenWidth: source.constructionParameters.lidBattenWidth,
+      lidSideClearance: source.constructionParameters.lidSideClearance,
+      desiredOverlap: source.constructionParameters.desiredOverlap,
+      lidBattenOverhang: source.constructionParameters.lidBattenOverhang,
+      wedgeTaperAngle: source.constructionParameters.wedgeTaperAngle,
+      wedgeBevelAngle: source.constructionParameters.wedgeBevelAngle,
+      lockingBattenTravelClearance: source.constructionParameters.lockingBattenTravelClearance,
+    },
+    wood: {
+      id: source.wood.id,
+    },
+  };
+}

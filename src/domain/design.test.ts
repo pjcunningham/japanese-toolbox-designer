@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { TOOLBOX_DESIGN_SCHEMA_VERSION, setDesignUnitSystem, type ToolboxDesign } from './design';
 import {
   createDefaultToolboxDesign,
+  duplicateToolboxDesign,
   DEFAULT_CONSTRUCTION_PARAMETERS,
   DEFAULT_DESIGN_NAME,
   DEFAULT_DIMENSIONS,
@@ -151,5 +152,51 @@ describe('Unit Switching Behavior', () => {
     expect(current.dimensions.length).toBe(609.6);
     expect(current.dimensions.stockThickness).toBe(19.05);
     expect(current.constructionParameters.lidSideClearance).toBe(1.5875);
+  });
+});
+
+describe('Design Duplication Behavior', () => {
+  it('creates an independent duplicate with new ID, new timestamps, copy name, and independent objects', () => {
+    const originalTime = '2026-09-07T10:00:00.000Z';
+    const dupTime = '2026-09-07T11:00:00.000Z';
+    const originalId = 'orig-id-1';
+    const dupId = 'dup-id-2';
+
+    const source: ToolboxDesign = createDefaultToolboxDesign({
+      name: 'Workshop Toolbox',
+      idGenerator: () => originalId,
+      timestampGenerator: () => originalTime,
+      dimensions: {
+        length: 700,
+      },
+    });
+
+    const copy = duplicateToolboxDesign(source, {
+      idGenerator: () => dupId,
+      timestampGenerator: () => dupTime,
+    });
+
+    expect(copy.id).toBe(dupId);
+    expect(copy.name).toBe('Workshop Toolbox (copy)');
+    expect(copy.createdAt).toBe(dupTime);
+    expect(copy.updatedAt).toBe(dupTime);
+    expect(copy.schemaVersion).toBe(source.schemaVersion);
+    expect(copy.unitSystem).toBe(source.unitSystem);
+    expect(copy.dimensions.length).toBe(700);
+
+    // Verify deep copy / independence of objects
+    expect(copy.dimensions).not.toBe(source.dimensions);
+    expect(copy.constructionParameters).not.toBe(source.constructionParameters);
+    expect(copy.wood).not.toBe(source.wood);
+
+    // Mutating copy dimensions does not affect source
+    copy.dimensions.length = 800;
+    expect(source.dimensions.length).toBe(700);
+  });
+
+  it('allows custom name override on duplicate', () => {
+    const source = createDefaultToolboxDesign({ name: 'Chest' });
+    const copy = duplicateToolboxDesign(source, { name: 'Chest Backup' });
+    expect(copy.name).toBe('Chest Backup');
   });
 });

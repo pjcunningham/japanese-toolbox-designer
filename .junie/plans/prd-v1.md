@@ -887,48 +887,42 @@ The process plan includes dynamic structured measurements formatted in the activ
 
 # 29. PDF Export
 
-V1 must generate a useful workshop PDF entirely in the browser.
+V1 generates a structured, multi-page workshop PDF document entirely in the browser using `pdf-lib` and standard built-in fonts (Helvetica, Helvetica-Bold, Helvetica-Oblique).
 
-No server or API call may be required.
+No server or API call is required.
 
-The PDF should contain:
+The document structure comprises:
 
-## Page 1
+## Page 1 — Design Summary (Portrait A4)
 
-- design name;
-- date generated;
-- unit system;
-- overall X × Y × Z dimensions;
-- wood species;
-- important construction parameters.
+- Document title: `Japanese Toolbox Workshop Plan`;
+- Design name, wood species, active unit system, overall $X \times Y \times Z$ dimensions, and generation date;
+- Carcass specification card (main stock thickness, bottom thickness, end-wall inset/handle depth, handle height, housing dado depth, end-cap width, pocket depth, internal cavity);
+- Lid construction & kinematics card (lid thickness, panel size, side clearance, locked overlap, available lid travel, release travel margin);
+- Locking mechanism specification card (plan taper $\alpha$, retaining bevel $\beta$, locking travel clearance, wedge narrow width, wedge wide width, working taper length, recommended wedge blank length, and captured-wedge profile note);
+- Nominal dimensions note advising on metric/imperial display resolution and workshop final-fitting.
 
-## Drawing section
+## Pages 2–4 — Technical Drawings (Landscape A4)
 
-At minimum:
+Rendered directly as sharp PDF vector graphics from `TechnicalDrawingModel` without rasterization:
 
-- front view;
-- plan view;
-- end view.
+- Page 2: Plan View (principal mechanical locking drawing showing inset walls, handle bays, end caps, tapered batten, wedge, housing dados, overlap/pocket dimensions, and movement directions);
+- Page 3: Front Elevation (side board, bottom board, top battens, hidden inset end walls, grab handles, and captured-wedge section);
+- Page 4: End Elevation (side walls, bottom board, grab handle, recessed end-wall relationship, lid, end cap, and handle height).
 
-## Cut list
+## Page 5 — Cut List (Landscape A4)
 
-Include the full calculated cut list.
+- Structured cut list table showing Part Name, Quantity, Length, Width, Thickness, and Notes;
+- Dynamic row height calculation based on wrapped text to prevent text clipping or overlap;
+- Explicitly details starting blanks (such as the combined locking batten + wedge blank) with notes explaining yielding parts and fitting allowances.
 
-## Lid mechanism
+## Pages 6+ — Construction Process Plan (Portrait A4)
 
-Include key values:
+- Full 23-step deterministic construction sequence rendered in sequential order;
+- Structured hierarchy with bold step headers, bulleted instructions, formatted measurements by kind, and notes;
+- Print-safe pagination ensuring step headers stay with instructions and content never overflows the bottom margin.
 
-- overlap;
-- release travel;
-- lid clearance;
-- wedge taper;
-- retaining bevel.
-
-## Process plan
-
-Include the generated construction sequence.
-
-The V1 PDF does not need photorealistic rendering.
+The V1 PDF uses clean monochrome technical vectors and typography rather than photorealistic 3D screenshots. PDF export is dynamically loaded on demand and operates on the current valid working design without mutating local storage or dirty state.
 
 ---
 

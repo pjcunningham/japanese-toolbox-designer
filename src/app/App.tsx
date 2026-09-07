@@ -92,6 +92,7 @@ export const App: React.FC<AppProps> = ({ storage }) => {
   const [isReadOnly] = useState<boolean>(initialData.isReadOnly);
   const [isDirty, setIsDirty] = useState<boolean>(false);
   const [hasInputErrors, setHasInputErrors] = useState<boolean>(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState<boolean>(false);
   const [message, setMessage] = useState<DesignOperationMessage | null>(initialData.message);
 
   const persistenceStatus: PersistenceStatus = useMemo(() => {
@@ -313,6 +314,40 @@ export const App: React.FC<AppProps> = ({ storage }) => {
     setMessage({ text: 'Design exported as JSON.', type: 'success' });
   }, [hasInputErrors, isGeometryValid, workingDesign]);
 
+  const handleExportPdf = useCallback(async () => {
+    if (hasInputErrors || !isGeometryValid || isGeneratingPdf) {
+      return;
+    }
+
+    setIsGeneratingPdf(true);
+    setMessage({ text: 'Generating PDF...', type: 'info' });
+
+    try {
+      const {
+        createWorkshopPdfData,
+        generateWorkshopPdf,
+        generateWorkshopPdfFilename,
+        downloadWorkshopPdf,
+      } = await import('../pdf');
+
+      const geoResult = calculateToolboxGeometry(workingDesign);
+      if (!geoResult.ok) {
+        throw new Error('Cannot export PDF because toolbox geometry is invalid.');
+      }
+
+      const pdfData = createWorkshopPdfData(workingDesign, geoResult.geometry);
+      const pdfBytes = await generateWorkshopPdf(pdfData);
+      const filename = generateWorkshopPdfFilename(workingDesign.name);
+
+      downloadWorkshopPdf(pdfBytes, filename);
+      setMessage({ text: 'Workshop PDF exported.', type: 'success' });
+    } catch {
+      setMessage({ text: 'PDF export failed.', type: 'error' });
+    } finally {
+      setIsGeneratingPdf(false);
+    }
+  }, [hasInputErrors, isGeometryValid, isGeneratingPdf, workingDesign]);
+
   const handleImportFile = useCallback(
     async (file: File) => {
       let jsonText: string;
@@ -421,6 +456,7 @@ export const App: React.FC<AppProps> = ({ storage }) => {
           isGeometryValid={isGeometryValid}
           isReadOnly={isReadOnly}
           message={message}
+          isGeneratingPdf={isGeneratingPdf}
           onNew={handleNew}
           onSave={handleSave}
           onRename={handleRename}
@@ -428,6 +464,7 @@ export const App: React.FC<AppProps> = ({ storage }) => {
           onDelete={handleDelete}
           onOpen={handleOpen}
           onExport={handleExport}
+          onExportPdf={handleExportPdf}
           onImportFile={handleImportFile}
         />
 

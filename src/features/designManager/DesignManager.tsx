@@ -20,6 +20,7 @@ export interface DesignManagerProps {
   isGeometryValid?: boolean;
   isReadOnly: boolean;
   message: DesignOperationMessage | null;
+  isGeneratingPdf?: boolean;
   onNew: () => void;
   onSave: () => void;
   onRename: (newName: string) => void;
@@ -27,6 +28,7 @@ export interface DesignManagerProps {
   onDelete: () => void;
   onOpen: (designId: string) => void;
   onExport?: () => void;
+  onExportPdf?: () => void | Promise<void>;
   onImportFile?: (file: File) => void | Promise<void>;
 }
 
@@ -38,6 +40,7 @@ export const DesignManager: React.FC<DesignManagerProps> = ({
   isGeometryValid = true,
   isReadOnly,
   message,
+  isGeneratingPdf = false,
   onNew,
   onSave,
   onRename,
@@ -45,6 +48,7 @@ export const DesignManager: React.FC<DesignManagerProps> = ({
   onDelete,
   onOpen,
   onExport,
+  onExportPdf,
   onImportFile,
 }) => {
   const [isRenameOpen, setIsRenameOpen] = useState(false);
@@ -113,6 +117,15 @@ export const DesignManager: React.FC<DesignManagerProps> = ({
     : !isGeometryValid
       ? 'Cannot export design with geometry errors'
       : 'Export design as JSON file';
+
+  const isExportPdfDisabled = hasInputErrors || !isGeometryValid || isGeneratingPdf;
+  const exportPdfButtonTitle = isGeneratingPdf
+    ? 'Generating PDF...'
+    : hasInputErrors
+      ? 'Resolve invalid field values before exporting PDF'
+      : !isGeometryValid
+        ? 'Cannot export PDF with geometry errors'
+        : 'Export workshop plan as PDF';
 
   return (
     <section className="design-manager" aria-label="Design management">
@@ -227,6 +240,16 @@ export const DesignManager: React.FC<DesignManagerProps> = ({
             title={exportButtonTitle}
           >
             Export JSON
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={onExportPdf}
+            disabled={isExportPdfDisabled}
+            title={exportPdfButtonTitle}
+            data-testid="export-pdf-button"
+          >
+            {isGeneratingPdf ? 'Generating PDF...' : 'Export PDF'}
           </button>
           <button
             type="button"

@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { App } from './App';
 import { createDefaultToolboxDesign, type ToolboxDesign } from '../domain';
 import * as interchangeModule from '../interchange';
+import * as pdfModule from '../pdf';
 import {
   DESIGNS_STORAGE_KEY,
   SETTINGS_STORAGE_KEY,
@@ -812,5 +813,133 @@ describe('App Component - Phase 8 JSON Import/Export Requirements', () => {
     // Verified length reset to 680
     expect(await screen.findByDisplayValue('680')).toBeInTheDocument();
     expect(screen.getByLabelText(/^Length/i)).toHaveValue('680');
+  });
+});
+
+describe('App Component - Phase 13 Workshop PDF Export', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('exports valid design as PDF, triggers download, displays success, leaves dirty state unchanged', async () => {
+    const user = userEvent.setup();
+    const downloadPdfSpy = vi.spyOn(pdfModule, 'downloadWorkshopPdf').mockImplementation(() => {});
+
+    const storage = createMockStorage();
+    render(<App storage={storage} />);
+
+    const exportPdfBtn = screen.getByRole('button', { name: 'Export PDF' });
+    expect(exportPdfBtn).toBeEnabled();
+
+    await user.click(exportPdfBtn);
+
+    expect(await screen.findByText('Workshop PDF exported.')).toBeInTheDocument();
+    expect(downloadPdfSpy).toHaveBeenCalledTimes(1);
+
+    const [pdfBytes, filename] = downloadPdfSpy.mock.calls[0] as [Uint8Array, string];
+    expect(filename).toBe('japanese-toolbox-workshop-plan.pdf');
+    expect(pdfBytes).toBeInstanceOf(Uint8Array);
+    expect(pdfBytes.length).toBeGreaterThan(1000);
+
+    // Verified dirty state unchanged (remains Not saved, not silently saved)
+    expect(screen.getByText('Not saved')).toBeInTheDocument();
+  });
+
+  it('exports dirty unsaved working design to PDF without altering saved storage snapshot', async () => {
+    const user = userEvent.setup();
+    const downloadPdfSpy = vi.spyOn(pdfModule, 'downloadWorkshopPdf').mockImplementation(() => {});
+
+    const savedOriginal = createDefaultToolboxDesign({
+      name: 'Saved Box',
+      dimensions: { length: 600, width: 300, height: 250, stockThickness: 18 },
+    });
+    const storage = createMockStorage({
+      [DESIGNS_STORAGE_KEY]: JSON.stringify({
+        storageVersion: DESIGN_STORAGE_VERSION,
+        designs: [savedOriginal],
+      }),
+      [SETTINGS_STORAGE_KEY]: JSON.stringify({
+        storageVersion: 1,
+        activeDesignId: savedOriginal.id,
+      }),
+    });
+
+    render(<App storage={storage} />);
+
+    // Modify length from 600 to 650
+    const lengthInput = screen.getByLabelText(/^Length/i);
+    await user.clear(lengthInput);
+    await user.type(lengthInput, '650');
+
+    expect(screen.getByText(/Unsaved changes/i)).toBeInTheDocument();
+
+    // Export PDF while dirty
+    await user.click(screen.getByRole('button', { name: 'Export PDF' }));
+
+    expect(await screen.findByText('Workshop PDF exported.')).toBeInTheDocument();
+    expect(downloadPdfSpy).toHaveBeenCalledTimes(1);
+    const [, filename] = downloadPdfSpy.mock.calls[0] as [Uint8Array, string];
+    expect(filename).toBe('saved-box-workshop-plan.pdf');
+
+    // Storage still contains 600
+    const stored = JSON.parse(storage.getItem(DESIGNS_STORAGE_KEY)!);
+    expect(stored.designs[0].dimensions.length).toBe(600);
+
+    // Working design is still dirty with 650
+    expect(screen.getByText(/Unsaved changes/i)).toBeInTheDocument();
+    expect(lengthInput).toHaveValue('650');
+  });
+
+  it('disables Export PDF when editor drafts contain parse errors', async () => {
+    const user = userEvent.setup();
+    const downloadPdfSpy = vi.spyOn(pdfModule, 'downloadWorkshopPdf').mockImplementation(() => {});
+
+    const storage = createMockStorage();
+    render(<App storage={storage} />);
+
+    const lengthInput = screen.getByLabelText(/^Length/i);
+    await user.clear(lengthInput);
+    await user.type(lengthInput, 'abc');
+
+    const exportPdfBtn = screen.getByRole('button', { name: 'Export PDF' });
+    expect(exportPdfBtn).toBeDisabled();
+    expect(exportPdfBtn).toHaveAttribute(
+      'title',
+      'Resolve invalid field values before exporting PDF',
+    );
+    expect(downloadPdfSpy).not.toHaveBeenCalled();
+  });
+
+  it('disables Export PDF when physical geometry is invalid', async () => {
+    const user = userEvent.setup();
+    const downloadPdfSpy = vi.spyOn(pdfModule, 'downloadWorkshopPdf').mockImplementation(() => {});
+
+    const storage = createMockStorage();
+    render(<App storage={storage} />);
+
+    const lengthInput = screen.getByLabelText(/^Length/i);
+    await user.clear(lengthInput);
+    await user.type(lengthInput, '100'); // Physically invalid length
+
+    const exportPdfBtn = screen.getByRole('button', { name: 'Export PDF' });
+    expect(exportPdfBtn).toBeDisabled();
+    expect(exportPdfBtn).toHaveAttribute('title', 'Cannot export PDF with geometry errors');
+    expect(downloadPdfSpy).not.toHaveBeenCalled();
+  });
+
+  it('handles PDF generation failure gracefully without crashing and displays error status', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(pdfModule, 'generateWorkshopPdf').mockRejectedValueOnce(
+      new Error('Synthetic PDF generator fault'),
+    );
+
+    const storage = createMockStorage();
+    render(<App storage={storage} />);
+
+    const exportPdfBtn = screen.getByRole('button', { name: 'Export PDF' });
+    await user.click(exportPdfBtn);
+
+    expect(await screen.findByText('PDF export failed.')).toBeInTheDocument();
+    expect(exportPdfBtn).toBeEnabled();
   });
 });

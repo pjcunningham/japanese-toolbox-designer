@@ -287,6 +287,93 @@ describe('DesignManager Component', () => {
       'title',
       'Cannot export design with geometry errors',
     );
+
+    const exportPdfBtnWithGeoError = screen.getByRole('button', { name: 'Export PDF' });
+    expect(exportPdfBtnWithGeoError).toBeDisabled();
+    expect(exportPdfBtnWithGeoError).toHaveAttribute(
+      'title',
+      'Cannot export PDF with geometry errors',
+    );
+  });
+
+  it('handles Export PDF button click and disabled states', async () => {
+    const user = userEvent.setup();
+    const handleExportPdf = vi.fn();
+
+    const { rerender } = render(
+      <DesignManager
+        workingDesign={dummyDesign}
+        savedDesigns={[dummyDesign]}
+        persistenceStatus="saved"
+        hasInputErrors={false}
+        isGeometryValid={true}
+        isReadOnly={false}
+        message={null}
+        onNew={vi.fn()}
+        onSave={vi.fn()}
+        onRename={vi.fn()}
+        onDuplicate={vi.fn()}
+        onDelete={vi.fn()}
+        onOpen={vi.fn()}
+        onExportPdf={handleExportPdf}
+      />,
+    );
+
+    const exportPdfBtn = screen.getByRole('button', { name: 'Export PDF' });
+    expect(exportPdfBtn).toBeEnabled();
+    expect(exportPdfBtn).toHaveAttribute('title', 'Export workshop plan as PDF');
+
+    await user.click(exportPdfBtn);
+    expect(handleExportPdf).toHaveBeenCalledTimes(1);
+
+    // Disabled when input errors exist
+    rerender(
+      <DesignManager
+        workingDesign={dummyDesign}
+        savedDesigns={[dummyDesign]}
+        persistenceStatus="saved"
+        hasInputErrors={true}
+        isGeometryValid={true}
+        isReadOnly={false}
+        message={null}
+        onNew={vi.fn()}
+        onSave={vi.fn()}
+        onRename={vi.fn()}
+        onDuplicate={vi.fn()}
+        onDelete={vi.fn()}
+        onOpen={vi.fn()}
+        onExportPdf={handleExportPdf}
+      />,
+    );
+    expect(screen.getByRole('button', { name: 'Export PDF' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Export PDF' })).toHaveAttribute(
+      'title',
+      'Resolve invalid field values before exporting PDF',
+    );
+
+    // Disabled and shows Generating PDF... when in progress
+    rerender(
+      <DesignManager
+        workingDesign={dummyDesign}
+        savedDesigns={[dummyDesign]}
+        persistenceStatus="saved"
+        hasInputErrors={false}
+        isGeometryValid={true}
+        isGeneratingPdf={true}
+        isReadOnly={false}
+        message={null}
+        onNew={vi.fn()}
+        onSave={vi.fn()}
+        onRename={vi.fn()}
+        onDuplicate={vi.fn()}
+        onDelete={vi.fn()}
+        onOpen={vi.fn()}
+        onExportPdf={handleExportPdf}
+      />,
+    );
+    const inProgressBtn = screen.getByRole('button', { name: 'Generating PDF...' });
+    expect(inProgressBtn).toBeDisabled();
+    expect(inProgressBtn).toHaveAttribute('title', 'Generating PDF...');
   });
 
   it('handles Import button file selection and triggers onImportFile callback', async () => {

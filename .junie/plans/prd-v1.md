@@ -1486,11 +1486,15 @@ Use simple wood materials and compound side parts with housing dados.
 
 ## Phase 11 — Materials
 
-Add bundled wood definitions.
+Add bundled wood definitions:
 
-Make selected wood influence 3D appearance.
-
-No external textures.
+- 9 built-in species: Hinoki, Japanese Cedar (Sugi), Pine (default), Douglas Fir, Paulownia (Kiri), Ash, Oak, Beech, and Other/Custom.
+- Plain TypeScript renderer-neutral catalogue with stable IDs.
+- Species selection in editor Material card with live swatch and descriptive text.
+- Species-sensitive 3D appearance with approximate colour, roughness, zero metalness, and restrained part-family differentiation.
+- Preserves physical geometry independence, persistence across reload, and portable JSON interchange.
+- Forward-compatible fallback for unrecognized wood IDs.
+- No external textures, procedural grain shaders, or CDN dependencies.
 
 ---
 

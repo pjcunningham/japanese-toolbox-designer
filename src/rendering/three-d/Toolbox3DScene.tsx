@@ -7,12 +7,14 @@ import { calculateCameraFitting, type StandardCameraView } from './camera/camera
 
 export interface Toolbox3DSceneProps {
   model: Toolbox3DModel;
+  woodId?: string;
   activeView: StandardCameraView;
   resetSignal: number;
 }
 
 export const Toolbox3DScene: React.FC<Toolbox3DSceneProps> = ({
   model,
+  woodId = 'pine',
   activeView,
   resetSignal,
 }) => {
@@ -63,7 +65,7 @@ export const Toolbox3DScene: React.FC<Toolbox3DSceneProps> = ({
       {/* Model Meshes */}
       <group>
         {model.parts.map((part) => (
-          <ToolboxPartMesh key={part.id} part={part} center={center} />
+          <ToolboxPartMesh key={part.id} part={part} center={center} woodId={woodId} />
         ))}
       </group>
 

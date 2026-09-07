@@ -9,6 +9,7 @@ import { UnitSelector } from './UnitSelector';
 import { ValidationPanel } from './ValidationPanel';
 import { CalculatedDimensionsPanel } from './CalculatedDimensionsPanel';
 import { TechnicalDrawingViewer } from '../../rendering/two-d';
+import { getWoodDefinitions, getWoodDefinition, MATERIAL_DISCLAIMER } from '../../materials';
 import type {
   DesignEditorProps,
   DimensionFieldKey,
@@ -240,6 +241,28 @@ export const DesignEditor: React.FC<DesignEditorProps> = ({
     setDrafts(getInitialDrafts(updated));
   };
 
+  const woodDefinitions = useMemo(() => getWoodDefinitions(), []);
+  const selectedWoodDef = useMemo(() => getWoodDefinition(design.wood.id), [design.wood.id]);
+  const isKnownWood = useMemo(
+    () => woodDefinitions.some((def) => def.id === design.wood.id),
+    [woodDefinitions, design.wood.id],
+  );
+
+  const handleWoodChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const newWoodId = e.target.value;
+    if (newWoodId === 'unknown-custom' || newWoodId === design.wood.id) {
+      return;
+    }
+    const now = new Date().toISOString();
+    onDesignChange({
+      ...design,
+      wood: {
+        id: newWoodId,
+      },
+      updatedAt: now,
+    });
+  };
+
   return (
     <div className={`design-editor ${className}`}>
       {/* Editor Header / Context */}
@@ -249,6 +272,8 @@ export const DesignEditor: React.FC<DesignEditorProps> = ({
           <span className="editor-unit-indicator">
             Active units:{' '}
             <strong>{design.unitSystem === 'metric' ? 'Metric (mm)' : 'Imperial (in)'}</strong>
+            {' · '}
+            Wood: <strong>{selectedWoodDef.name}</strong>
           </span>
         </div>
 
@@ -478,6 +503,57 @@ export const DesignEditor: React.FC<DesignEditorProps> = ({
               </div>
             </details>
           </section>
+
+          {/* Material & Wood Species Card (Phase 11) */}
+          <section className="editor-card" aria-labelledby="material-heading">
+            <details className="advanced-details" open>
+              <summary id="material-heading" className="advanced-summary">
+                <span>Material</span>
+              </summary>
+              <div className="advanced-content">
+                <div className="material-selector-row">
+                  <div className="field-group">
+                    <label htmlFor="field-wood-species" className="field-label">
+                      <span>Wood species</span>
+                    </label>
+                    <div className="material-select-wrapper">
+                      <select
+                        id="field-wood-species"
+                        className="field-input material-select"
+                        value={isKnownWood ? design.wood.id : 'unknown-custom'}
+                        onChange={handleWoodChange}
+                        aria-label="Wood species"
+                      >
+                        {!isKnownWood && (
+                          <option value="unknown-custom">
+                            {`Unknown / Custom (${design.wood.id})`}
+                          </option>
+                        )}
+                        {woodDefinitions.map((def) => (
+                          <option key={def.id} value={def.id}>
+                            {def.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="material-info-card">
+                      <div className="material-info-header">
+                        <span
+                          className="material-color-swatch"
+                          style={{ backgroundColor: selectedWoodDef.displayColour }}
+                          aria-label={`Approximate ${selectedWoodDef.name} colour swatch`}
+                          title={`Approximate ${selectedWoodDef.name} colour`}
+                        />
+                        <span className="material-selected-name">{selectedWoodDef.name}</span>
+                      </div>
+                      <p className="material-description">{selectedWoodDef.description}</p>
+                      <p className="material-disclaimer">{MATERIAL_DISCLAIMER}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </details>
+          </section>
         </div>
 
         {/* Right Column: Live Calculated Results & Visualizations (2D Technical Drawings / 3D Model) */}
@@ -535,6 +611,7 @@ export const DesignEditor: React.FC<DesignEditorProps> = ({
                 <LazyToolbox3DViewer
                   geometryResult={geometryResult}
                   unitSystem={design.unitSystem}
+                  woodId={design.wood.id}
                   hasInputErrors={hasInputErrors}
                 />
               </React.Suspense>
@@ -545,6 +622,7 @@ export const DesignEditor: React.FC<DesignEditorProps> = ({
             geometryResult={geometryResult}
             unitSystem={design.unitSystem}
             hasInputErrors={hasInputErrors}
+            woodId={design.wood.id}
           />
         </div>
       </div>

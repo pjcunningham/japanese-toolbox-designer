@@ -2,6 +2,7 @@ import React, { useState, useMemo, useCallback, Component, type ErrorInfo } from
 import { Canvas } from '@react-three/fiber';
 import type { ToolboxGeometryResult } from '../../domain/geometry';
 import type { UnitSystem } from '../../domain/design';
+import { getWoodDefinition } from '../../materials';
 import { createToolbox3DModel } from './model/createToolbox3DModel';
 import type { Toolbox3DModel } from './model/toolbox3DModel';
 import { Toolbox3DScene } from './Toolbox3DScene';
@@ -11,6 +12,7 @@ import './threeD.css';
 export interface Toolbox3DViewerProps {
   geometryResult: ToolboxGeometryResult;
   unitSystem: UnitSystem;
+  woodId?: string;
   hasInputErrors?: boolean;
   className?: string;
 }
@@ -55,11 +57,14 @@ const CAMERA_VIEWS: Array<{ key: StandardCameraView; label: string }> = [
 
 export const Toolbox3DViewer: React.FC<Toolbox3DViewerProps> = ({
   geometryResult,
+  woodId = 'pine',
   hasInputErrors = false,
   className = '',
 }) => {
   const [activeView, setActiveView] = useState<StandardCameraView>('perspective');
   const [resetSignal, setResetSignal] = useState<number>(0);
+
+  const woodDefinition = useMemo(() => getWoodDefinition(woodId), [woodId]);
 
   const model: Toolbox3DModel | null = useMemo(() => {
     if (hasInputErrors || !geometryResult.ok) {
@@ -82,8 +87,9 @@ export const Toolbox3DViewer: React.FC<Toolbox3DViewerProps> = ({
   return (
     <section
       className={`toolbox-3d-container ${className}`}
-      aria-label="Interactive 3D model of Japanese Toolbox"
+      aria-label={`Interactive 3D model of Japanese Toolbox in ${woodDefinition.name}`}
       data-testid="toolbox-3d-viewer"
+      data-wood-id={woodId}
       data-model-part-count={model ? model.metadata.partCount : undefined}
       data-model-length={model ? model.metadata.length : undefined}
       data-model-width={model ? model.metadata.width : undefined}
@@ -92,7 +98,7 @@ export const Toolbox3DViewer: React.FC<Toolbox3DViewerProps> = ({
     >
       {/* Header with Camera View Selector */}
       <div className="toolbox-3d-header">
-        <h2 className="toolbox-3d-title">3D Interactive Model</h2>
+        <h2 className="toolbox-3d-title">3D Interactive Model — {woodDefinition.name}</h2>
         <div className="toolbox-3d-tabs" role="tablist" aria-label="3D Camera Views">
           {CAMERA_VIEWS.map(({ key, label }) => (
             <button
@@ -149,7 +155,12 @@ export const Toolbox3DViewer: React.FC<Toolbox3DViewerProps> = ({
               dpr={[1, 2]}
               gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
             >
-              <Toolbox3DScene model={model} activeView={activeView} resetSignal={resetSignal} />
+              <Toolbox3DScene
+                model={model}
+                woodId={woodId}
+                activeView={activeView}
+                resetSignal={resetSignal}
+              />
             </Canvas>
           </WebGLFallbackErrorBoundary>
         ) : null}

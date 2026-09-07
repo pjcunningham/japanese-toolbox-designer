@@ -391,4 +391,78 @@ describe('DesignEditor Component', () => {
       screen.getAllByText(/End handle height must be less than internal body height/i).length,
     ).toBeGreaterThanOrEqual(1);
   });
+
+  // Phase 11 Requirements 40-42: Material / Wood Selection Card
+  it('Requirement 40: renders Material card with all wood species options, default Pine selection, description, and swatch', () => {
+    render(<EditorTestWrapper />);
+
+    // Material card
+    expect(
+      screen.getByRole('heading', { level: 2, name: /Calculated design/i }),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Material')).toBeInTheDocument();
+
+    const woodSelect = screen.getByRole('combobox', { name: /Wood species/i });
+    expect(woodSelect).toBeInTheDocument();
+    expect(woodSelect).toHaveValue('pine');
+
+    // Check presence of all required species in the dropdown
+    const expectedSpecies = [
+      'Hinoki / Japanese Cypress',
+      'Japanese Cedar (Sugi)',
+      'Pine',
+      'Douglas Fir',
+      'Paulownia (Kiri)',
+      'Ash',
+      'Oak',
+      'Beech',
+      'Other / Custom',
+    ];
+
+    for (const speciesName of expectedSpecies) {
+      expect(screen.getByRole('option', { name: speciesName })).toBeInTheDocument();
+    }
+
+    // Selected wood info and swatch
+    expect(screen.getByText(/Light yellow-tan traditional utility softwood/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Approximate Pine colour swatch/i)).toBeInTheDocument();
+  });
+
+  it('Requirement 41: changes wood species from Pine to Oak, updating wood ID and updatedAt without altering physical dimensions', async () => {
+    const user = userEvent.setup();
+    const onDesignChangeSpy = vi.fn();
+    render(<EditorTestWrapper onDesignChangeSpy={onDesignChangeSpy} />);
+
+    const woodSelect = screen.getByRole('combobox', { name: /Wood species/i });
+    await user.selectOptions(woodSelect, 'oak');
+
+    expect(onDesignChangeSpy).toHaveBeenCalled();
+    const updatedDesign = onDesignChangeSpy.mock.lastCall?.[0];
+    expect(updatedDesign?.wood.id).toBe('oak');
+    expect(updatedDesign?.updatedAt).toBeDefined();
+
+    // Wood description updates to Oak
+    expect(screen.getByText(/Medium golden-brown dense hardwood/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Approximate Oak colour swatch/i)).toBeInTheDocument();
+
+    // Calculated dimensions remain identical
+    expect(screen.getByText('492 mm')).toBeInTheDocument();
+    expect(screen.getByText('270 × 238 × 18 mm')).toBeInTheDocument();
+  });
+
+  it('Requirement 42: preserves unknown wood ID, displays custom/unknown state, and does not crash', () => {
+    const unknownDesign = createDefaultToolboxDesign({
+      wood: { id: 'mystery-timber-9000' },
+    });
+    render(<EditorTestWrapper initialDesign={unknownDesign} />);
+
+    const woodSelect = screen.getByRole('combobox', { name: /Wood species/i });
+    expect(woodSelect).toHaveValue('unknown-custom');
+    expect(
+      screen.getByRole('option', { name: 'Unknown / Custom (mystery-timber-9000)' }),
+    ).toBeInTheDocument();
+
+    // Fallback description rendered
+    expect(screen.getByText(/Neutral medium-light timber tone for custom/i)).toBeInTheDocument();
+  });
 });

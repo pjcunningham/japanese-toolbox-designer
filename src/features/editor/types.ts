@@ -36,4 +36,5 @@ export interface CalculatedDimensionsPanelProps {
   geometryResult: ToolboxGeometryResult;
   unitSystem: UnitSystem;
   hasInputErrors: boolean;
+  woodId?: string;
 }

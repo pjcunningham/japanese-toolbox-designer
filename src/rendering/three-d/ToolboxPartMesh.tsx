@@ -3,25 +3,20 @@ import * as THREE from 'three';
 import { Edges } from '@react-three/drei';
 import type { Toolbox3DPartModel, Point3D } from './model/toolbox3DModel';
 import { createThreePolyhedronGeometry } from './geometry/createThreePolyhedronGeometry';
+import { resolveWoodMaterial } from './materials/resolveWoodMaterial';
 
 export interface ToolboxPartMeshProps {
   part: Toolbox3DPartModel;
   center: Point3D;
+  woodId?: string;
 }
 
-// Neutral wood tones with subtle part family differentiation
-function getPartColor(id: string): string {
-  if (id === 'locking-wedge') {
-    return '#bf8d58'; // Slightly deeper tone for the wedge
-  }
-  if (id.startsWith('lid-') || id.startsWith('straight-') || id.startsWith('locking-lid-')) {
-    return '#c99e6b'; // Lid assembly
-  }
-  return '#d2a775'; // Carcass and fixed battens
-}
-
-export const ToolboxPartMesh: React.FC<ToolboxPartMeshProps> = ({ part, center }) => {
-  const color = useMemo(() => getPartColor(part.id), [part.id]);
+export const ToolboxPartMesh: React.FC<ToolboxPartMeshProps> = ({
+  part,
+  center,
+  woodId = 'pine',
+}) => {
+  const material = useMemo(() => resolveWoodMaterial(woodId, part.id), [woodId, part.id]);
 
   // For polyhedron parts, create and manage BufferGeometry
   const polyhedronGeometry = useMemo(() => {
@@ -65,12 +60,12 @@ export const ToolboxPartMesh: React.FC<ToolboxPartMeshProps> = ({ part, center }
       <mesh position={[posX, posY, posZ]} castShadow receiveShadow>
         <boxGeometry args={boxArgs} />
         <meshStandardMaterial
-          color={color}
-          roughness={0.7}
-          metalness={0.05}
+          color={material.color}
+          roughness={material.roughness}
+          metalness={material.metalness}
           side={THREE.FrontSide}
         />
-        <Edges color="#422e1b" threshold={15} />
+        <Edges color={material.edgeColor} threshold={15} />
       </mesh>
     );
   }
@@ -102,12 +97,12 @@ export const ToolboxPartMesh: React.FC<ToolboxPartMeshProps> = ({ part, center }
             >
               <boxGeometry args={boxArgs} />
               <meshStandardMaterial
-                color={color}
-                roughness={0.7}
-                metalness={0.05}
+                color={material.color}
+                roughness={material.roughness}
+                metalness={material.metalness}
                 side={THREE.FrontSide}
               />
-              <Edges color="#422e1b" threshold={15} />
+              <Edges color={material.edgeColor} threshold={15} />
             </mesh>
           );
         })}
@@ -119,12 +114,12 @@ export const ToolboxPartMesh: React.FC<ToolboxPartMeshProps> = ({ part, center }
     return (
       <mesh geometry={polyhedronGeometry} castShadow receiveShadow>
         <meshStandardMaterial
-          color={color}
-          roughness={0.7}
-          metalness={0.05}
+          color={material.color}
+          roughness={material.roughness}
+          metalness={material.metalness}
           side={THREE.FrontSide}
         />
-        <Edges color="#422e1b" threshold={15} />
+        <Edges color={material.edgeColor} threshold={15} />
       </mesh>
     );
   }

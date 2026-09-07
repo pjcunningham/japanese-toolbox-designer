@@ -6,22 +6,20 @@ Japanese Toolbox Designer is a browser-only web application designed for woodwor
 
 ## Current Status
 
-**Phase 10A & 10B Complete — Correct Traditional Carcass Geometry & Integrated 2D / 3D Visualisation**
+**Phase 11 Complete — Materials & Wood Species Selection**
 
-The application models authoritative schema-v2 traditional Japanese toolbox construction across the domain geometry, editor, 2D technical drawings, and interactive 3D model:
+The application provides a bundled, browser-local wood material catalogue and species-sensitive 3D visualization:
 
-- **Inset Housed End Walls:** End walls are inset from the carcass ends to create functional handle bays and housed into shallow dados ($G$) in the long side walls.
-- **Integral Handle Bays & Solid Grab Handles:** Includes two solid grab handle blocks fitted between the long side boards at the top of each end bay.
-- **Independent Thicknesses:** Bottom thickness ($T_b$) and lid thickness ($P$) are independently specified rather than constrained to main stock thickness ($T$).
-- **Corrected Pocket Depth & Kinematics:** Lid pocket depth ($R - I - T$), available sliding lid travel, and locking wedge channel dimensions correctly reference the inner face of the inset end walls.
-- **Matching 2D & 3D Visualisation:**
-  - 2D Technical Drawings (Plan, Front, End SVG views) accurately reflect the inset end walls, housing dados, solid grab handles, and thinner bottom.
-  - Interactive 3D Model represents 13 semantic woodworking parts, using non-overlapping compound box segments to model the side-board housing dados.
-- **Schema Version 2 & Migration:** Design schema is version 2 with backwards-compatible migration for version 1 saved designs and JSON imports.
+- **Wood Species Selection:** Choose from 9 built-in timber species (_Hinoki, Japanese Cedar, Pine, Douglas Fir, Paulownia, Ash, Oak, Beech, and Other/Custom_).
+- **Browser-Local Material Catalogue:** Renderer-neutral plain TypeScript catalogue requiring no external assets, network requests, or CDNs.
+- **Species-Sensitive 3D Appearance:** 3D interactive model dynamically applies approximate timber colour, roughness, zero metalness, and restrained deterministic part-family differentiation (carcass, lid assembly, locking wedge, and high-contrast timber edges).
+- **Strict Physical Geometry Independence:** Material selection alters appearance and design metadata (`wood.id`) only, with zero impact on physical geometry calculations, 2D technical drawings, or cut dimensions.
+- **Persistence & JSON Interchange:** Preserves selected species across local storage Save/Open/Reload and portable JSON export/import, with robust forward-compatible fallback for unrecognized wood IDs.
+- **V1 Material Scope:** V1 appearance uses subdued approximate colour and roughness only; photographic grain and procedural shaders are intentionally out of scope.
 
-**Next Phase:** Phase 11 — Materials & Species Presets.
+**Next Phase:** Phase 12 — Cut List & Process Plan.
 
-For the full specification and architectural roadmap, see the [Product Requirements Document](.junie/plans/prd-v1.md), the [Carcass Geometry Documentation](docs/carcass-geometry.md), the [Sliding Lid Geometry Documentation](docs/lid-geometry.md), the [Locking Wedge Geometry Documentation](docs/wedge-geometry.md), the [Design JSON Format Documentation](docs/design-json-format.md), the [2D Technical Drawings Documentation](docs/technical-drawings.md), and the [3D Rendering Documentation](docs/three-d-rendering.md).
+For the full specification and architectural roadmap, see the [Product Requirements Document](.junie/plans/prd-v1.md), the [Wood Materials Documentation](docs/wood-materials.md), the [Carcass Geometry Documentation](docs/carcass-geometry.md), the [Sliding Lid Geometry Documentation](docs/lid-geometry.md), the [Locking Wedge Geometry Documentation](docs/wedge-geometry.md), the [Design JSON Format Documentation](docs/design-json-format.md), the [2D Technical Drawings Documentation](docs/technical-drawings.md), and the [3D Rendering Documentation](docs/three-d-rendering.md).
 
 ## Technology Stack
 
@@ -122,4 +120,5 @@ Implementation roadmap outlined in `.junie/plans/prd-v1.md`:
 - **Phase 8 (Complete):** Portable JSON single-design export and import with validation, ID conflict resolution, and pure serialization
 - **Phase 9 (Complete):** 2D technical drawing generation (front, plan, end views) using SVG with zoom/pan
 - **Phase 10 (Complete):** Interactive 3D viewer (Three.js / React Three Fiber) with 13 semantic components, compound side parts with housing dados, solid grab handles, orbit/zoom/pan, standard camera views, and accurate captured locking wedge
-- **Phase 11–13:** Wood materials, automated cut lists, process planning, and browser-side PDF export
+- **Phase 11 (Complete):** Bundled wood material catalogue, species selector, persistence/JSON interchange, and species-sensitive 3D appearance
+- **Phase 12–13:** Automated cut lists, construction process planning, and browser-side PDF export

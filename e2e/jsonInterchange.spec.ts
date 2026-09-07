@@ -134,4 +134,52 @@ test.describe('Phase 8 — JSON Import/Export End-to-End Workflows', () => {
     await expect(page.getByRole('heading', { level: 2, name: 'Japanese Toolbox' })).toBeVisible();
     await expect(lengthInput).toHaveValue('600');
   });
+
+  test('Workflow D — Wood species JSON export and import restoration (Phase 11)', async ({
+    page,
+  }) => {
+    await page.goto('/');
+
+    // 1. Select Beech species
+    const woodSelect = page.getByRole('combobox', { name: /Wood species/i });
+    await woodSelect.selectOption('beech');
+    await expect(woodSelect).toHaveValue('beech');
+
+    // 2. Export JSON
+    const downloadPromise = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Export JSON' }).click();
+    const download = await downloadPromise;
+
+    const downloadStream = await download.createReadStream();
+    const chunks: Buffer[] = [];
+    for await (const chunk of downloadStream) {
+      chunks.push(Buffer.from(chunk));
+    }
+    const exportedContent = Buffer.concat(chunks).toString('utf-8');
+    const parsed = JSON.parse(exportedContent);
+    expect(parsed.wood.id).toBe('beech');
+
+    // 3. Create a New design (defaults back to pine)
+    page.once('dialog', (dialog) => dialog.accept());
+    await page.getByRole('button', { name: 'New' }).click();
+    await expect(page.getByRole('combobox', { name: /Wood species/i })).toHaveValue('pine');
+
+    // 4. Import the exported file
+    page.once('dialog', (dialog) => dialog.accept());
+    const fileInput = page.locator('input[data-testid="import-json-input"]');
+    await fileInput.setInputFiles({
+      name: 'japanese-toolbox.json',
+      mimeType: 'application/json',
+      buffer: Buffer.from(exportedContent),
+    });
+
+    // 5. Verify Beech is restored in Material selector and 3D viewer
+    await expect(page.getByRole('combobox', { name: /Wood species/i })).toHaveValue('beech');
+    await page.getByRole('tab', { name: /3D Model/i }).click();
+    const viewer = page.locator('[data-testid="toolbox-3d-viewer"]');
+    await expect(viewer).toHaveAttribute('data-wood-id', 'beech');
+    await expect(
+      viewer.getByRole('heading', { level: 2, name: /3D Interactive Model — Beech/i }),
+    ).toBeVisible();
+  });
 });

@@ -792,3 +792,30 @@ describe('calculateLockingMechanismGeometry (Phase 5 & 10A)', () => {
     });
   });
 });
+
+describe('calculateToolboxGeometry — Wood Species Independence (Phase 11)', () => {
+  it('produces strictly identical physical geometry regardless of selected wood species', () => {
+    const pineDesign = createDefaultToolboxDesign({ wood: { id: 'pine' } });
+    const oakDesign = createDefaultToolboxDesign({ wood: { id: 'oak' } });
+    const hinokiDesign = createDefaultToolboxDesign({ wood: { id: 'hinoki' } });
+    const customDesign = createDefaultToolboxDesign({ wood: { id: 'exotic-custom-999' } });
+
+    const pineResult = calculateToolboxGeometry(pineDesign);
+    const oakResult = calculateToolboxGeometry(oakDesign);
+    const hinokiResult = calculateToolboxGeometry(hinokiDesign);
+    const customResult = calculateToolboxGeometry(customDesign);
+
+    expect(pineResult.ok).toBe(true);
+    expect(oakResult.ok).toBe(true);
+    expect(hinokiResult.ok).toBe(true);
+    expect(customResult.ok).toBe(true);
+
+    if (!pineResult.ok || !oakResult.ok || !hinokiResult.ok || !customResult.ok) {
+      return;
+    }
+
+    expect(oakResult.geometry).toEqual(pineResult.geometry);
+    expect(hinokiResult.geometry).toEqual(pineResult.geometry);
+    expect(customResult.geometry).toEqual(pineResult.geometry);
+  });
+});

@@ -173,6 +173,9 @@ describe('Design Duplication Behavior', () => {
       dimensions: {
         length: 700,
       },
+      wood: {
+        id: 'ash',
+      },
     });
 
     const copy = duplicateToolboxDesign(source, {
@@ -187,6 +190,7 @@ describe('Design Duplication Behavior', () => {
     expect(copy.schemaVersion).toBe(source.schemaVersion);
     expect(copy.unitSystem).toBe(source.unitSystem);
     expect(copy.dimensions.length).toBe(700);
+    expect(copy.wood.id).toBe('ash');
 
     // Verify deep copy / independence of objects
     expect(copy.dimensions).not.toBe(source.dimensions);

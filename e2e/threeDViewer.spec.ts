@@ -145,4 +145,38 @@ test.describe('Phase 10 — Basic 3D Viewer E2E Workflows', () => {
     await expect(inputError).not.toBeVisible();
     await expect(viewer).toHaveAttribute('data-model-length', '600');
   });
+
+  test('Workflow E — Species change updates 3D model material identity immediately (Phase 11)', async ({
+    page,
+  }) => {
+    await page.goto('/');
+
+    // 1. Change species from Pine to Oak in Material card
+    const woodSelect = page.getByRole('combobox', { name: /Wood species/i });
+    await expect(woodSelect).toHaveValue('pine');
+    await woodSelect.selectOption('oak');
+
+    // 2. Switch to 3D tab
+    await page.getByRole('tab', { name: /3D Model/i }).click();
+    const viewer = page.locator('[data-testid="toolbox-3d-viewer"]');
+    await expect(viewer).toBeVisible();
+    await expect(viewer).toHaveAttribute('data-wood-id', 'oak');
+    await expect(
+      viewer.getByRole('heading', { level: 2, name: /3D Interactive Model — Oak/i }),
+    ).toBeVisible();
+
+    // 3. While 3D view is active, change species to Hinoki
+    await woodSelect.selectOption('hinoki');
+    await expect(viewer).toHaveAttribute('data-wood-id', 'hinoki');
+    await expect(
+      viewer.getByRole('heading', {
+        level: 2,
+        name: /3D Interactive Model — Hinoki \/ Japanese Cypress/i,
+      }),
+    ).toBeVisible();
+
+    // 4. Verify physical model dimensions and camera view remain untouched
+    await expect(viewer).toHaveAttribute('data-model-length', '600');
+    await expect(viewer).toHaveAttribute('data-camera-view', 'perspective');
+  });
 });

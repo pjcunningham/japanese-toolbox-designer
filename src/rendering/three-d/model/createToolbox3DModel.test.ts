@@ -321,4 +321,25 @@ describe('createToolbox3DModel (Phase 10 Requirements 4-37, 70-72)', () => {
     createToolbox3DModel(geometry);
     expect(geometry).toEqual(clonedGeometry);
   });
+
+  it('Phase 11: 3D physical model coordinates, parts, and bounds are strictly identical across wood species', () => {
+    const pineDesign = createDefaultToolboxDesign({ wood: { id: 'pine' } });
+    const oakDesign = createDefaultToolboxDesign({ wood: { id: 'oak' } });
+    const ashDesign = createDefaultToolboxDesign({ wood: { id: 'ash' } });
+
+    const pineGeo = calculateToolboxGeometry(pineDesign);
+    const oakGeo = calculateToolboxGeometry(oakDesign);
+    const ashGeo = calculateToolboxGeometry(ashDesign);
+
+    if (!pineGeo.ok || !oakGeo.ok || !ashGeo.ok) {
+      throw new Error('Geometries must be valid');
+    }
+
+    const pineModel = createToolbox3DModel(pineGeo.geometry);
+    const oakModel = createToolbox3DModel(oakGeo.geometry);
+    const ashModel = createToolbox3DModel(ashGeo.geometry);
+
+    expect(oakModel).toEqual(pineModel);
+    expect(ashModel).toEqual(pineModel);
+  });
 });

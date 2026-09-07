@@ -136,4 +136,30 @@ describe('Toolbox3DViewer Component (Requirements 45, 49, 50, 57, 58, 62, 74, 75
 
     expect(viewer).toHaveAttribute('data-model-length', '750');
   });
+
+  it('Phase 11: resolves wood species ID and updates header, data attributes, and accessible label', () => {
+    const { rerender } = render(
+      <Toolbox3DViewer geometryResult={validGeometryResult} unitSystem="metric" woodId="oak" />,
+    );
+
+    const viewer = screen.getByTestId('toolbox-3d-viewer');
+    expect(viewer).toHaveAttribute('data-wood-id', 'oak');
+    expect(viewer).toHaveAttribute('aria-label', 'Interactive 3D model of Japanese Toolbox in Oak');
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(
+      '3D Interactive Model — Oak',
+    );
+
+    // Rerender with Hinoki
+    rerender(
+      <Toolbox3DViewer geometryResult={validGeometryResult} unitSystem="metric" woodId="hinoki" />,
+    );
+    expect(viewer).toHaveAttribute('data-wood-id', 'hinoki');
+    expect(viewer).toHaveAttribute(
+      'aria-label',
+      'Interactive 3D model of Japanese Toolbox in Hinoki / Japanese Cypress',
+    );
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(
+      '3D Interactive Model — Hinoki / Japanese Cypress',
+    );
+  });
 });

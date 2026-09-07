@@ -1,14 +1,17 @@
 import React from 'react';
 import { formatDimension } from '../../domain/units';
+import { getWoodDefinition } from '../../materials';
 import type { CalculatedDimensionsPanelProps } from './types';
 
 export const CalculatedDimensionsPanel: React.FC<CalculatedDimensionsPanelProps> = ({
   geometryResult,
   unitSystem,
   hasInputErrors,
+  woodId,
 }) => {
   const isGeometryValid = geometryResult.ok;
   const isAvailable = !hasInputErrors && isGeometryValid;
+  const woodDef = woodId ? getWoodDefinition(woodId) : null;
 
   const formatBlankDimensions = (dim: { length: number; width: number; thickness: number }) => {
     if (unitSystem === 'metric') {
@@ -69,6 +72,12 @@ export const CalculatedDimensionsPanel: React.FC<CalculatedDimensionsPanelProps>
               Internal dimensions
             </h3>
             <dl className="calc-list">
+              {woodDef && (
+                <div className="calc-item">
+                  <dt>Wood species</dt>
+                  <dd>{woodDef.name}</dd>
+                </div>
+              )}
               <div className="calc-item">
                 <dt>Internal length</dt>
                 <dd>{formatDimension(geometryResult.geometry.box.internal.length, unitSystem)}</dd>

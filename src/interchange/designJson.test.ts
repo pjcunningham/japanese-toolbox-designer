@@ -487,6 +487,40 @@ describe('Phase 8 — JSON Interchange', () => {
       expect(imported.design.unitSystem).toBe('imperial');
       expect(imported.design.dimensions.length).toBe(600); // Canonical mm remains untouched
     });
+
+    it('Phase 11: preserves selected wood species on export and import round trip', () => {
+      const ashDesign = createDefaultToolboxDesign({
+        name: 'Ash Toolbox',
+        wood: { id: 'ash' },
+      });
+
+      const serialized = serializeToolboxDesign(ashDesign);
+      expect(serialized.ok).toBe(true);
+      if (!serialized.ok) return;
+
+      const imported = parseToolboxDesignJson(serialized.json);
+      expect(imported.ok).toBe(true);
+      if (!imported.ok) return;
+
+      expect(imported.design.wood.id).toBe('ash');
+    });
+
+    it('Phase 11: preserves unknown wood ID from imported JSON without altering it', () => {
+      const designWithFutureWood = createDefaultToolboxDesign({
+        name: 'Future Timber Box',
+        wood: { id: 'some-future-species' },
+      });
+
+      const serialized = serializeToolboxDesign(designWithFutureWood);
+      expect(serialized.ok).toBe(true);
+      if (!serialized.ok) return;
+
+      const imported = parseToolboxDesignJson(serialized.json);
+      expect(imported.ok).toBe(true);
+      if (!imported.ok) return;
+
+      expect(imported.design.wood.id).toBe('some-future-species');
+    });
   });
 
   describe('makeImportedDesignUnique (ID Conflict Handling)', () => {

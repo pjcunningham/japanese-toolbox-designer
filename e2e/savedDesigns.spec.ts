@@ -93,4 +93,35 @@ test.describe('Phase 7 — Saved Designs End-to-End Workflows', () => {
     await expect(page.getByRole('heading', { level: 2, name: 'Japanese Toolbox' })).toBeVisible();
     await expect(page.locator('.persistence-badge-saved')).toBeVisible();
   });
+
+  test('Workflow D — Wood species persistence across save, reload, and 3D viewer (Phase 11)', async ({
+    page,
+  }) => {
+    await page.goto('/');
+
+    // 1. Select Ash
+    const woodSelect = page.getByRole('combobox', { name: /Wood species/i });
+    await woodSelect.selectOption('ash');
+    await expect(woodSelect).toHaveValue('ash');
+    await expect(page.locator('.material-selected-name')).toHaveText('Ash');
+
+    // 2. Save
+    await page.getByRole('button', { name: 'Save' }).click();
+    await expect(page.locator('.persistence-badge-saved')).toBeVisible();
+
+    // 3. Reload page
+    await page.reload();
+
+    // 4. Verify Ash remains selected
+    await expect(page.getByRole('combobox', { name: /Wood species/i })).toHaveValue('ash');
+    await expect(page.locator('.editor-unit-indicator')).toContainText('Ash');
+
+    // 5. Open 3D viewer and verify Ash identity
+    await page.getByRole('tab', { name: /3D Model/i }).click();
+    const viewer = page.locator('[data-testid="toolbox-3d-viewer"]');
+    await expect(viewer).toHaveAttribute('data-wood-id', 'ash');
+    await expect(
+      viewer.getByRole('heading', { level: 2, name: /3D Interactive Model — Ash/i }),
+    ).toBeVisible();
+  });
 });

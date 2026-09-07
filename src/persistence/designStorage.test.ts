@@ -380,4 +380,34 @@ describe('designStorage persistence functions', () => {
       expect(result.error).toContain('Failed to write');
     }
   });
+
+  it('Phase 11: preserves selected wood species across save and reload', () => {
+    const storage = createMockStorage();
+    const oakDesign = createDefaultToolboxDesign({
+      name: 'Oak Toolbox',
+      wood: { id: 'oak' },
+    });
+
+    upsertDesignInStore(oakDesign, storage);
+
+    const loadResult = loadDesignStore(storage);
+    expect(loadResult.status).toBe('ok');
+    expect(loadResult.designs).toHaveLength(1);
+    expect(loadResult.designs[0]?.wood.id).toBe('oak');
+  });
+
+  it('Phase 11: preserves unknown wood ID across persistence without modification', () => {
+    const storage = createMockStorage();
+    const customDesign = createDefaultToolboxDesign({
+      name: 'Custom Timber Box',
+      wood: { id: 'future-species-custom-42' },
+    });
+
+    upsertDesignInStore(customDesign, storage);
+
+    const loadResult = loadDesignStore(storage);
+    expect(loadResult.status).toBe('ok');
+    expect(loadResult.designs).toHaveLength(1);
+    expect(loadResult.designs[0]?.wood.id).toBe('future-species-custom-42');
+  });
 });

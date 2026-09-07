@@ -39,9 +39,15 @@ test.describe('Application Shell & Design Editor Smoke Tests', () => {
     await expect(page.getByLabel(/^Stock thickness/i)).toHaveValue('11/16');
     await expect(page.getByText('23 5/16"')).toBeVisible(); // 592 mm = 23 5/16"
 
+    // Open advanced carcass & handles parameters
+    const carcassDetails = page.locator('details:has-text("Carcass & handles")');
+    await expect(carcassDetails).toBeVisible();
+    await expect(page.getByLabel(/Bottom thickness/i)).toBeVisible();
+    await expect(page.getByLabel(/End handle depth \/ wall inset/i)).toBeVisible();
+
     // Open advanced lid & locking parameters
-    const advancedDetails = page.locator('.advanced-details');
-    await expect(advancedDetails).toBeVisible();
+    const lidDetails = page.locator('details:has-text("Lid & locking mechanism")');
+    await expect(lidDetails).toBeVisible();
     await expect(page.getByLabel(/Desired overlap/i)).toBeVisible();
   });
 

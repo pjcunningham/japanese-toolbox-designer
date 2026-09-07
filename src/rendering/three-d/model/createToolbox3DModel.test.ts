@@ -3,7 +3,7 @@ import { createDefaultToolboxDesign } from '../../../domain/defaults';
 import { calculateToolboxGeometry } from '../../../domain/geometry';
 import { setDesignUnitSystem } from '../../../domain/design';
 import { createToolbox3DModel } from './createToolbox3DModel';
-import type { BoxPart3D, PolyhedronPart3D } from './toolbox3DModel';
+import type { BoxPart3D, PolyhedronPart3D, CompoundBoxPart3D } from './toolbox3DModel';
 
 describe('createToolbox3DModel (Phase 10 Requirements 4-37, 70-72)', () => {
   const defaultDesign = createDefaultToolboxDesign();
@@ -13,10 +13,10 @@ describe('createToolbox3DModel (Phase 10 Requirements 4-37, 70-72)', () => {
   }
   const geometry = geometryResult.geometry;
 
-  it('Requirement 30: produces exactly 11 physical parts with stable semantic IDs', () => {
+  it('Requirement 30 & 61: produces exactly 13 physical parts with stable semantic IDs', () => {
     const model = createToolbox3DModel(geometry);
-    expect(model.parts).toHaveLength(11);
-    expect(model.metadata.partCount).toBe(11);
+    expect(model.parts).toHaveLength(13);
+    expect(model.metadata.partCount).toBe(13);
 
     const partIds = model.parts.map((p) => p.id);
     expect(partIds).toEqual([
@@ -25,6 +25,8 @@ describe('createToolbox3DModel (Phase 10 Requirements 4-37, 70-72)', () => {
       'side-back',
       'end-stop',
       'end-locking',
+      'handle-stop',
+      'handle-locking',
       'fixed-top-batten-stop',
       'fixed-top-batten-locking',
       'lid-panel',
@@ -34,39 +36,129 @@ describe('createToolbox3DModel (Phase 10 Requirements 4-37, 70-72)', () => {
     ]);
   });
 
-  it('Requirement 31: calculates exact domain bounds for axis-aligned carcass parts', () => {
+  it('Requirement 31 & 62: calculates exact domain bounds for axis-aligned carcass parts', () => {
     const model = createToolbox3DModel(geometry);
 
-    // Bottom
+    // Bottom (0..600, 0..300, 0..12)
     const bottom = model.parts.find((p) => p.id === 'bottom') as BoxPart3D;
     expect(bottom.kind).toBe('box');
     expect(bottom.min).toEqual({ x: 0, y: 0, z: 0 });
     expect(bottom.max).toEqual({ x: 600, y: 300, z: 12 });
 
-    // Front side
-    const frontSide = model.parts.find((p) => p.id === 'side-front') as BoxPart3D;
-    expect(frontSide.min).toEqual({ x: 0, y: 0, z: 12 });
-    expect(frontSide.max).toEqual({ x: 600, y: 18, z: 250 });
-
-    // Back side
-    const backSide = model.parts.find((p) => p.id === 'side-back') as BoxPart3D;
-    expect(backSide.min).toEqual({ x: 0, y: 282, z: 12 });
-    expect(backSide.max).toEqual({ x: 600, y: 300, z: 250 });
-
-    // Stop end
+    // Stop end wall (36..54, 15..285, 12..250)
     const stopEnd = model.parts.find((p) => p.id === 'end-stop') as BoxPart3D;
-    expect(stopEnd.min).toEqual({ x: 0, y: 18, z: 12 });
-    expect(stopEnd.max).toEqual({ x: 18, y: 282, z: 250 });
+    expect(stopEnd.kind).toBe('box');
+    expect(stopEnd.min).toEqual({ x: 36, y: 15, z: 12 });
+    expect(stopEnd.max).toEqual({ x: 54, y: 285, z: 250 });
 
-    // Locking end
+    // Locking end wall (546..564, 15..285, 12..250)
     const lockingEnd = model.parts.find((p) => p.id === 'end-locking') as BoxPart3D;
-    expect(lockingEnd.min).toEqual({ x: 582, y: 18, z: 12 });
-    expect(lockingEnd.max).toEqual({ x: 600, y: 282, z: 250 });
+    expect(lockingEnd.kind).toBe('box');
+    expect(lockingEnd.min).toEqual({ x: 546, y: 15, z: 12 });
+    expect(lockingEnd.max).toEqual({ x: 564, y: 285, z: 250 });
 
-    // Stop top batten
+    // Stop grab handle (0..36, 18..282, 178..250)
+    const stopHandle = model.parts.find((p) => p.id === 'handle-stop') as BoxPart3D;
+    expect(stopHandle.kind).toBe('box');
+    expect(stopHandle.min).toEqual({ x: 0, y: 18, z: 178 });
+    expect(stopHandle.max).toEqual({ x: 36, y: 282, z: 250 });
+
+    // Locking grab handle (564..600, 18..282, 178..250)
+    const lockHandle = model.parts.find((p) => p.id === 'handle-locking') as BoxPart3D;
+    expect(lockHandle.kind).toBe('box');
+    expect(lockHandle.min).toEqual({ x: 564, y: 18, z: 178 });
+    expect(lockHandle.max).toEqual({ x: 600, y: 282, z: 250 });
+
+    // Stop top batten / end cap (0..84, 0..300, 250..268)
     const stopTopBatten = model.parts.find((p) => p.id === 'fixed-top-batten-stop') as BoxPart3D;
+    expect(stopTopBatten.kind).toBe('box');
     expect(stopTopBatten.min).toEqual({ x: 0, y: 0, z: 250 });
     expect(stopTopBatten.max).toEqual({ x: 84, y: 300, z: 268 });
+  });
+
+  it('Requirement 63: models compound side boards with exact 5 physical segments for housing dados', () => {
+    const model = createToolbox3DModel(geometry);
+
+    // Front side (compound-box with 5 segments)
+    const frontSide = model.parts.find((p) => p.id === 'side-front') as CompoundBoxPart3D;
+    expect(frontSide.kind).toBe('compound-box');
+    expect(frontSide.solids).toHaveLength(5);
+
+    expect(frontSide.solids[0]).toEqual({
+      min: { x: 0, y: 0, z: 12 },
+      max: { x: 36, y: 18, z: 250 },
+    });
+    expect(frontSide.solids[1]).toEqual({
+      min: { x: 36, y: 0, z: 12 },
+      max: { x: 54, y: 15, z: 250 },
+    });
+    expect(frontSide.solids[2]).toEqual({
+      min: { x: 54, y: 0, z: 12 },
+      max: { x: 546, y: 18, z: 250 },
+    });
+    expect(frontSide.solids[3]).toEqual({
+      min: { x: 546, y: 0, z: 12 },
+      max: { x: 564, y: 15, z: 250 },
+    });
+    expect(frontSide.solids[4]).toEqual({
+      min: { x: 564, y: 0, z: 12 },
+      max: { x: 600, y: 18, z: 250 },
+    });
+
+    // Back side (compound-box with 5 segments)
+    const backSide = model.parts.find((p) => p.id === 'side-back') as CompoundBoxPart3D;
+    expect(backSide.kind).toBe('compound-box');
+    expect(backSide.solids).toHaveLength(5);
+
+    expect(backSide.solids[0]).toEqual({
+      min: { x: 0, y: 282, z: 12 },
+      max: { x: 36, y: 300, z: 250 },
+    });
+    expect(backSide.solids[1]).toEqual({
+      min: { x: 36, y: 285, z: 12 },
+      max: { x: 54, y: 300, z: 250 },
+    });
+    expect(backSide.solids[2]).toEqual({
+      min: { x: 54, y: 282, z: 12 },
+      max: { x: 546, y: 300, z: 250 },
+    });
+    expect(backSide.solids[3]).toEqual({
+      min: { x: 546, y: 285, z: 12 },
+      max: { x: 564, y: 300, z: 250 },
+    });
+    expect(backSide.solids[4]).toEqual({
+      min: { x: 564, y: 282, z: 12 },
+      max: { x: 600, y: 300, z: 250 },
+    });
+  });
+
+  it('Requirement 64: proves end-wall housed boundaries mate perfectly with side-board recesses with no overlap or gaps', () => {
+    const model = createToolbox3DModel(geometry);
+    const stopEnd = model.parts.find((p) => p.id === 'end-stop') as BoxPart3D;
+    const lockEnd = model.parts.find((p) => p.id === 'end-locking') as BoxPart3D;
+    const frontSide = model.parts.find((p) => p.id === 'side-front') as CompoundBoxPart3D;
+    const backSide = model.parts.find((p) => p.id === 'side-back') as CompoundBoxPart3D;
+
+    // Stop end wall enters front dado (X: 36..54, Y: 15..18, Z: 12..250)
+    // Front side dado recess: X: 36..54, Y: 15..18 is open/removed
+    expect(stopEnd.min.y).toBe(frontSide.solids[1]!.max.y); // 15
+    expect(stopEnd.min.x).toBe(frontSide.solids[1]!.min.x); // 36
+    expect(stopEnd.max.x).toBe(frontSide.solids[1]!.max.x); // 54
+
+    // Stop end wall enters back dado (X: 36..54, Y: 282..285, Z: 12..250)
+    expect(stopEnd.max.y).toBe(backSide.solids[1]!.min.y); // 285
+    expect(stopEnd.min.x).toBe(backSide.solids[1]!.min.x); // 36
+    expect(stopEnd.max.x).toBe(backSide.solids[1]!.max.x); // 54
+
+    // Locking end wall enters front dado (X: 546..564, Y: 15..18, Z: 12..250)
+    expect(lockEnd.min.y).toBe(frontSide.solids[3]!.max.y); // 15
+    expect(lockEnd.min.x).toBe(frontSide.solids[3]!.min.x); // 546
+    expect(lockEnd.max.x).toBe(frontSide.solids[3]!.max.x); // 564
+
+    // Locking end wall enters back dado (X: 546..564, Y: 282..285, Z: 12..250)
+    expect(lockEnd.max.y).toBe(backSide.solids[3]!.min.y); // 285
+    expect(lockEnd.min.x).toBe(backSide.solids[3]!.min.x); // 546
+    expect(lockEnd.max.x).toBe(backSide.solids[3]!.max.x); // 564
   });
 
   it('Requirement 32: calculates exact domain bounds for locked lid panel and straight batten', () => {

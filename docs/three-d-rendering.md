@@ -44,25 +44,35 @@ Toolbox3DModel (Pure TypeScript, physical coordinates & polyhedra)
 React Three Fiber / Three.js Canvas & Meshes
 ```
 
-The `Toolbox3DModel` contains 11 physical parts, precise bounding volumes, and metadata without any React, Three.js, or WebGL dependencies.
+The `Toolbox3DModel` contains 13 semantic woodworking parts, precise bounding volumes, and metadata without any React, Three.js, or WebGL dependencies.
 
 ---
 
-## 3. Physical Parts Modelled (11 Distinct Parts)
+## 3. Physical Parts Modelled (13 Distinct Semantic Parts)
 
-The Japanese toolbox is modelled as 11 distinct physical wooden components:
+The Japanese toolbox is modelled as 13 distinct semantic woodworking parts:
 
-1. **`bottom`** (Box): Full base footprint $X \times Y$, thickness $T_{\text{bottom}}$.
-2. **`side-front`** (Box): Runs full length $X$, thickness $T$, height $T_{\text{bottom}} \dots Z$.
-3. **`side-back`** (Box): Runs full length $X$, thickness $T$, height $T_{\text{bottom}} \dots Z$.
-4. **`end-stop`** (Box): Inset between sides $T \dots Y - T$, length $0 \dots T$, height $T_{\text{bottom}} \dots Z$.
-5. **`end-locking`** (Box): Inset between sides $T \dots Y - T$, length $X - T \dots X$, height $T_{\text{bottom}} \dots Z$.
-6. **`fixed-top-batten-stop`** (Box): Top batten above stop end spanning $0 \dots R$, $0 \dots Y$, $Z \dots Z + T$.
-7. **`fixed-top-batten-locking`** (Polyhedron): Top batten above locking end with inner bevel matching wedge capture angle $\beta$.
-8. **`lid-panel`** (Box): Sliding lid panel in locked state, centered laterally between side walls with lateral clearance $C$.
-9. **`straight-lid-batten`** (Box): Rectangular batten affixed to lid panel, aligned with locked straight batten X coordinates and plan overhang.
-10. **`locking-lid-batten`** (Polyhedron): Compound tapered and bevelled batten affixed to lid panel forming the moving side of the wedge channel.
-11. **`locking-wedge`** (Polyhedron): Compound tapered locking wedge captured vertically and tightened laterally.
+1. **`bottom`** (Box): Full base footprint $X \times Y$, thickness $T_b = 12\text{ mm}$ (default).
+2. **`side-front`** (Compound Box): Runs full length $X$, thickness $T = 18\text{ mm}$, height $T_b \dots Z$. Modeled as 5 non-overlapping rectangular box segments to physically carve out the two housing dado recesses of depth $G = 3\text{ mm}$ without CSG or volume boolean artifacts.
+3. **`side-back`** (Compound Box): Runs full length $X$, thickness $T = 18\text{ mm}$, height $T_b \dots Z$. Modeled as 5 non-overlapping rectangular box segments with the inner $G = 3\text{ mm}$ removed at each housing location.
+4. **`end-stop`** (Box): Inset end wall at $X = 36 \dots 54\text{ mm}$, spanning $Y = 15 \dots 285\text{ mm}$ (entering the front and back housing dados by $G = 3\text{ mm}$ on each side), height $T_b \dots Z$.
+5. **`end-locking`** (Box): Inset end wall at $X = 546 \dots 564\text{ mm}$, spanning $Y = 15 \dots 285\text{ mm}$ (entering the front and back housing dados by $G = 3\text{ mm}$ on each side), height $T_b \dots Z$.
+6. **`handle-stop`** (Box): Solid crosswise grab handle at the stop end spanning $X = 0 \dots 36\text{ mm}$, $Y = 18 \dots 282\text{ mm}$, and $Z = 178 \dots 250\text{ mm}$ (height $H = 72\text{ mm}$).
+7. **`handle-locking`** (Box): Solid crosswise grab handle at the locking end spanning $X = 564 \dots 600\text{ mm}$, $Y = 18 \dots 282\text{ mm}$, and $Z = 178 \dots 250\text{ mm}$ (height $H = 72\text{ mm}$).
+8. **`fixed-top-batten-stop`** (Box): Top end cap above stop end spanning $0 \dots R = 84\text{ mm}$, $0 \dots Y$, $Z \dots Z + T$.
+9. **`fixed-top-batten-locking`** (Polyhedron): Top end cap above locking end spanning $516 \dots 600\text{ mm}$ with inner bevel matching wedge capture angle $\beta = 10^\circ$.
+10. **`lid-panel`** (Box): Sliding lid panel in locked state, centered laterally between side walls with lateral clearance $C = 2\text{ mm}$.
+11. **`straight-lid-batten`** (Box): Rectangular batten affixed to lid panel, aligned with locked straight batten X coordinates and plan overhang.
+12. **`locking-lid-batten`** (Polyhedron): Compound tapered ($\alpha = 2^\circ$) and bevelled ($\beta = 10^\circ$) batten affixed to lid panel forming the moving side of the wedge channel.
+13. **`locking-wedge`** (Polyhedron): Compound tapered locking wedge captured vertically and tightened laterally.
+
+### Compound Part Representation for Housing Dados
+
+To prevent overlapping physical solids at the housed dado joints:
+
+- The end-wall blanks physically extend into the side walls by $G = 3\text{ mm}$ ($Y = 15 \dots 18$ and $Y = 282 \dots 285$).
+- The side boards are modeled as **compound parts** consisting of multiple solid box segments where the inner $G = 3\text{ mm}$ is recessed.
+- At render time, multiple Three.js box meshes represent the one semantic side-board woodworking part, sharing identical material, edge styling, and part identity (`metadata.partCount = 13`).
 
 ---
 

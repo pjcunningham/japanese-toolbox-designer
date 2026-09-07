@@ -20,19 +20,21 @@ The renderer-neutral drawing model uses standard engineering coordinates:
    - **Direction:** Looking downward along the **Z** axis.
    - **Horizontal axis ($X$):** Toolbox length ($0 = \text{Stop end}$, $X = \text{Locking end}$).
    - **Vertical axis ($Y$):** Toolbox width ($0 = \text{Narrow wedge face / front}$, $Y = \text{Wide wedge face / back}$).
-   - **Rationale for Default:** Plan view provides the most mechanically comprehensive view of the toolbox assembly, clearly showing the carcass footprint, both fixed top battens, locked lid panel, straight lid batten, tapered locking batten, and mating locking wedge.
+   - **Features Shown:** Carcass footprint, both fixed top battens / end caps, inset end-wall positions beneath top components, handle bays and solid grab handles, housing-dado joint locations, locked lid panel, straight lid batten, tapered locking batten, and mating locking wedge.
+   - **Rationale for Default:** Plan view provides the most mechanically comprehensive view of the toolbox assembly, clearly showing the carcass construction, grab handles, and lid locking mechanism.
 
 2. **Front Elevation (`'front'`)**
    - **Direction:** Looking across the **Y** axis (long-side elevation).
    - **Horizontal axis ($X$):** Toolbox length ($0 = \text{Stop end}$, $X = \text{Locking end}$).
    - **Vertical axis ($Z$):** Carcass height ($0 = \text{Bottom board underside}$, $Z = \text{Body height}$, $Z + T = \text{Total height with top battens}$).
+   - **Carcass & Hidden Construction:** Shows the thinner independent bottom board ($T_b = 12\text{ mm}$ default), long front side board, fixed top battens, hidden vertical lines representing inset end-wall positions ($X = 36, 54, 546, 564\text{ mm}$ default), and hidden boundaries of solid grab handles ($Z = 178 \dots 250\text{ mm}$).
    - **Captured Wedge Profile:** Shows the front-most profile at the narrow end ($Y = 2\text{ mm}$), visually demonstrating that the wedge bottom width is wider than the top width and captured by complementary undercut bevels ($\beta$).
 
 3. **End Elevation (`'end'`)**
-   - **Direction:** Looking along the **X** axis.
+   - **Direction:** Looking along the **X** axis from the stop end.
    - **Horizontal axis ($Y$):** Toolbox width ($0 \dots Y$).
    - **Vertical axis ($Z$):** Vertical height ($0 \dots Z + T$).
-   - **Lid Fit:** Shows side wall thicknesses ($T$), facing end board, lid panel lateral position, side clearance ($C$), and top batten width.
+   - **Carcass & Handle Construction:** Shows bottom board ($T_b$), two long side boards ($T$), solid grab handle in the upper end bay ($H = 72\text{ mm}$ default), inset recessed end wall positioned below and behind the handle, side housing-dado indication lines ($G = 3\text{ mm}$), top end cap, lid panel lateral position, and side clearance ($C$).
 
 ---
 

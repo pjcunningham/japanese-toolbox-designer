@@ -19,7 +19,7 @@ test.describe('Phase 10 — Basic 3D Viewer E2E Workflows', () => {
     // 3. Verify 3D viewer container & metadata (allow dynamic chunk load)
     const viewer = page.locator('[data-testid="toolbox-3d-viewer"]');
     await expect(viewer).toBeVisible({ timeout: 15000 });
-    await expect(viewer).toHaveAttribute('data-model-part-count', '11');
+    await expect(viewer).toHaveAttribute('data-model-part-count', '13');
     await expect(viewer).toHaveAttribute('data-model-length', '600');
     await expect(viewer).toHaveAttribute('data-camera-view', 'perspective');
 
@@ -112,6 +112,12 @@ test.describe('Phase 10 — Basic 3D Viewer E2E Workflows', () => {
     const widthInput = page.getByLabel(/^Width/i);
     await widthInput.fill('320');
     await expect(viewer).toHaveAttribute('data-model-width', '320');
+
+    // Edit End handle depth to 38 mm
+    const handleDepthInput = page.getByLabel(/End handle depth \/ wall inset/i);
+    await handleDepthInput.fill('38');
+    // Verify viewer remains operational with 13 parts
+    await expect(viewer).toHaveAttribute('data-model-part-count', '13');
   });
 
   test('Workflow D — Invalid draft and geometry error fallback in 3D viewer (Requirement 49)', async ({

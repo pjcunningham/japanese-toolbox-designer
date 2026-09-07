@@ -6,17 +6,20 @@ Japanese Toolbox Designer is a browser-only web application designed for woodwor
 
 ## Current Status
 
-**Phase 10A Complete — Correct Traditional Carcass Geometry**
+**Phase 10A & 10B Complete — Correct Traditional Carcass Geometry & Integrated 2D / 3D Visualisation**
 
-The domain model and authoritative geometry engine have been corrected to represent authentic traditional Japanese toolbox construction:
+The application models authoritative schema-v2 traditional Japanese toolbox construction across the domain geometry, editor, 2D technical drawings, and interactive 3D model:
 
 - **Inset Housed End Walls:** End walls are inset from the carcass ends to create functional handle bays and housed into shallow dados ($G$) in the long side walls.
 - **Integral Handle Bays & Solid Grab Handles:** Includes two solid grab handle blocks fitted between the long side boards at the top of each end bay.
 - **Independent Thicknesses:** Bottom thickness ($T_b$) and lid thickness ($P$) are independently specified rather than constrained to main stock thickness ($T$).
 - **Corrected Pocket Depth & Kinematics:** Lid pocket depth ($R - I - T$), available sliding lid travel, and locking wedge channel dimensions correctly reference the inner face of the inset end walls.
-- **Schema Version 2 & Migration:** Design schema is version 2 with in-memory backwards-compatible migration for version 1 saved designs and JSON imports.
+- **Matching 2D & 3D Visualisation:**
+  - 2D Technical Drawings (Plan, Front, End SVG views) accurately reflect the inset end walls, housing dados, solid grab handles, and thinner bottom.
+  - Interactive 3D Model represents 13 semantic woodworking parts, using non-overlapping compound box segments to model the side-board housing dados.
+- **Schema Version 2 & Migration:** Design schema is version 2 with backwards-compatible migration for version 1 saved designs and JSON imports.
 
-> **Note on Visualisation:** 2D and 3D visualisation updates for this corrected carcass are Phase 10B. (The current 2D and 3D views will be updated to display the inset housed end walls, handle openings, and solid handle components in Phase 10B).
+**Next Phase:** Phase 11 — Materials & Species Presets.
 
 For the full specification and architectural roadmap, see the [Product Requirements Document](.junie/plans/prd-v1.md), the [Carcass Geometry Documentation](docs/carcass-geometry.md), the [Sliding Lid Geometry Documentation](docs/lid-geometry.md), the [Locking Wedge Geometry Documentation](docs/wedge-geometry.md), the [Design JSON Format Documentation](docs/design-json-format.md), the [2D Technical Drawings Documentation](docs/technical-drawings.md), and the [3D Rendering Documentation](docs/three-d-rendering.md).
 
@@ -118,5 +121,5 @@ Implementation roadmap outlined in `.junie/plans/prd-v1.md`:
 - **Phase 7 (Complete):** Local storage persistence, multi-design management (New, Save, Open, Rename, Duplicate, Delete), and Zod schema validation
 - **Phase 8 (Complete):** Portable JSON single-design export and import with validation, ID conflict resolution, and pure serialization
 - **Phase 9 (Complete):** 2D technical drawing generation (front, plan, end views) using SVG with zoom/pan
-- **Phase 10 (Complete):** Interactive 3D viewer (Three.js / React Three Fiber) with 11 distinct components, orbit/zoom/pan, standard camera views, and accurate captured locking wedge
+- **Phase 10 (Complete):** Interactive 3D viewer (Three.js / React Three Fiber) with 13 semantic components, compound side parts with housing dados, solid grab handles, orbit/zoom/pan, standard camera views, and accurate captured locking wedge
 - **Phase 11–13:** Wood materials, automated cut lists, process planning, and browser-side PDF export

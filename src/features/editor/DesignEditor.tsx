@@ -43,6 +43,26 @@ function getInitialDrafts(design: ToolboxDesign): DraftValues {
     stockThickness: formatDimension(design.dimensions.stockThickness, design.unitSystem, {
       includeUnit: false,
     }),
+    bottomThickness: formatDimension(
+      design.constructionParameters.bottomThickness,
+      design.unitSystem,
+      { includeUnit: false },
+    ),
+    endHandleDepth: formatDimension(
+      design.constructionParameters.endHandleDepth,
+      design.unitSystem,
+      { includeUnit: false },
+    ),
+    endHandleHeight: formatDimension(
+      design.constructionParameters.endHandleHeight,
+      design.unitSystem,
+      { includeUnit: false },
+    ),
+    housingDadoDepth: formatDimension(
+      design.constructionParameters.housingDadoDepth,
+      design.unitSystem,
+      { includeUnit: false },
+    ),
     lidThickness: formatDimension(design.constructionParameters.lidThickness, design.unitSystem, {
       includeUnit: false,
     }),
@@ -295,6 +315,74 @@ export const DesignEditor: React.FC<DesignEditorProps> = ({
             </div>
           </section>
 
+          {/* Advanced Carcass & Handles Card */}
+          <section className="editor-card" aria-labelledby="carcass-parameters-heading">
+            <details className="advanced-details" open>
+              <summary id="carcass-parameters-heading" className="advanced-summary">
+                <span>Carcass &amp; handles</span>
+              </summary>
+              <div className="advanced-content">
+                <div className="field-grid">
+                  <DimensionField
+                    id="field-bottomThickness"
+                    label="Bottom thickness"
+                    symbol="Tb"
+                    value={drafts.bottomThickness}
+                    unitSystem={design.unitSystem}
+                    error={fieldErrors.bottomThickness}
+                    helperText="Thickness of the full-size bottom board fixed beneath the carcass."
+                    onChange={(val) => handleDimensionChange('bottomThickness', val)}
+                    onBlur={() => handleDimensionBlur('bottomThickness')}
+                  />
+                  <DimensionField
+                    id="field-endHandleDepth"
+                    label="End handle depth / wall inset"
+                    symbol="I"
+                    value={drafts.endHandleDepth}
+                    unitSystem={design.unitSystem}
+                    error={fieldErrors.endHandleDepth}
+                    helperText="Distance from each end of the side boards to the outside face of the inset end wall. This also defines the depth of the grab-handle bay."
+                    onChange={(val) => handleDimensionChange('endHandleDepth', val)}
+                    onBlur={() => handleDimensionBlur('endHandleDepth')}
+                  />
+                  <DimensionField
+                    id="field-endHandleHeight"
+                    label="End handle height"
+                    symbol="H"
+                    value={drafts.endHandleHeight}
+                    unitSystem={design.unitSystem}
+                    error={fieldErrors.endHandleHeight}
+                    helperText="Vertical height of the solid grab handle fitted at each end."
+                    onChange={(val) => handleDimensionChange('endHandleHeight', val)}
+                    onBlur={() => handleDimensionBlur('endHandleHeight')}
+                  />
+                  <DimensionField
+                    id="field-housingDadoDepth"
+                    label="Housing dado depth"
+                    symbol="G"
+                    value={drafts.housingDadoDepth}
+                    unitSystem={design.unitSystem}
+                    error={fieldErrors.housingDadoDepth}
+                    helperText="Depth the inset end wall enters the inside face of each long side."
+                    onChange={(val) => handleDimensionChange('housingDadoDepth', val)}
+                    onBlur={() => handleDimensionBlur('housingDadoDepth')}
+                  />
+                  <DimensionField
+                    id="field-fixedTopBattenWidth"
+                    label="End cap width"
+                    symbol="R"
+                    value={drafts.fixedTopBattenWidth}
+                    unitSystem={design.unitSystem}
+                    error={fieldErrors.fixedTopBattenWidth}
+                    helperText="Width of the top end cap. The portion extending past the inset end wall forms the lid pocket."
+                    onChange={(val) => handleDimensionChange('fixedTopBattenWidth', val)}
+                    onBlur={() => handleDimensionBlur('fixedTopBattenWidth')}
+                  />
+                </div>
+              </div>
+            </details>
+          </section>
+
           {/* Advanced Lid & Locking Parameters Card */}
           <section className="editor-card" aria-labelledby="advanced-parameters-heading">
             <details className="advanced-details" open>
@@ -312,16 +400,6 @@ export const DesignEditor: React.FC<DesignEditorProps> = ({
                     error={fieldErrors.lidThickness}
                     onChange={(val) => handleDimensionChange('lidThickness', val)}
                     onBlur={() => handleDimensionBlur('lidThickness')}
-                  />
-                  <DimensionField
-                    id="field-fixedTopBattenWidth"
-                    label="Fixed top batten width"
-                    symbol="R"
-                    value={drafts.fixedTopBattenWidth}
-                    unitSystem={design.unitSystem}
-                    error={fieldErrors.fixedTopBattenWidth}
-                    onChange={(val) => handleDimensionChange('fixedTopBattenWidth', val)}
-                    onBlur={() => handleDimensionBlur('fixedTopBattenWidth')}
                   />
                   <DimensionField
                     id="field-lidBattenWidth"

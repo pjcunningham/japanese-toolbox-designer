@@ -17,18 +17,24 @@ test.describe('Phase 9 — Technical Drawings E2E Workflows', () => {
     await expect(svg).toHaveAttribute('data-view', 'plan');
     await expect(svg.getByText('STOP END')).toBeVisible();
     await expect(svg.getByText('LOCKING END')).toBeVisible();
+    await expect(svg.getByText(/Inset housed end wall/i)).toBeVisible();
+    await expect(svg.getByText(/Grab handle below end cap/i)).toBeVisible();
 
     // 2. Switch to Front elevation
     await frontTab.click();
     await expect(frontTab).toHaveAttribute('aria-selected', 'true');
     await expect(svg).toHaveAttribute('data-view', 'front');
     await expect(svg.locator('#front-ann-captured-wedge')).toBeVisible();
+    await expect(svg.locator('#front-ann-grab-handle')).toBeVisible();
+    await expect(svg.locator('#front-ann-inset-end-wall')).toBeVisible();
 
     // 3. Switch to End elevation
     await endTab.click();
     await expect(endTab).toHaveAttribute('aria-selected', 'true');
     await expect(svg).toHaveAttribute('data-view', 'end');
     await expect(svg.locator('#end-ann-clearance')).toBeVisible();
+    await expect(svg.locator('#end-ann-grab-handle')).toBeVisible();
+    await expect(svg.locator('#end-ann-inset-end-wall')).toBeVisible();
   });
 
   test('Workflow B — zoom and pan interactions (Requirements 46–52, 77)', async ({ page }) => {

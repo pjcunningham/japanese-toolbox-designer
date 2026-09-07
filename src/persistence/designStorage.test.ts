@@ -213,10 +213,12 @@ describe('designStorage persistence functions', () => {
     const valid1 = createDefaultToolboxDesign({
       name: 'Valid One',
       idGenerator: () => 'v-1',
+      timestampGenerator: () => '2026-01-02T00:00:00.000Z',
     });
     const valid2 = createDefaultToolboxDesign({
       name: 'Valid Two',
       idGenerator: () => 'v-2',
+      timestampGenerator: () => '2026-01-01T00:00:00.000Z',
     });
 
     const unsupportedSchemaDesign = {

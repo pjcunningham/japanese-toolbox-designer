@@ -21,7 +21,7 @@ export function createFrontDrawing(geometry: CalculatedToolboxGeometry): Technic
   const X = geometry.box.outside.length;
   const bodyHeight = geometry.box.outside.bodyHeight;
   const overallHeightWithTopBattens = geometry.box.outside.overallHeightWithTopBattens;
-  const T = geometry.box.parts.side.dimensions.thickness;
+  const Tb = geometry.box.parts.bottom.dimensions.thickness;
   const R = geometry.lid.openingEdges.stopOpeningEdgeX;
 
   const lidPanelBottomZ = geometry.lid.vertical.lidPanelBottomZ;
@@ -34,6 +34,11 @@ export function createFrontDrawing(geometry: CalculatedToolboxGeometry): Technic
   const straightBattenEndX = geometry.lid.states.locked.straightLidBatten.endX;
   const straightBattenWidth = straightBattenEndX - straightBattenStartX;
 
+  const stopWall = geometry.box.layout.endWalls.stop;
+  const lockingWall = geometry.box.layout.endWalls.locking;
+  const stopHandle = geometry.box.layout.handles.stop;
+  const lockingHandle = geometry.box.layout.handles.locking;
+
   // Rectangles
   const rectangles: DrawingRectangle[] = [
     // 1. Bottom board
@@ -43,18 +48,37 @@ export function createFrontDrawing(geometry: CalculatedToolboxGeometry): Technic
       x: 0,
       y: 0,
       width: X,
-      height: T,
+      height: Tb,
     },
     // 2. Front side wall (above bottom board up to body height)
     {
       id: 'front-side-wall',
       part: 'side',
       x: 0,
-      y: T,
+      y: Tb,
       width: X,
-      height: bodyHeight - T,
+      height: bodyHeight - Tb,
     },
-    // 3. Hidden lid panel
+    // 3. Hidden grab handles behind front side board
+    {
+      id: 'front-handle-stop',
+      part: 'handle-stop',
+      x: stopHandle.startX,
+      y: stopHandle.startZ,
+      width: stopHandle.endX - stopHandle.startX,
+      height: stopHandle.endZ - stopHandle.startZ,
+      hidden: true,
+    },
+    {
+      id: 'front-handle-locking',
+      part: 'handle-locking',
+      x: lockingHandle.startX,
+      y: lockingHandle.startZ,
+      width: lockingHandle.endX - lockingHandle.startX,
+      height: lockingHandle.endZ - lockingHandle.startZ,
+      hidden: true,
+    },
+    // 4. Hidden lid panel
     {
       id: 'front-lid-panel',
       part: 'lid-panel',
@@ -64,7 +88,7 @@ export function createFrontDrawing(geometry: CalculatedToolboxGeometry): Technic
       height: lidPanelTopZ - lidPanelBottomZ,
       hidden: true,
     },
-    // 4. Stop fixed top batten
+    // 5. Stop fixed top batten / end cap
     {
       id: 'front-fixed-top-batten-stop',
       part: 'fixed-top-batten-stop',
@@ -73,7 +97,7 @@ export function createFrontDrawing(geometry: CalculatedToolboxGeometry): Technic
       width: R,
       height: overallHeightWithTopBattens - bodyHeight,
     },
-    // 5. Straight lid batten
+    // 6. Straight lid batten
     {
       id: 'front-straight-lid-batten',
       part: 'straight-lid-batten',
@@ -132,8 +156,55 @@ export function createFrontDrawing(geometry: CalculatedToolboxGeometry): Technic
     },
   ];
 
-  // Lines (Hidden lid panel top & bottom & end edges)
+  // Lines (Hidden inset end walls, grab handle lines, hidden lid panel edges)
   const lines: DrawingLine[] = [
+    // Inset stop end wall (hidden lines through front side board)
+    {
+      id: 'front-line-end-stop-outside',
+      kind: 'hidden',
+      part: 'end-wall-stop',
+      start: { x: stopWall.outsideFaceX, y: Tb },
+      end: { x: stopWall.outsideFaceX, y: bodyHeight },
+    },
+    {
+      id: 'front-line-end-stop-inside',
+      kind: 'hidden',
+      part: 'end-wall-stop',
+      start: { x: stopWall.insideFaceX, y: Tb },
+      end: { x: stopWall.insideFaceX, y: bodyHeight },
+    },
+    // Inset locking end wall (hidden lines through front side board)
+    {
+      id: 'front-line-end-locking-inside',
+      kind: 'hidden',
+      part: 'end-wall-locking',
+      start: { x: lockingWall.insideFaceX, y: Tb },
+      end: { x: lockingWall.insideFaceX, y: bodyHeight },
+    },
+    {
+      id: 'front-line-end-locking-outside',
+      kind: 'hidden',
+      part: 'end-wall-locking',
+      start: { x: lockingWall.outsideFaceX, y: Tb },
+      end: { x: lockingWall.outsideFaceX, y: bodyHeight },
+    },
+    // Stop handle bottom hidden line
+    {
+      id: 'front-line-handle-stop-bottom',
+      kind: 'hidden',
+      part: 'handle-stop',
+      start: { x: stopHandle.startX, y: stopHandle.startZ },
+      end: { x: stopHandle.endX, y: stopHandle.startZ },
+    },
+    // Locking handle bottom hidden line
+    {
+      id: 'front-line-handle-locking-bottom',
+      kind: 'hidden',
+      part: 'handle-locking',
+      start: { x: lockingHandle.startX, y: lockingHandle.startZ },
+      end: { x: lockingHandle.endX, y: lockingHandle.startZ },
+    },
+    // Hidden lid panel top & bottom & end edges
     {
       id: 'front-line-lid-top',
       kind: 'hidden',
@@ -167,8 +238,8 @@ export function createFrontDrawing(geometry: CalculatedToolboxGeometry): Technic
       id: 'front-line-bottom-joint',
       kind: 'visible',
       part: 'body',
-      start: { x: 0, y: T },
-      end: { x: X, y: T },
+      start: { x: 0, y: Tb },
+      end: { x: X, y: Tb },
     },
   ];
 
@@ -204,6 +275,16 @@ export function createFrontDrawing(geometry: CalculatedToolboxGeometry): Technic
       valueMillimetres: overallHeightWithTopBattens,
       label: 'Total Height',
     },
+    // Handle depth / wall inset I
+    {
+      id: 'front-dim-inset',
+      axis: 'x',
+      start: { x: 0, y: bodyHeight },
+      end: { x: stopWall.outsideFaceX, y: bodyHeight },
+      offset: 18,
+      valueMillimetres: stopWall.outsideFaceX,
+      label: 'Inset I',
+    },
   ];
 
   // Annotations
@@ -231,6 +312,24 @@ export function createFrontDrawing(geometry: CalculatedToolboxGeometry): Technic
       text: `β = ${wedge.bevelAngle}° Captured wedge`,
       align: 'center',
     },
+    {
+      id: 'front-ann-grab-handle',
+      position: {
+        x: (stopHandle.startX + stopHandle.endX) / 2,
+        y: (stopHandle.startZ + stopHandle.endZ) / 2,
+      },
+      text: 'Grab handle',
+      align: 'center',
+    },
+    {
+      id: 'front-ann-inset-end-wall',
+      position: {
+        x: (stopWall.startX + stopWall.endX) / 2,
+        y: Tb + (bodyHeight - Tb) / 2,
+      },
+      text: 'Inset end wall',
+      align: 'center',
+    },
   ];
 
   // Viewport margin bounds
@@ -247,7 +346,7 @@ export function createFrontDrawing(geometry: CalculatedToolboxGeometry): Technic
   return {
     view: 'front',
     title: 'Front Elevation',
-    description: `Front elevation of toolbox (${X} × ${overallHeightWithTopBattens} mm) looking across Y axis showing captured wedge profile and hidden lid.`,
+    description: `Front elevation of toolbox (${X} × ${overallHeightWithTopBattens} mm) looking across Y axis showing long side board, bottom board, top battens, and hidden inset end walls and grab handles.`,
     bounds,
     rectangles,
     polygons,

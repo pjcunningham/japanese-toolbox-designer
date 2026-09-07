@@ -33,7 +33,7 @@ describe('Toolbox3DViewer Component (Requirements 45, 49, 50, 57, 58, 62, 74, 75
 
     const viewer = screen.getByTestId('toolbox-3d-viewer');
     expect(viewer).toBeInTheDocument();
-    expect(viewer).toHaveAttribute('data-model-part-count', '11');
+    expect(viewer).toHaveAttribute('data-model-part-count', '13');
     expect(viewer).toHaveAttribute('data-model-length', '600');
     expect(viewer).toHaveAttribute('data-model-width', '300');
     expect(viewer).toHaveAttribute('data-model-height', '250');

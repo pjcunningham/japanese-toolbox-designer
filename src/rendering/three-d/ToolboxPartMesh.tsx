@@ -75,6 +75,46 @@ export const ToolboxPartMesh: React.FC<ToolboxPartMeshProps> = ({ part, center }
     );
   }
 
+  if (part.kind === 'compound-box') {
+    return (
+      <group data-part-id={part.id}>
+        {part.solids.map((solid, index) => {
+          const sizeX = solid.max.x - solid.min.x;
+          const sizeY = solid.max.y - solid.min.y;
+          const sizeZ = solid.max.z - solid.min.z;
+
+          const partCenterX = (solid.min.x + solid.max.x) / 2;
+          const partCenterY = (solid.min.y + solid.max.y) / 2;
+          const partCenterZ = (solid.min.z + solid.max.z) / 2;
+
+          const posX = partCenterX - center.x;
+          const posY = partCenterZ - center.z;
+          const posZ = partCenterY - center.y;
+
+          const boxArgs: [number, number, number] = [sizeX, sizeZ, sizeY];
+
+          return (
+            <mesh
+              key={`${part.id}-solid-${index}`}
+              position={[posX, posY, posZ]}
+              castShadow
+              receiveShadow
+            >
+              <boxGeometry args={boxArgs} />
+              <meshStandardMaterial
+                color={color}
+                roughness={0.7}
+                metalness={0.05}
+                side={THREE.FrontSide}
+              />
+              <Edges color="#422e1b" threshold={15} />
+            </mesh>
+          );
+        })}
+      </group>
+    );
+  }
+
   if (polyhedronGeometry) {
     return (
       <mesh geometry={polyhedronGeometry} castShadow receiveShadow>

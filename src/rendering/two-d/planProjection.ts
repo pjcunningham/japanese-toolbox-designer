@@ -40,6 +40,14 @@ export function createPlanDrawing(geometry: CalculatedToolboxGeometry): Technica
   const straightBattenStartY =
     geometry.lockingMechanism.lockingLidBatten.planCorners.interiorNarrowCorner.y;
 
+  // Inset end walls coordinates
+  const stopWall = geometry.box.layout.endWalls.stop;
+  const lockingWall = geometry.box.layout.endWalls.locking;
+  const stopDados = geometry.box.layout.housingDados.stopEnd;
+  const lockingDados = geometry.box.layout.housingDados.lockingEnd;
+  const stopHandle = geometry.box.layout.handles.stop;
+  const lockingHandle = geometry.box.layout.handles.locking;
+
   // Rectangles
   const rectangles: DrawingRectangle[] = [
     // 1. Carcass body footprint
@@ -51,7 +59,82 @@ export function createPlanDrawing(geometry: CalculatedToolboxGeometry): Technica
       width: X,
       height: Y,
     },
-    // 2. Locked lid panel
+    // 2. Inset end walls (hidden under end caps / lid)
+    {
+      id: 'plan-end-wall-stop',
+      part: 'end-wall-stop',
+      x: stopWall.startX,
+      y: stopDados.frontY.startY,
+      width: stopWall.endX - stopWall.startX,
+      height: stopDados.backY.endY - stopDados.frontY.startY,
+      hidden: true,
+    },
+    {
+      id: 'plan-end-wall-locking',
+      part: 'end-wall-locking',
+      x: lockingWall.startX,
+      y: lockingDados.frontY.startY,
+      width: lockingWall.endX - lockingWall.startX,
+      height: lockingDados.backY.endY - lockingDados.frontY.startY,
+      hidden: true,
+    },
+    // 3. Grab handles (hidden under end caps)
+    {
+      id: 'plan-handle-stop',
+      part: 'handle-stop',
+      x: stopHandle.startX,
+      y: stopHandle.startY,
+      width: stopHandle.endX - stopHandle.startX,
+      height: stopHandle.endY - stopHandle.startY,
+      hidden: true,
+    },
+    {
+      id: 'plan-handle-locking',
+      part: 'handle-locking',
+      x: lockingHandle.startX,
+      y: lockingHandle.startY,
+      width: lockingHandle.endX - lockingHandle.startX,
+      height: lockingHandle.endY - lockingHandle.startY,
+      hidden: true,
+    },
+    // 4. Housing dados (4 recessed regions in side walls)
+    {
+      id: 'plan-housing-dado-stop-front',
+      part: 'housing-dado',
+      x: stopDados.startX,
+      y: stopDados.frontY.startY,
+      width: stopDados.endX - stopDados.startX,
+      height: stopDados.frontY.endY - stopDados.frontY.startY,
+      hidden: true,
+    },
+    {
+      id: 'plan-housing-dado-stop-back',
+      part: 'housing-dado',
+      x: stopDados.startX,
+      y: stopDados.backY.startY,
+      width: stopDados.endX - stopDados.startX,
+      height: stopDados.backY.endY - stopDados.backY.startY,
+      hidden: true,
+    },
+    {
+      id: 'plan-housing-dado-locking-front',
+      part: 'housing-dado',
+      x: lockingDados.startX,
+      y: lockingDados.frontY.startY,
+      width: lockingDados.endX - lockingDados.startX,
+      height: lockingDados.frontY.endY - lockingDados.frontY.startY,
+      hidden: true,
+    },
+    {
+      id: 'plan-housing-dado-locking-back',
+      part: 'housing-dado',
+      x: lockingDados.startX,
+      y: lockingDados.backY.startY,
+      width: lockingDados.endX - lockingDados.startX,
+      height: lockingDados.backY.endY - lockingDados.backY.startY,
+      hidden: true,
+    },
+    // 5. Locked lid panel
     {
       id: 'plan-lid-panel',
       part: 'lid-panel',
@@ -60,7 +143,7 @@ export function createPlanDrawing(geometry: CalculatedToolboxGeometry): Technica
       width: lidPanelLength,
       height: lidPanelWidth,
     },
-    // 3. Straight lid batten
+    // 6. Straight lid batten
     {
       id: 'plan-straight-lid-batten',
       part: 'straight-lid-batten',
@@ -69,7 +152,7 @@ export function createPlanDrawing(geometry: CalculatedToolboxGeometry): Technica
       width: straightBattenWidth,
       height: straightBattenLength,
     },
-    // 4. Stop fixed top batten
+    // 7. Stop fixed top batten / end cap
     {
       id: 'plan-fixed-top-batten-stop',
       part: 'fixed-top-batten-stop',
@@ -78,7 +161,7 @@ export function createPlanDrawing(geometry: CalculatedToolboxGeometry): Technica
       width: R,
       height: Y,
     },
-    // 5. Locking fixed top batten
+    // 8. Locking fixed top batten / end cap
     {
       id: 'plan-fixed-top-batten-locking',
       part: 'fixed-top-batten-locking',
@@ -195,6 +278,36 @@ export function createPlanDrawing(geometry: CalculatedToolboxGeometry): Technica
       valueMillimetres: geometry.lid.longitudinalFit.lockedOverlapPerEnd,
       label: 'Overlap O',
     },
+    // End wall inset / handle depth I
+    {
+      id: 'plan-dim-inset',
+      axis: 'x',
+      start: { x: 0, y: Y },
+      end: { x: stopWall.outsideFaceX, y: Y },
+      offset: 18,
+      valueMillimetres: stopWall.outsideFaceX,
+      label: 'Inset I',
+    },
+    // Fixed top batten interior projection (Pocket depth)
+    {
+      id: 'plan-dim-pocket-depth',
+      axis: 'x',
+      start: { x: stopWall.insideFaceX, y: Y },
+      end: { x: R, y: Y },
+      offset: 18,
+      valueMillimetres: geometry.box.topOpening.battenInteriorProjection,
+      label: 'Pocket',
+    },
+    // Housing dado depth G
+    {
+      id: 'plan-dim-dado-depth',
+      axis: 'y',
+      start: { x: stopWall.startX, y: stopDados.frontY.startY },
+      end: { x: stopWall.startX, y: stopDados.frontY.endY },
+      offset: -18,
+      valueMillimetres: geometry.box.layout.housingDados.depth,
+      label: 'Dado G',
+    },
   ];
 
   // Annotations
@@ -235,6 +348,24 @@ export function createPlanDrawing(geometry: CalculatedToolboxGeometry): Technica
       text: `α = ${geometry.lockingMechanism.wedge.taperAngle}°`,
       align: 'right',
     },
+    {
+      id: 'plan-ann-inset-end-wall',
+      position: {
+        x: (stopWall.startX + stopWall.endX) / 2,
+        y: -14,
+      },
+      text: 'Inset housed end wall',
+      align: 'center',
+    },
+    {
+      id: 'plan-ann-grab-handle',
+      position: {
+        x: (stopHandle.startX + stopHandle.endX) / 2,
+        y: Y / 2,
+      },
+      text: 'Grab handle below end cap',
+      align: 'center',
+    },
   ];
 
   // Viewport margin bounds
@@ -251,7 +382,7 @@ export function createPlanDrawing(geometry: CalculatedToolboxGeometry): Technica
   return {
     view: 'plan',
     title: 'Plan View',
-    description: `Plan view of toolbox (${X} × ${Y} mm) looking downward along Z axis showing sliding lid and wedge locking mechanism.`,
+    description: `Plan view of toolbox (${X} × ${Y} mm) looking downward along Z axis showing sliding lid and wedge locking mechanism, inset end walls, grab handles, and housing dados.`,
     bounds,
     rectangles,
     polygons,

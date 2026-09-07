@@ -10,6 +10,13 @@ export const CalculatedDimensionsPanel: React.FC<CalculatedDimensionsPanelProps>
   const isGeometryValid = geometryResult.ok;
   const isAvailable = !hasInputErrors && isGeometryValid;
 
+  const formatBlankDimensions = (dim: { length: number; width: number; thickness: number }) => {
+    if (unitSystem === 'metric') {
+      return `${formatDimension(dim.length, unitSystem, { includeUnit: false })} × ${formatDimension(dim.width, unitSystem, { includeUnit: false })} × ${formatDimension(dim.thickness, unitSystem, { includeUnit: true })}`;
+    }
+    return `${formatDimension(dim.length, unitSystem)} × ${formatDimension(dim.width, unitSystem)} × ${formatDimension(dim.thickness, unitSystem)}`;
+  };
+
   return (
     <div className={`calculated-panel ${!isAvailable ? 'is-stale' : ''}`}>
       <div className="calculated-header-row">
@@ -86,6 +93,78 @@ export const CalculatedDimensionsPanel: React.FC<CalculatedDimensionsPanelProps>
             </dl>
           </section>
 
+          {/* Carcass Construction */}
+          <section className="calc-group" aria-labelledby="calc-carcass-title">
+            <h3 id="calc-carcass-title" className="calc-group-title">
+              Carcass construction
+            </h3>
+            <dl className="calc-list">
+              <div className="calc-item">
+                <dt>End wall blank</dt>
+                <dd>{formatBlankDimensions(geometryResult.geometry.box.parts.end.dimensions)}</dd>
+              </div>
+              <div className="calc-item">
+                <dt>Handle blank</dt>
+                <dd>
+                  {formatBlankDimensions(geometryResult.geometry.box.parts.handle.dimensions)}
+                </dd>
+              </div>
+              <div className="calc-item">
+                <dt>Bottom board</dt>
+                <dd>
+                  {formatBlankDimensions(geometryResult.geometry.box.parts.bottom.dimensions)}
+                </dd>
+              </div>
+              <div className="calc-item">
+                <dt>End wall inset</dt>
+                <dd>
+                  {formatDimension(
+                    geometryResult.geometry.box.layout.endWalls.stop.outsideFaceX,
+                    unitSystem,
+                  )}
+                </dd>
+              </div>
+              <div className="calc-item">
+                <dt>Handle bay depth</dt>
+                <dd>
+                  {formatDimension(
+                    geometryResult.geometry.box.layout.handleBays.stop.endX -
+                      geometryResult.geometry.box.layout.handleBays.stop.startX,
+                    unitSystem,
+                  )}
+                </dd>
+              </div>
+              <div className="calc-item">
+                <dt>Handle height</dt>
+                <dd>
+                  {formatDimension(
+                    geometryResult.geometry.box.layout.handles.stop.endZ -
+                      geometryResult.geometry.box.layout.handles.stop.startZ,
+                    unitSystem,
+                  )}
+                </dd>
+              </div>
+              <div className="calc-item">
+                <dt>Housing dado depth</dt>
+                <dd>
+                  {formatDimension(
+                    geometryResult.geometry.box.layout.housingDados.depth,
+                    unitSystem,
+                  )}
+                </dd>
+              </div>
+              <div className="calc-item">
+                <dt>Pocket depth</dt>
+                <dd>
+                  {formatDimension(
+                    geometryResult.geometry.box.topOpening.battenInteriorProjection,
+                    unitSystem,
+                  )}
+                </dd>
+              </div>
+            </dl>
+          </section>
+
           {/* Lid Dimensions */}
           <section className="calc-group" aria-labelledby="calc-lid-title">
             <h3 id="calc-lid-title" className="calc-group-title">
@@ -118,6 +197,15 @@ export const CalculatedDimensionsPanel: React.FC<CalculatedDimensionsPanelProps>
                 <dd>
                   {formatDimension(
                     geometryResult.geometry.lid.longitudinalFit.lockedOverlapPerEnd,
+                    unitSystem,
+                  )}
+                </dd>
+              </div>
+              <div className="calc-item">
+                <dt>Pocket depth</dt>
+                <dd>
+                  {formatDimension(
+                    geometryResult.geometry.box.topOpening.battenInteriorProjection,
                     unitSystem,
                   )}
                 </dd>

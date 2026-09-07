@@ -321,4 +321,74 @@ describe('DesignEditor Component', () => {
     expect(twoDTab).toHaveAttribute('aria-selected', 'true');
     expect(screen.getByRole('heading', { name: /Technical drawings/i })).toBeInTheDocument();
   });
+
+  // Phase 10B Requirements 50-54: Carcass & Handles fields and calculations
+  it('Requirement 50 & 54: renders Carcass & Handles fields and calculated Carcass construction section with blanks', () => {
+    render(<EditorTestWrapper />);
+
+    // Carcass fields
+    expect(screen.getByLabelText(/Bottom thickness/i)).toHaveValue('12');
+    expect(screen.getByLabelText(/End handle depth \/ wall inset/i)).toHaveValue('36');
+    expect(screen.getByLabelText(/End handle height/i)).toHaveValue('72');
+    expect(screen.getByLabelText(/Housing dado depth/i)).toHaveValue('3');
+    expect(screen.getByLabelText(/End cap width/i)).toHaveValue('84');
+
+    // Calculated Carcass Construction section
+    expect(screen.getByRole('heading', { name: /Carcass construction/i })).toBeInTheDocument();
+    expect(screen.getByText('270 × 238 × 18 mm')).toBeInTheDocument(); // End wall blank
+    expect(screen.getByText('264 × 72 × 36 mm')).toBeInTheDocument(); // Handle blank
+    expect(screen.getByText('600 × 300 × 12 mm')).toBeInTheDocument(); // Bottom board
+
+    // Calculated default V2 values
+    expect(screen.getByText('492 mm')).toBeInTheDocument(); // Internal length
+    expect(screen.getAllByText('30 mm').length).toBeGreaterThanOrEqual(1); // Pocket depth
+    expect(screen.getAllByText('3 mm').length).toBeGreaterThanOrEqual(1); // Release margin / Dado depth
+  });
+
+  it('Requirement 51: updates calculated internal length, pocket depth, and release margin when editing end handle depth', async () => {
+    const user = userEvent.setup();
+    const onDesignChangeSpy = vi.fn();
+    render(<EditorTestWrapper onDesignChangeSpy={onDesignChangeSpy} />);
+
+    const handleDepthInput = screen.getByLabelText(/End handle depth \/ wall inset/i);
+    await user.clear(handleDepthInput);
+    await user.type(handleDepthInput, '37'); // I changed from 36 to 37 (retains valid geometry)
+
+    // Internal length: 600 - 2*(37 + 18) = 490 mm
+    expect(screen.getByText('490 mm')).toBeInTheDocument();
+    // Pocket depth: 84 - 37 - 18 = 29 mm
+    expect(screen.getAllByText('29 mm').length).toBeGreaterThanOrEqual(1);
+    // Release margin: 29 - 27 = 2 mm
+    expect(screen.getByText('2 mm')).toBeInTheDocument();
+  });
+
+  it('Requirement 52: displays geometry validation error when housing dado depth is greater than or equal to stock thickness', async () => {
+    const user = userEvent.setup();
+    render(<EditorTestWrapper />);
+
+    const dadoInput = screen.getByLabelText(/Housing dado depth/i);
+    await user.clear(dadoInput);
+    await user.type(dadoInput, '18'); // G = 18 mm >= T = 18 mm
+
+    expect(dadoInput).toHaveAttribute('aria-invalid', 'false');
+    expect(screen.getByText('Design needs attention')).toBeInTheDocument();
+    expect(
+      screen.getAllByText(/Housing dado depth must be less than/i).length,
+    ).toBeGreaterThanOrEqual(1);
+  });
+
+  it('Requirement 53: displays geometry validation error when handle height is excessive', async () => {
+    const user = userEvent.setup();
+    render(<EditorTestWrapper />);
+
+    const handleHeightInput = screen.getByLabelText(/End handle height/i);
+    await user.clear(handleHeightInput);
+    await user.type(handleHeightInput, '300'); // H = 300 mm > internalHeight = 238 mm
+
+    expect(handleHeightInput).toHaveAttribute('aria-invalid', 'false');
+    expect(screen.getByText('Design needs attention')).toBeInTheDocument();
+    expect(
+      screen.getAllByText(/End handle height must be less than internal body height/i).length,
+    ).toBeGreaterThanOrEqual(1);
+  });
 });

@@ -1466,20 +1466,21 @@ The plan view should make the lid overlap and locking geometry particularly clea
 
 ---
 
-## Phase 10 — Basic 3D viewer
+## Phase 10 — Basic 3D viewer & Corrected Carcass Visualisation (10A & 10B)
 
 Implement:
 
-- carcass;
-- bottom;
-- lid;
-- fixed battens;
-- lid battens;
-- wedge.
+- inset housed carcass side and end walls;
+- solid grab handles;
+- independent bottom board;
+- independent sliding lid panel;
+- fixed top battens / end caps;
+- straight and locking lid battens;
+- captured locking wedge.
 
-Add orbit/zoom/pan.
+Add orbit/zoom/pan and standard camera views.
 
-Use simple wood materials.
+Use simple wood materials and compound side parts with housing dados.
 
 ---
 

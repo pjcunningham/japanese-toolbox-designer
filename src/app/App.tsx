@@ -1,11 +1,23 @@
 import React, { useState, useCallback, useMemo } from 'react';
-import { createDefaultToolboxDesign, duplicateToolboxDesign, type ToolboxDesign } from '../domain';
+import {
+  createDefaultToolboxDesign,
+  duplicateToolboxDesign,
+  calculateToolboxGeometry,
+  type ToolboxDesign,
+} from '../domain';
 import { DesignEditor } from '../features/editor';
 import {
   DesignManager,
-  type PersistenceMessage,
+  type DesignOperationMessage,
   type PersistenceStatus,
 } from '../features/designManager';
+import {
+  serializeToolboxDesign,
+  parseToolboxDesignJson,
+  makeImportedDesignUnique,
+  downloadDesignFile,
+  readDesignFile,
+} from '../interchange';
 import {
   loadDesignStore,
   loadSettings,
@@ -28,7 +40,7 @@ export const App: React.FC<AppProps> = ({ storage }) => {
     const settingsResult = loadSettings(storage);
 
     let initialWorkingDesign: ToolboxDesign;
-    let initialMessage: PersistenceMessage | null = null;
+    let initialMessage: DesignOperationMessage | null = null;
 
     if (storeResult.status === 'unsupported_version') {
       initialMessage = { text: storeResult.error, type: 'warning' };
@@ -80,7 +92,7 @@ export const App: React.FC<AppProps> = ({ storage }) => {
   const [isReadOnly] = useState<boolean>(initialData.isReadOnly);
   const [isDirty, setIsDirty] = useState<boolean>(false);
   const [hasInputErrors, setHasInputErrors] = useState<boolean>(false);
-  const [message, setMessage] = useState<PersistenceMessage | null>(initialData.message);
+  const [message, setMessage] = useState<DesignOperationMessage | null>(initialData.message);
 
   const persistenceStatus: PersistenceStatus = useMemo(() => {
     const isSaved = savedDesigns.some((d) => d.id === workingDesign.id);
@@ -277,6 +289,83 @@ export const App: React.FC<AppProps> = ({ storage }) => {
     setMessage({ text: 'Design deleted.', type: 'info' });
   }, [persistenceStatus, isReadOnly, isDirty, workingDesign, storage]);
 
+  const isGeometryValid = useMemo(() => {
+    const geoResult = calculateToolboxGeometry(workingDesign);
+    return geoResult.ok;
+  }, [workingDesign]);
+
+  const handleExport = useCallback(() => {
+    if (hasInputErrors || !isGeometryValid) {
+      return;
+    }
+
+    const exportResult = serializeToolboxDesign(workingDesign);
+    if (!exportResult.ok) {
+      let errorMsg = exportResult.error;
+      if (exportResult.details && exportResult.details.length > 0) {
+        errorMsg = `${exportResult.error} ${exportResult.details.slice(0, 2).join('; ')}`;
+      }
+      setMessage({ text: errorMsg, type: 'error' });
+      return;
+    }
+
+    downloadDesignFile(exportResult.json, exportResult.filename);
+    setMessage({ text: 'Design exported as JSON.', type: 'success' });
+  }, [hasInputErrors, isGeometryValid, workingDesign]);
+
+  const handleImportFile = useCallback(
+    async (file: File) => {
+      let jsonText: string;
+      try {
+        jsonText = await readDesignFile(file);
+      } catch (err: unknown) {
+        const errorMsg = err instanceof Error ? err.message : 'Failed to read the selected file.';
+        setMessage({ text: errorMsg, type: 'error' });
+        return;
+      }
+
+      const parseResult = parseToolboxDesignJson(jsonText);
+      if (!parseResult.ok) {
+        let errorMsg = parseResult.error;
+        if (parseResult.details && parseResult.details.length > 0) {
+          errorMsg = `${parseResult.error} ${parseResult.details.slice(0, 2).join('; ')}`;
+        }
+        setMessage({ text: errorMsg, type: 'error' });
+        return;
+      }
+
+      // Valid file -> now apply unsaved-change guard
+      if (!confirmDiscardUnsaved()) {
+        return;
+      }
+
+      const importedDesign = parseResult.design;
+      const existingIds = new Set(savedDesigns.map((d) => d.id));
+      existingIds.add(workingDesign.id);
+
+      const { design: resolvedDesign, wasConflict } = makeImportedDesignUnique(
+        importedDesign,
+        existingIds,
+      );
+
+      setWorkingDesign(resolvedDesign);
+      setIsDirty(false);
+
+      if (wasConflict) {
+        setMessage({
+          text: 'Design imported as a new design. Save it to keep it in this browser.',
+          type: 'success',
+        });
+      } else {
+        setMessage({
+          text: 'Design imported. Save it to keep it in this browser.',
+          type: 'success',
+        });
+      }
+    },
+    [confirmDiscardUnsaved, savedDesigns, workingDesign],
+  );
+
   return (
     <div className="app-container">
       <header className="app-header">
@@ -329,6 +418,7 @@ export const App: React.FC<AppProps> = ({ storage }) => {
           savedDesigns={savedDesigns}
           persistenceStatus={persistenceStatus}
           hasInputErrors={hasInputErrors}
+          isGeometryValid={isGeometryValid}
           isReadOnly={isReadOnly}
           message={message}
           onNew={handleNew}
@@ -337,6 +427,8 @@ export const App: React.FC<AppProps> = ({ storage }) => {
           onDuplicate={handleDuplicate}
           onDelete={handleDelete}
           onOpen={handleOpen}
+          onExport={handleExport}
+          onImportFile={handleImportFile}
         />
 
         <DesignEditor

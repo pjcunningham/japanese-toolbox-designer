@@ -1,28 +1,33 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import type { ToolboxDesign } from '../../domain';
 import { RenameDialog } from './RenameDialog';
 import './designManager.css';
 
 export type PersistenceStatus = 'saved' | 'unsaved_changes' | 'not_saved';
 
-export interface PersistenceMessage {
+export interface DesignOperationMessage {
   text: string;
   type: 'info' | 'success' | 'warning' | 'error';
 }
+
+export type PersistenceMessage = DesignOperationMessage;
 
 export interface DesignManagerProps {
   workingDesign: ToolboxDesign;
   savedDesigns: ToolboxDesign[];
   persistenceStatus: PersistenceStatus;
   hasInputErrors: boolean;
+  isGeometryValid?: boolean;
   isReadOnly: boolean;
-  message: PersistenceMessage | null;
+  message: DesignOperationMessage | null;
   onNew: () => void;
   onSave: () => void;
   onRename: (newName: string) => void;
   onDuplicate: () => void;
   onDelete: () => void;
   onOpen: (designId: string) => void;
+  onExport?: () => void;
+  onImportFile?: (file: File) => void | Promise<void>;
 }
 
 export const DesignManager: React.FC<DesignManagerProps> = ({
@@ -30,6 +35,7 @@ export const DesignManager: React.FC<DesignManagerProps> = ({
   savedDesigns,
   persistenceStatus,
   hasInputErrors,
+  isGeometryValid = true,
   isReadOnly,
   message,
   onNew,
@@ -38,9 +44,12 @@ export const DesignManager: React.FC<DesignManagerProps> = ({
   onDuplicate,
   onDelete,
   onOpen,
+  onExport,
+  onImportFile,
 }) => {
   const [isRenameOpen, setIsRenameOpen] = useState(false);
   const [userSelectedId, setUserSelectedId] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const effectiveSelectedId = useMemo(() => {
     if (userSelectedId && savedDesigns.some((d) => d.id === userSelectedId)) {
@@ -84,6 +93,26 @@ export const DesignManager: React.FC<DesignManagerProps> = ({
       onOpen(effectiveSelectedId);
     }
   };
+
+  const handleImportButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileInputChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && onImportFile) {
+      await onImportFile(file);
+    }
+    // Always reset file input value to allow selecting the same file again
+    e.target.value = '';
+  };
+
+  const isExportDisabled = hasInputErrors || !isGeometryValid;
+  const exportButtonTitle = hasInputErrors
+    ? 'Resolve invalid field values before exporting'
+    : !isGeometryValid
+      ? 'Cannot export design with geometry errors'
+      : 'Export design as JSON file';
 
   return (
     <section className="design-manager" aria-label="Design management">
@@ -190,6 +219,33 @@ export const DesignManager: React.FC<DesignManagerProps> = ({
           >
             Delete
           </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={onExport}
+            disabled={isExportDisabled}
+            title={exportButtonTitle}
+          >
+            Export JSON
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={handleImportButtonClick}
+            title="Import design from JSON file"
+          >
+            Import JSON
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json,application/json"
+            onChange={handleFileInputChange}
+            style={{ display: 'none' }}
+            tabIndex={-1}
+            aria-hidden="true"
+            data-testid="import-json-input"
+          />
         </div>
       </div>
 

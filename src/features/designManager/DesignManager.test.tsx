@@ -201,4 +201,122 @@ describe('DesignManager Component', () => {
 
     expect(handleOpen).toHaveBeenCalledWith('id-2');
   });
+
+  it('renders Export and Import buttons and handles Export click', async () => {
+    const user = userEvent.setup();
+    const handleExport = vi.fn();
+
+    render(
+      <DesignManager
+        workingDesign={dummyDesign}
+        savedDesigns={[dummyDesign]}
+        persistenceStatus="saved"
+        hasInputErrors={false}
+        isGeometryValid={true}
+        isReadOnly={false}
+        message={null}
+        onNew={vi.fn()}
+        onSave={vi.fn()}
+        onRename={vi.fn()}
+        onDuplicate={vi.fn()}
+        onDelete={vi.fn()}
+        onOpen={vi.fn()}
+        onExport={handleExport}
+      />,
+    );
+
+    const exportBtn = screen.getByRole('button', { name: 'Export JSON' });
+    const importBtn = screen.getByRole('button', { name: 'Import JSON' });
+
+    expect(exportBtn).toBeInTheDocument();
+    expect(exportBtn).toBeEnabled();
+    expect(importBtn).toBeInTheDocument();
+    expect(importBtn).toBeEnabled();
+
+    await user.click(exportBtn);
+    expect(handleExport).toHaveBeenCalled();
+  });
+
+  it('disables Export button when input errors or geometry errors exist', () => {
+    const { rerender } = render(
+      <DesignManager
+        workingDesign={dummyDesign}
+        savedDesigns={[dummyDesign]}
+        persistenceStatus="saved"
+        hasInputErrors={true}
+        isGeometryValid={true}
+        isReadOnly={false}
+        message={null}
+        onNew={vi.fn()}
+        onSave={vi.fn()}
+        onRename={vi.fn()}
+        onDuplicate={vi.fn()}
+        onDelete={vi.fn()}
+        onOpen={vi.fn()}
+      />,
+    );
+
+    const exportBtnWithInputError = screen.getByRole('button', { name: 'Export JSON' });
+    expect(exportBtnWithInputError).toBeDisabled();
+    expect(exportBtnWithInputError).toHaveAttribute(
+      'title',
+      'Resolve invalid field values before exporting',
+    );
+
+    rerender(
+      <DesignManager
+        workingDesign={dummyDesign}
+        savedDesigns={[dummyDesign]}
+        persistenceStatus="saved"
+        hasInputErrors={false}
+        isGeometryValid={false}
+        isReadOnly={false}
+        message={null}
+        onNew={vi.fn()}
+        onSave={vi.fn()}
+        onRename={vi.fn()}
+        onDuplicate={vi.fn()}
+        onDelete={vi.fn()}
+        onOpen={vi.fn()}
+      />,
+    );
+
+    const exportBtnWithGeoError = screen.getByRole('button', { name: 'Export JSON' });
+    expect(exportBtnWithGeoError).toBeDisabled();
+    expect(exportBtnWithGeoError).toHaveAttribute(
+      'title',
+      'Cannot export design with geometry errors',
+    );
+  });
+
+  it('handles Import button file selection and triggers onImportFile callback', async () => {
+    const user = userEvent.setup();
+    const handleImportFile = vi.fn();
+
+    render(
+      <DesignManager
+        workingDesign={dummyDesign}
+        savedDesigns={[dummyDesign]}
+        persistenceStatus="saved"
+        hasInputErrors={false}
+        isGeometryValid={true}
+        isReadOnly={false}
+        message={null}
+        onNew={vi.fn()}
+        onSave={vi.fn()}
+        onRename={vi.fn()}
+        onDuplicate={vi.fn()}
+        onDelete={vi.fn()}
+        onOpen={vi.fn()}
+        onImportFile={handleImportFile}
+      />,
+    );
+
+    const file = new File(['{"name":"Imported"}'], 'design.json', { type: 'application/json' });
+    const fileInput = screen.getByTestId('import-json-input');
+
+    await user.upload(fileInput, file);
+
+    expect(handleImportFile).toHaveBeenCalledWith(file);
+  });
 });

@@ -2,7 +2,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { App } from './App';
-import { createDefaultToolboxDesign } from '../domain';
+import { createDefaultToolboxDesign, type ToolboxDesign } from '../domain';
+import * as interchangeModule from '../interchange';
 import {
   DESIGNS_STORAGE_KEY,
   SETTINGS_STORAGE_KEY,
@@ -401,5 +402,415 @@ describe('App Component - Phase 7 Saved Designs Requirements', () => {
     expect(
       screen.getByText(/skipped due to unsupported design schema version/i),
     ).toBeInTheDocument();
+  });
+});
+
+describe('App Component - Phase 8 JSON Import/Export Requirements', () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('Requirement 45: exports valid design, triggers download, displays success, keeps dirty state unchanged', async () => {
+    const user = userEvent.setup();
+    const downloadSpy = vi
+      .spyOn(interchangeModule, 'downloadDesignFile')
+      .mockImplementation(() => {});
+
+    const storage = createMockStorage();
+    render(<App storage={storage} />);
+
+    const exportBtn = screen.getByRole('button', { name: 'Export JSON' });
+    expect(exportBtn).toBeEnabled();
+
+    await user.click(exportBtn);
+
+    expect(downloadSpy).toHaveBeenCalledTimes(1);
+    const [downloadedJson, filename] = downloadSpy.mock.calls[0] as [string, string];
+    expect(filename).toBe('japanese-toolbox.json');
+
+    const parsed = JSON.parse(downloadedJson);
+    expect(parsed.name).toBe('Japanese Toolbox');
+    expect(parsed.dimensions.length).toBe(600);
+
+    expect(screen.getByText('Design exported as JSON.')).toBeInTheDocument();
+    expect(screen.getByText('Not saved')).toBeInTheDocument();
+  });
+
+  it('Requirement 46: exports dirty unsaved working changes without modifying saved storage snapshot', async () => {
+    const user = userEvent.setup();
+    const downloadSpy = vi
+      .spyOn(interchangeModule, 'downloadDesignFile')
+      .mockImplementation(() => {});
+
+    const initialDesign = createDefaultToolboxDesign({
+      name: 'Workshop Box',
+      idGenerator: () => 'box-600',
+      dimensions: { length: 600, width: 300, height: 250, stockThickness: 18 },
+    });
+
+    const storage = createMockStorage({
+      [DESIGNS_STORAGE_KEY]: JSON.stringify({
+        storageVersion: DESIGN_STORAGE_VERSION,
+        designs: [initialDesign],
+      }),
+      [SETTINGS_STORAGE_KEY]: JSON.stringify({
+        storageVersion: 1,
+        activeDesignId: 'box-600',
+      }),
+    });
+
+    render(<App storage={storage} />);
+
+    // Initially saved with 600 mm
+    expect(screen.getByText('Saved')).toBeInTheDocument();
+
+    // Edit length to 650 mm (making it dirty)
+    const lengthInput = screen.getByLabelText(/Length/i);
+    await user.clear(lengthInput);
+    await user.type(lengthInput, '650');
+
+    expect(screen.getByText('Unsaved changes')).toBeInTheDocument();
+
+    // Click Export JSON
+    await user.click(screen.getByRole('button', { name: 'Export JSON' }));
+
+    expect(downloadSpy).toHaveBeenCalledTimes(1);
+    const [downloadedJson] = downloadSpy.mock.calls[0] as [string, string];
+    const parsed = JSON.parse(downloadedJson);
+    expect(parsed.dimensions.length).toBe(650);
+
+    // Verify localStorage still has 600 mm
+    const storageRaw = storage.getItem(DESIGNS_STORAGE_KEY);
+    const storageParsed = JSON.parse(storageRaw!);
+    expect(storageParsed.designs[0].dimensions.length).toBe(600);
+    expect(screen.getByText('Unsaved changes')).toBeInTheDocument();
+  });
+
+  it('Requirement 47: disables Export JSON when editor drafts contain parse errors', async () => {
+    const user = userEvent.setup();
+    const downloadSpy = vi
+      .spyOn(interchangeModule, 'downloadDesignFile')
+      .mockImplementation(() => {});
+
+    const storage = createMockStorage();
+    render(<App storage={storage} />);
+
+    const lengthInput = screen.getByLabelText(/Length/i);
+    await user.clear(lengthInput);
+    await user.type(lengthInput, 'abc');
+
+    const exportBtn = screen.getByRole('button', { name: 'Export JSON' });
+    expect(exportBtn).toBeDisabled();
+    expect(exportBtn).toHaveAttribute('title', 'Resolve invalid field values before exporting');
+    expect(lengthInput).toHaveValue('abc');
+    expect(downloadSpy).not.toHaveBeenCalled();
+  });
+
+  it('Requirement 48: disables Export JSON when physical geometry is invalid', async () => {
+    const user = userEvent.setup();
+    const downloadSpy = vi
+      .spyOn(interchangeModule, 'downloadDesignFile')
+      .mockImplementation(() => {});
+
+    const storage = createMockStorage();
+    render(<App storage={storage} />);
+
+    // Set height to 30 mm which produces geometry errors with 18 mm stock thickness
+    const heightInput = screen.getByLabelText(/^Height/i);
+    await user.clear(heightInput);
+    await user.type(heightInput, '30');
+
+    const exportBtn = screen.getByRole('button', { name: 'Export JSON' });
+    expect(exportBtn).toBeDisabled();
+    expect(exportBtn).toHaveAttribute('title', 'Cannot export design with geometry errors');
+    expect(downloadSpy).not.toHaveBeenCalled();
+  });
+
+  it('Requirement 49: imports a valid JSON design and leaves it unsaved until explicit save', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const storage = createMockStorage();
+    render(<App storage={storage} />);
+
+    const importedDesign = createDefaultToolboxDesign({
+      name: 'Imported Masterpiece',
+      idGenerator: () => 'unique-imported-id',
+      dimensions: { length: 750, width: 350, height: 280, stockThickness: 20 },
+    });
+
+    const file = new File([JSON.stringify(importedDesign, null, 2)], 'masterpiece.json', {
+      type: 'application/json',
+    });
+    const fileInput = screen.getByTestId('import-json-input');
+
+    await user.upload(fileInput, file);
+
+    // Verify working design updated
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Imported Masterpiece' }),
+    ).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('750')).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Length/i)).toHaveValue('750');
+    expect(screen.getByLabelText(/^Width/i)).toHaveValue('350');
+    expect(screen.getByText('Not saved')).toBeInTheDocument();
+    expect(
+      screen.getByText('Design imported. Save it to keep it in this browser.'),
+    ).toBeInTheDocument();
+
+    // Verify storage has NOT been modified yet
+    expect(storage.getItem(DESIGNS_STORAGE_KEY)).toBeNull();
+  });
+
+  it('Requirement 50: imports a valid design and persists to library upon clicking Save', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const storage = createMockStorage();
+    const { unmount } = render(<App storage={storage} />);
+
+    const importedDesign = createDefaultToolboxDesign({
+      name: 'Imported Box',
+      idGenerator: () => 'imported-id-1',
+      dimensions: { length: 820, width: 360, height: 290, stockThickness: 19 },
+    });
+
+    const file = new File([JSON.stringify(importedDesign)], 'imported.json', {
+      type: 'application/json',
+    });
+    const fileInput = screen.getByTestId('import-json-input');
+
+    await user.upload(fileInput, file);
+
+    // Click Save
+    const saveBtn = screen.getByRole('button', { name: 'Save' });
+    await user.click(saveBtn);
+
+    expect(screen.getByText('Saved')).toBeInTheDocument();
+    expect(screen.getByText('Design saved.')).toBeInTheDocument();
+
+    unmount();
+
+    // Remount to verify reload restores the imported saved design
+    render(<App storage={storage} />);
+    expect(screen.getByRole('heading', { level: 2, name: 'Imported Box' })).toBeInTheDocument();
+    expect(screen.getByLabelText(/Length/i)).toHaveValue('820');
+  });
+
+  it('Requirement 51: resolves ID conflict by generating a fresh ID and preserving saved designs', async () => {
+    const user = userEvent.setup();
+    const existingSaved = createDefaultToolboxDesign({
+      name: 'Original Box',
+      idGenerator: () => 'shared-conflict-id',
+      dimensions: { length: 500, width: 250, height: 200, stockThickness: 15 },
+    });
+
+    const storage = createMockStorage({
+      [DESIGNS_STORAGE_KEY]: JSON.stringify({
+        storageVersion: DESIGN_STORAGE_VERSION,
+        designs: [existingSaved],
+      }),
+      [SETTINGS_STORAGE_KEY]: JSON.stringify({
+        storageVersion: 1,
+        activeDesignId: 'shared-conflict-id',
+      }),
+    });
+
+    render(<App storage={storage} />);
+
+    // Initially Original Box is open and Saved
+    expect(screen.getByRole('heading', { level: 2, name: 'Original Box' })).toBeInTheDocument();
+    expect(screen.getByText('Saved')).toBeInTheDocument();
+
+    // Prepare import with the exact same ID but different name & dimensions
+    const conflictingImport = createDefaultToolboxDesign({
+      name: 'Conflicting Import Box',
+      idGenerator: () => 'shared-conflict-id',
+      dimensions: { length: 650, width: 320, height: 260, stockThickness: 18 },
+    });
+
+    const file = new File([JSON.stringify(conflictingImport)], 'conflict.json', {
+      type: 'application/json',
+    });
+    const fileInput = screen.getByTestId('import-json-input');
+
+    await user.upload(fileInput, file);
+
+    // Imported design is loaded with conflict message and Not saved status
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Conflicting Import Box' }),
+    ).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('650')).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Length/i)).toHaveValue('650');
+    expect(screen.getByText('Not saved')).toBeInTheDocument();
+    expect(
+      screen.getByText('Design imported as a new design. Save it to keep it in this browser.'),
+    ).toBeInTheDocument();
+
+    // Save the new design
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    expect(screen.getByText('Saved')).toBeInTheDocument();
+
+    // Verify storage contains BOTH designs with different IDs
+    const rawDesigns = storage.getItem(DESIGNS_STORAGE_KEY);
+    const parsed = JSON.parse(rawDesigns!);
+    expect(parsed.designs).toHaveLength(2);
+    expect(parsed.designs.map((d: ToolboxDesign) => d.name)).toContain('Original Box');
+    expect(parsed.designs.map((d: ToolboxDesign) => d.name)).toContain('Conflicting Import Box');
+  });
+
+  it('Requirement 52: rejects malformed file without changing current design or storage', async () => {
+    const user = userEvent.setup();
+    const storage = createMockStorage();
+    render(<App storage={storage} />);
+
+    // Save initial design first
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    expect(screen.getByText('Saved')).toBeInTheDocument();
+
+    const lengthInput = screen.getByLabelText(/^Length/i);
+    await user.clear(lengthInput);
+    await user.type(lengthInput, '640');
+
+    expect(screen.getByText('Unsaved changes')).toBeInTheDocument();
+
+    const malformedFile = new File(['{ this is not valid json'], 'bad.json', {
+      type: 'application/json',
+    });
+    const fileInput = screen.getByTestId('import-json-input');
+
+    await user.upload(fileInput, malformedFile);
+
+    // Error displayed, current design preserved with unsaved changes intact
+    expect(screen.getByText('The file contains invalid or unparseable JSON.')).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Length/i)).toHaveValue('640');
+    expect(screen.getByText('Unsaved changes')).toBeInTheDocument();
+  });
+
+  it('Requirement 53: rejects structurally valid JSON with invalid geometry', async () => {
+    const user = userEvent.setup();
+    const storage = createMockStorage();
+    render(<App storage={storage} />);
+
+    const invalidGeoDesign = {
+      ...createDefaultToolboxDesign({ name: 'Impossible Box' }),
+      dimensions: { length: 600, width: 300, height: 30, stockThickness: 18 },
+    };
+
+    const file = new File([JSON.stringify(invalidGeoDesign)], 'invalid-geo.json', {
+      type: 'application/json',
+    });
+    const fileInput = screen.getByTestId('import-json-input');
+
+    await user.upload(fileInput, file);
+
+    expect(
+      screen.getByText(/The design contains physically invalid geometry and cannot be imported/i),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Japanese Toolbox' })).toBeInTheDocument();
+  });
+
+  it('Requirement 54: prompts unsaved changes guard for valid import; cancel preserves working design, confirm loads it', async () => {
+    const user = userEvent.setup();
+    const storage = createMockStorage();
+    render(<App storage={storage} />);
+
+    // Save initial design first
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+    expect(screen.getByText('Saved')).toBeInTheDocument();
+
+    // Make an unsaved change
+    const lengthInput = screen.getByLabelText(/^Length/i);
+    await user.clear(lengthInput);
+    await user.type(lengthInput, '620');
+    expect(screen.getByText('Unsaved changes')).toBeInTheDocument();
+
+    const validImport = createDefaultToolboxDesign({
+      name: 'Imported After Guard',
+      dimensions: { length: 700, width: 320, height: 260, stockThickness: 18 },
+    });
+    const file = new File([JSON.stringify(validImport)], 'valid.json', {
+      type: 'application/json',
+    });
+    const fileInput = screen.getByTestId('import-json-input');
+
+    // User cancels the discard prompt
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    await user.upload(fileInput, file);
+
+    expect(confirmSpy).toHaveBeenCalledWith('Discard unsaved changes to this design?');
+    // Design remains 620 mm and unsaved
+    expect(screen.getByLabelText(/^Length/i)).toHaveValue('620');
+    expect(screen.getByRole('heading', { level: 2, name: 'Japanese Toolbox' })).toBeInTheDocument();
+    expect(screen.getByText('Unsaved changes')).toBeInTheDocument();
+
+    // Now user accepts confirmation
+    confirmSpy.mockReturnValue(true);
+    await user.upload(fileInput, file);
+
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Imported After Guard' }),
+    ).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('700')).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Length/i)).toHaveValue('700');
+    expect(screen.getByText('Not saved')).toBeInTheDocument();
+  });
+
+  it('Requirement 55: does NOT prompt discard confirmation when imported file is invalid', async () => {
+    const user = userEvent.setup();
+    const confirmSpy = vi.spyOn(window, 'confirm');
+    const storage = createMockStorage();
+    render(<App storage={storage} />);
+
+    // Make unsaved edit
+    const lengthInput = screen.getByLabelText(/Length/i);
+    await user.clear(lengthInput);
+    await user.type(lengthInput, '630');
+
+    const malformedFile = new File(['invalid json content'], 'broken.json', {
+      type: 'application/json',
+    });
+    const fileInput = screen.getByTestId('import-json-input');
+
+    await user.upload(fileInput, malformedFile);
+
+    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(screen.getByText('The file contains invalid or unparseable JSON.')).toBeInTheDocument();
+    expect(screen.getByLabelText(/Length/i)).toHaveValue('630');
+  });
+
+  it('Requirement 56: resets file input allowing selecting the same file twice in succession', async () => {
+    const user = userEvent.setup();
+    vi.spyOn(window, 'confirm').mockReturnValue(true);
+    const storage = createMockStorage();
+    render(<App storage={storage} />);
+
+    const designToImport = createDefaultToolboxDesign({
+      name: 'Repeat Import Box',
+      dimensions: { length: 680, width: 310, height: 250, stockThickness: 18 },
+    });
+    const file = new File([JSON.stringify(designToImport)], 'repeat.json', {
+      type: 'application/json',
+    });
+    const fileInput = screen.getByTestId('import-json-input');
+
+    // First upload
+    await user.upload(fileInput, file);
+    expect(
+      await screen.findByRole('heading', { level: 2, name: 'Repeat Import Box' }),
+    ).toBeInTheDocument();
+    expect(await screen.findByDisplayValue('680')).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Length/i)).toHaveValue('680');
+
+    // User modifies length
+    const lengthInput = screen.getByLabelText(/^Length/i);
+    await user.clear(lengthInput);
+    await user.type(lengthInput, '690');
+    expect(lengthInput).toHaveValue('690');
+
+    // Re-upload same file, confirm discard
+    await user.upload(fileInput, file);
+
+    // Verified length reset to 680
+    expect(await screen.findByDisplayValue('680')).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Length/i)).toHaveValue('680');
   });
 });

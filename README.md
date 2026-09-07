@@ -6,18 +6,21 @@ Japanese Toolbox Designer is a browser-only web application designed for woodwor
 
 ## Current Status
 
-**Phase 7 Complete — Saved Designs & Browser Persistence**
+**Phase 8 Complete — JSON Import/Export**
 
-The application provides local design management and browser persistence alongside the parametric numerical editor:
+The application provides portable JSON interchange for individual Japanese Toolbox designs alongside browser persistence and parametric editing:
 
-- **Browser-Local Storage:** Saved designs and application preferences are persisted in browser `localStorage` under versioned keys (`jtd.designs.v1` and `jtd.settings.v1`) with Zod schema validation to guard against corrupted or unexpected data structures.
-- **Multiple Named Designs:** Users can maintain a library of custom toolbox designs, open saved designs from a dropdown selector, rename designs, duplicate designs into independent copies, and delete designs.
-- **Explicit Save Semantics:** Editing values changes the working design in memory without immediately replacing the stored version, allowing clear distinction between `Saved`, `Unsaved changes`, and `Not saved` states.
-- **Persistent Across Reloads:** Saved designs and the last-opened design preference remain available when reloading or returning to the browser.
-- **Local & Private:** All data remains strictly on your device in your browser. There is no server, database, cloud sync, login, or network API involved.
-- **Storage Scope & Clearing Data:** Saved designs are stored only in the current browser on the current device. Clearing browser site data / local storage removes locally stored designs. (Portable JSON file backup and restore will be added in Phase 8).
+- **Export JSON:** Export the current working design to a human-readable `.json` file formatted with 2-space indentation and a filesystem-safe filename slug derived from the design name. Export is disabled when input draft errors or invalid physical geometry exist.
+- **Import JSON:** Import a previously exported `.json` design file entirely in the browser using modern local File APIs (no network requests, APIs, servers, or external services).
+- **One Design Per File:** Each JSON file represents exactly one canonical `ToolboxDesign` containing physical design inputs, unit system preference, wood ID, and timestamps.
+- **Inputs Only (No Derived Geometry):** Exported JSON files never store calculated geometry or derived metrics (such as internal dimensions, lid panel length, or wedge widths). Geometry is always computed deterministically upon import.
+- **Safe Validation & Structured Errors:** Files are defended against malformed JSON, oversized payloads (> 1 MiB), unsupported schema versions, schema violations, and physical geometry violations before any action is taken.
+- **Safe Import Semantics:** Imported designs become the active working design marked as `Not saved`. They are not automatically written to browser `localStorage` until you explicitly click `Save`.
+- **Identity & Conflict Resolution:** If an imported design's ID matches an existing saved or working design ID, a fresh unique ID and new timestamps are automatically assigned to prevent silent overwriting of existing designs.
+- **Unsaved Changes Guard:** Importing checks the unsaved-change guard after validation passes, preventing accidental loss of current editor work.
+- **Local & Private:** All import, export, and editing operations happen strictly within the client browser. No file contents or design data are ever transmitted over the network.
 
-_Note: 2D technical drawings in SVG (Phase 9), 3D interactive viewer (Phase 10), materials (Phase 11), cut list generation (Phase 12), and PDF export (Phase 13) are scheduled for subsequent phases._
+_Note: 2D technical drawings in SVG (Phase 9), 3D interactive viewer (Phase 10), materials (Phase 11), cut list generation (Phase 12), and PDF workshop documentation (Phase 13) are scheduled for subsequent phases._
 
 For the full specification and architectural roadmap, see the [Product Requirements Document](.junie/plans/prd-v1.md), the [Sliding Lid Geometry Documentation](docs/lid-geometry.md), and the [Locking Wedge Geometry Documentation](docs/wedge-geometry.md).
 
@@ -117,6 +120,7 @@ Implementation roadmap outlined in `.junie/plans/prd-v1.md`:
 - **Phase 5 (Complete):** Locking wedge and tapered batten geometry
 - **Phase 6 (Complete):** Interactive numerical design parameters editor, live validation, and calculated dimensions
 - **Phase 7 (Complete):** Local storage persistence, multi-design management (New, Save, Open, Rename, Duplicate, Delete), and Zod schema validation
-- **Phase 8 & 9:** JSON import/export and 2D technical drawing generation (plan, elevation, cross-sections) using SVG
+- **Phase 8 (Complete):** Portable JSON single-design export and import with validation, ID conflict resolution, and pure serialization
+- **Phase 9:** 2D technical drawing generation (front, plan, end views) using SVG with zoom/pan
 - **Phase 10:** Interactive 3D viewer (Three.js / React Three Fiber)
 - **Phase 11–13:** Wood materials, automated cut lists, process planning, and browser-side PDF export

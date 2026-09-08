@@ -1525,13 +1525,13 @@ Implement browser-only PDF generation containing:
 
 Improve:
 
-- desktop layout;
-- tablet layout;
-- mobile layout;
-- keyboard accessibility;
-- error handling;
-- empty states;
-- design-management UX.
+- **Fluid CAD Workstation Shell:** Removed fixed 960px constraints to allow the application to expand across large desktop and ultra-wide viewports while keeping input rails bounded (~340–400px) and calculated rails compact (~340–430px).
+- **Dominant Central Visualizer:** Central canvas for 2D Technical Drawings and 3D Interactive Model occupies 45–60%+ of usable workspace width on wide screens with sticky positioning.
+- **Unified Visualizer Sizing:** Responsive viewport height scaling with identical 2D and 3D heights, preventing layout shift when switching visualization modes.
+- **Responsive Multi-Tier Layout:** Wide 3-column workstation (`>= 1500px`), 2-column desktop/laptop (`980px–1499px`), adaptive tablet, and single-column mobile flow (`< 720px`).
+- **Full-Width Workshop:** Workshop section (Cut List and Process Plan) spans the full width beneath workspace columns, featuring flexible Cut List columns and an accessible two-column process step grid on large screens.
+- **Design Management & Context Bar:** Compact horizontal header alignment on wide screens with grouped lifecycle, danger, and interchange action buttons; editor context bar shows active units and wood species compactly.
+- **Accessibility & Focus States:** High-contrast `:focus-visible` outlines, logical heading hierarchy, and complete horizontal overflow protection (`min-width: 0;`).
 
 ---
 

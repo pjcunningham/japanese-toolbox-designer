@@ -185,90 +185,102 @@ export const DesignManager: React.FC<DesignManagerProps> = ({
         </div>
 
         <div className="design-action-buttons">
-          <button type="button" className="btn btn-secondary" onClick={onNew}>
-            New
-          </button>
-          <button
-            type="button"
-            className="btn btn-primary"
-            onClick={onSave}
-            disabled={hasInputErrors || isReadOnly}
-            title={
-              hasInputErrors
-                ? 'Resolve invalid field values before saving'
-                : isReadOnly
-                  ? 'Saving is disabled in read-only mode'
-                  : 'Save design'
-            }
-          >
-            Save
-          </button>
-          <button type="button" className="btn btn-secondary" onClick={() => setIsRenameOpen(true)}>
-            Rename
-          </button>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={onDuplicate}
-            disabled={hasInputErrors}
-            title={
-              hasInputErrors
-                ? 'Resolve invalid field values before duplicating'
-                : 'Duplicate design'
-            }
-          >
-            Duplicate
-          </button>
-          <button
-            type="button"
-            className="btn btn-danger"
-            onClick={onDelete}
-            disabled={persistenceStatus === 'not_saved' || isReadOnly}
-            title={
-              persistenceStatus === 'not_saved'
-                ? 'Design is not saved in storage'
-                : 'Delete saved design'
-            }
-          >
-            Delete
-          </button>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={onExport}
-            disabled={isExportDisabled}
-            title={exportButtonTitle}
-          >
-            Export JSON
-          </button>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={onExportPdf}
-            disabled={isExportPdfDisabled}
-            title={exportPdfButtonTitle}
-            data-testid="export-pdf-button"
-          >
-            {isGeneratingPdf ? 'Generating PDF...' : 'Export PDF'}
-          </button>
-          <button
-            type="button"
-            className="btn btn-secondary"
-            onClick={handleImportButtonClick}
-            title="Import design from JSON file"
-          >
-            Import JSON
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".json,application/json"
-            onChange={handleFileInputChange}
-            style={{ display: 'none' }}
-            tabIndex={-1}
-            aria-hidden="true"
-            data-testid="import-json-input"
-          />
+          <div className="design-actions-group design-actions-lifecycle">
+            <button type="button" className="btn btn-secondary" onClick={onNew}>
+              New
+            </button>
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={onSave}
+              disabled={hasInputErrors || isReadOnly}
+              title={
+                hasInputErrors
+                  ? 'Resolve invalid field values before saving'
+                  : isReadOnly
+                    ? 'Saving is disabled in read-only mode'
+                    : 'Save design'
+              }
+            >
+              Save
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setIsRenameOpen(true)}
+            >
+              Rename
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={onDuplicate}
+              disabled={hasInputErrors}
+              title={
+                hasInputErrors
+                  ? 'Resolve invalid field values before duplicating'
+                  : 'Duplicate design'
+              }
+            >
+              Duplicate
+            </button>
+          </div>
+
+          <div className="design-actions-group design-actions-danger">
+            <button
+              type="button"
+              className="btn btn-danger"
+              onClick={onDelete}
+              disabled={persistenceStatus === 'not_saved' || isReadOnly}
+              title={
+                persistenceStatus === 'not_saved'
+                  ? 'Design is not saved in storage'
+                  : 'Delete saved design'
+              }
+            >
+              Delete
+            </button>
+          </div>
+
+          <div className="design-actions-group design-actions-interchange">
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={onExport}
+              disabled={isExportDisabled}
+              title={exportButtonTitle}
+            >
+              Export JSON
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={onExportPdf}
+              disabled={isExportPdfDisabled}
+              title={exportPdfButtonTitle}
+              data-testid="export-pdf-button"
+            >
+              {isGeneratingPdf ? 'Generating PDF...' : 'Export PDF'}
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={handleImportButtonClick}
+              title="Import design from JSON file"
+            >
+              Import JSON
+            </button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".json,application/json"
+              onChange={handleFileInputChange}
+              style={{ display: 'none' }}
+              tabIndex={-1}
+              aria-hidden="true"
+              data-testid="import-json-input"
+            />
+          </div>
         </div>
       </div>
 

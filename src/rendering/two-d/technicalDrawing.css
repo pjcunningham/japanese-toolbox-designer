@@ -4,20 +4,20 @@
 
 .technical-drawing-card {
   background: var(--card-bg, #ffffff);
-  border: 1px solid var(--card-border, #e2e8f0);
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: var(--card-border, 1px solid #e2e8f0);
+  border-radius: var(--card-radius, 8px);
+  box-shadow: var(--card-shadow, 0 1px 3px rgba(0, 0, 0, 0.05));
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  margin-bottom: 1.5rem;
+  margin-bottom: 0;
 }
 
 .technical-drawing-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.75rem 1rem;
+  padding: 0.625rem 0.875rem;
   border-bottom: 1px solid var(--card-border, #e2e8f0);
   background: #f8fafc;
   flex-wrap: wrap;
@@ -26,7 +26,7 @@
 
 .technical-drawing-title {
   margin: 0;
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 600;
   color: #1e293b;
 }
@@ -40,8 +40,8 @@
 }
 
 .technical-drawing-tab {
-  padding: 0.35rem 0.75rem;
-  font-size: 0.85rem;
+  padding: 0.3rem 0.65rem;
+  font-size: 0.8125rem;
   font-weight: 500;
   color: #64748b;
   background: transparent;
@@ -49,6 +49,7 @@
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s ease;
+  min-height: 28px;
 }
 
 .technical-drawing-tab:hover {
@@ -63,21 +64,47 @@
 }
 
 .technical-drawing-tab:focus-visible {
-  outline: 2px solid #2563eb;
+  outline: 2px solid var(--color-primary, #8b5a2b);
   outline-offset: 1px;
 }
 
 .technical-drawing-viewer {
   position: relative;
   width: 100%;
-  height: 420px;
-  min-height: 320px;
+  height: var(--visualizer-height, clamp(520px, 60vh, 760px));
+  min-height: 340px;
   background: #fdfdfd;
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
   user-select: none;
+}
+
+@media (min-width: 1500px) {
+  .technical-drawing-viewer {
+    height: clamp(560px, 62vh, 760px);
+  }
+}
+
+@media (min-width: 980px) and (max-width: 1499px) {
+  .technical-drawing-viewer {
+    height: clamp(480px, 54vh, 600px);
+  }
+}
+
+@media (max-width: 979px) and (min-width: 720px) {
+  .technical-drawing-viewer {
+    height: 440px;
+    min-height: 340px;
+  }
+}
+
+@media (max-width: 719px) {
+  .technical-drawing-viewer {
+    height: 350px;
+    min-height: 300px;
+  }
 }
 
 .technical-drawing-svg {

@@ -504,4 +504,33 @@ describe('DesignEditor Component', () => {
     ).toBeInTheDocument();
     expect(screen.queryByTestId('workshop-cutlist-view')).not.toBeInTheDocument();
   });
+
+  // Phase 14 Presentation Structure & Accessibility
+  it('Phase 14: renders separate inputs, visualization, calculated columns, and full-width workshop section', () => {
+    const { container } = render(<EditorTestWrapper />);
+
+    const inputsCol = container.querySelector('.editor-inputs-column');
+    const vizCol = container.querySelector('.editor-visualization-column');
+    const calcCol = container.querySelector('.editor-calculated-column');
+    const workshopSec = container.querySelector('.editor-workshop-section');
+
+    expect(inputsCol).toBeInTheDocument();
+    expect(vizCol).toBeInTheDocument();
+    expect(calcCol).toBeInTheDocument();
+    expect(workshopSec).toBeInTheDocument();
+
+    // Top context bar shows active units and wood
+    expect(screen.getByText(/Units:/i)).toBeInTheDocument();
+    expect(screen.getByText(/Metric \(mm\)/i)).toBeInTheDocument();
+    expect(screen.getByText(/Wood:/i)).toBeInTheDocument();
+
+    // Major headings
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Design dimensions' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { level: 2, name: 'Calculated design' }),
+    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { level: 2, name: 'Workshop' })).toBeInTheDocument();
+  });
 });

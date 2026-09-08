@@ -266,14 +266,17 @@ export const DesignEditor: React.FC<DesignEditorProps> = ({
 
   return (
     <div className={`design-editor ${className}`}>
-      {/* Editor Header / Context */}
+      {/* Editor Header / Context Top Bar */}
       <div className="editor-top-bar">
-        <div className="editor-design-meta">
-          <span className="editor-design-name">{design.name}</span>
-          <span className="editor-unit-indicator">
-            Active units:{' '}
+        <div className="editor-context-meta editor-unit-indicator">
+          <span className="editor-context-item">
+            Units:{' '}
             <strong>{design.unitSystem === 'metric' ? 'Metric (mm)' : 'Imperial (in)'}</strong>
-            {' · '}
+          </span>
+          <span className="editor-context-separator" aria-hidden="true">
+            ·
+          </span>
+          <span className="editor-context-item">
             Wood: <strong>{selectedWoodDef.name}</strong>
           </span>
         </div>
@@ -557,8 +560,8 @@ export const DesignEditor: React.FC<DesignEditorProps> = ({
           </section>
         </div>
 
-        {/* Right Column: Live Calculated Results & Visualizations (2D Technical Drawings / 3D Model) */}
-        <div className="editor-calculated-column">
+        {/* Middle Column: Visualizations (2D Technical Drawings / 3D Model) */}
+        <div className="editor-visualization-column">
           <div
             className="visualization-mode-bar"
             role="tablist"
@@ -618,21 +621,27 @@ export const DesignEditor: React.FC<DesignEditorProps> = ({
               </React.Suspense>
             </div>
           )}
+        </div>
 
+        {/* Right Column: Live Calculated Results */}
+        <div className="editor-calculated-column">
           <CalculatedDimensionsPanel
             geometryResult={geometryResult}
             unitSystem={design.unitSystem}
             hasInputErrors={hasInputErrors}
             woodId={design.wood.id}
           />
-
-          <WorkshopPanel
-            geometryResult={geometryResult}
-            unitSystem={design.unitSystem}
-            design={design}
-            hasInputErrors={hasInputErrors}
-          />
         </div>
+      </div>
+
+      {/* Full-width Workshop Section (Cut List / Process Plan) */}
+      <div className="editor-workshop-section">
+        <WorkshopPanel
+          geometryResult={geometryResult}
+          unitSystem={design.unitSystem}
+          design={design}
+          hasInputErrors={hasInputErrors}
+        />
       </div>
 
       {/* Secondary Precision Note */}

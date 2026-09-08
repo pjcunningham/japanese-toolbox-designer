@@ -6,23 +6,20 @@ Japanese Toolbox Designer is a browser-only web application designed for woodwor
 
 ## Current Status
 
-**Phase 13 Complete — Workshop PDF Export**
+**Phase 14 Complete — Responsive UI and Polish**
 
-The application provides client-side, browser-only workshop PDF export for the current valid Japanese toolbox design:
+The application provides a responsive technical workstation layout:
 
-- **Browser-Local Generation:** Generated entirely in the browser using `pdf-lib` and standard built-in fonts without any backend, external API, network call, or font/image download.
-- **Authoritative Data Integration:** Directly consumes the single authoritative geometry model, 2D technical drawing projections (Plan, Front, End), Cut List, and 23-step Construction Process Plan without recalculating woodworking formulas.
-- **Structured Multi-Page Document:**
-  - **Page 1 (Portrait A4):** Design Summary containing overall dimensions, unit system, wood species, generation date, carcass parameters, lid kinematics, locking mechanism specifications, and nominal dimensions guidance.
-  - **Pages 2–4 (Landscape A4):** Vector technical drawings for Plan, Front Elevation, and End Elevation rendered with native PDF vector primitives, sharp line styles, dimension lines, and arrowheads.
-  - **Page 5 (Landscape A4):** Formal workshop Cut List table with dynamic row height calculation to avoid clipped text.
-  - **Pages 6+ (Portrait A4):** Multi-page Construction Process Plan with print-safe pagination preserving step headers with instructions.
-- **Working Design Export:** Exports the current valid working design in memory without requiring an explicit save or mutating dirty/saved state.
-- **Lazy Loading:** Dynamically loaded on demand upon export request, keeping the initial application bundle lean.
+- **Fluid Desktop CAD Workspace:** Eliminates restrictive fixed-width container limits, allowing the workspace to expand across large desktop and ultra-wide displays (1920px, 2560px+) while keeping form rails comfortably bounded (340–400px inputs rail, 340–430px calculated rail).
+- **Dominant Central Visualizer:** Central canvas for 2D Technical Drawings and the 3D Interactive Model occupies 45–60%+ of usable workspace width on wide screens, backed by sticky positioning during parameter editing.
+- **Responsive Sizing & 2D/3D Stability:** Unified viewport height scaling across 2D drawings and the 3D model eliminates layout shifts during view mode switching.
+- **Multi-Device Adaptability:** Responsive breakpoints seamlessly transition between wide 3-column desktop workstation (`>= 1500px`), 2-column laptop layout (`980px–1499px`), adaptive tablet layout, and single-column mobile flow (`< 720px`).
+- **Full-Width Workshop:** The Workshop section (Cut List and Process Plan) spans the full application width, featuring wider cut list tables and an accessible two-column process step grid on large screens.
+- **Visual Polish & Accessibility:** Consistent card tokens, high-contrast keyboard focus indicators (`:focus-visible`), logical heading hierarchy, and zero horizontal page overflow.
 
-**Next Activity:** V1 Release & Final Verification.
+**Next Activity:** Phase 15 — Final V1 Verification / Release.
 
-For the full specification and architectural roadmap, see the [Product Requirements Document](.junie/plans/prd-v1.md), the [PDF Export Documentation](docs/pdf-export.md), the [Manufacturing Documentation](docs/manufacturing.md), the [Wood Materials Documentation](docs/wood-materials.md), the [Carcass Geometry Documentation](docs/carcass-geometry.md), the [Sliding Lid Geometry Documentation](docs/lid-geometry.md), the [Locking Wedge Geometry Documentation](docs/wedge-geometry.md), the [Design JSON Format Documentation](docs/design-json-format.md), the [2D Technical Drawings Documentation](docs/technical-drawings.md), and the [3D Rendering Documentation](docs/three-d-rendering.md).
+For the full specification and architectural roadmap, see the [Product Requirements Document](.junie/plans/prd-v1.md), the [Responsive Layout Documentation](docs/responsive-layout.md), the [PDF Export Documentation](docs/pdf-export.md), the [Manufacturing Documentation](docs/manufacturing.md), the [Wood Materials Documentation](docs/wood-materials.md), the [Carcass Geometry Documentation](docs/carcass-geometry.md), the [Sliding Lid Geometry Documentation](docs/lid-geometry.md), the [Locking Wedge Geometry Documentation](docs/wedge-geometry.md), the [Design JSON Format Documentation](docs/design-json-format.md), the [2D Technical Drawings Documentation](docs/technical-drawings.md), and the [3D Rendering Documentation](docs/three-d-rendering.md).
 
 ## Technology Stack
 

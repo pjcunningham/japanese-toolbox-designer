@@ -1,12 +1,16 @@
-/* Workshop Panel Styles */
+/* ==========================================================================
+   Workshop Panel Styles (Phase 14 Responsive Full-Width Workshop)
+   ========================================================================== */
 
 .workshop-panel {
   background-color: var(--color-surface, #ffffff);
-  border: 1px solid var(--color-border, #e5e7eb);
-  border-radius: 8px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  padding: 1.25rem;
-  margin-top: 1.5rem;
+  border: var(--card-border, 1px solid #e5e7eb);
+  border-radius: var(--card-radius, 8px);
+  box-shadow: var(--card-shadow, 0 1px 3px rgba(0, 0, 0, 0.05));
+  padding: 1.25rem 1.5rem;
+  margin-top: 0.5rem;
+  width: 100%;
+  min-width: 0;
   transition: opacity 0.2s ease;
 }
 
@@ -20,9 +24,9 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 1rem;
-  padding-bottom: 1rem;
+  padding-bottom: 0.875rem;
   border-bottom: 1px solid var(--color-border, #e5e7eb);
-  margin-bottom: 1.25rem;
+  margin-bottom: 1rem;
 }
 
 .workshop-title-area {
@@ -31,7 +35,7 @@
 }
 
 .workshop-main-title {
-  font-size: 1.25rem;
+  font-size: 1.1875rem;
   font-weight: 700;
   color: var(--color-text-main, #1f2937);
   margin: 0 0 0.25rem 0;
@@ -52,7 +56,7 @@
 }
 
 .workshop-tab-btn {
-  padding: 0.375rem 0.875rem;
+  padding: 0.35rem 0.875rem;
   font-size: 0.875rem;
   font-weight: 600;
   color: #4b5563;
@@ -61,6 +65,7 @@
   border-radius: 4px;
   cursor: pointer;
   transition: all 0.15s ease;
+  min-height: 32px;
 }
 
 .workshop-tab-btn:hover {
@@ -73,6 +78,11 @@
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
+.workshop-tab-btn:focus-visible {
+  outline: 2px solid var(--color-primary, #8b5a2b);
+  outline-offset: 2px;
+}
+
 .workshop-unavailable-message {
   padding: 1.5rem;
   text-align: center;
@@ -83,7 +93,9 @@
   font-size: 0.9375rem;
 }
 
-/* Header Context Metadata & Summary Pills */
+/* ==========================================================================
+   Header Context Metadata & Summary Pills
+   ========================================================================== */
 
 .workshop-view-header {
   display: flex;
@@ -92,7 +104,7 @@
   flex-wrap: wrap;
   gap: 0.75rem;
   margin-bottom: 1rem;
-  padding: 0.5rem 0.75rem;
+  padding: 0.5rem 0.875rem;
   background-color: #faf7f2;
   border: 1px solid #eddcd0;
   border-radius: 6px;
@@ -134,13 +146,16 @@
   color: #8b5a2b;
 }
 
-/* Cut List Table */
+/* ==========================================================================
+   Cut List Table (Flexible Desktop Columns, Contained Mobile Scroll)
+   ========================================================================== */
 
 .workshop-cutlist-table-container {
   overflow-x: auto;
   border: 1px solid var(--color-border, #e5e7eb);
   border-radius: 6px;
   background-color: #ffffff;
+  width: 100%;
 }
 
 .workshop-table {
@@ -157,6 +172,27 @@
   padding: 0.625rem 0.875rem;
   border-bottom: 1px solid #e5e7eb;
   white-space: nowrap;
+}
+
+.col-part {
+  width: 22%;
+  min-width: 150px;
+}
+
+.col-qty {
+  width: 6%;
+  min-width: 48px;
+  text-align: center;
+}
+
+.col-dim {
+  width: 12%;
+  min-width: 85px;
+}
+
+.col-notes {
+  width: 36%;
+  min-width: 200px;
 }
 
 .workshop-table td {
@@ -209,7 +245,9 @@
   line-height: 1.45;
 }
 
-/* Process Plan Sequence */
+/* ==========================================================================
+   Process Plan Sequence (2-Column Grid on Wide Desktop, 1-Column on Mobile)
+   ========================================================================== */
 
 .process-steps-list {
   list-style: none;
@@ -220,12 +258,21 @@
   gap: 0.75rem;
 }
 
+@media (min-width: 1200px) {
+  .process-steps-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.875rem;
+  }
+}
+
 .process-step-card {
   border: 1px solid var(--color-border, #e5e7eb);
   border-radius: 6px;
   background-color: #ffffff;
   overflow: hidden;
   transition: border-color 0.15s ease;
+  min-width: 0;
 }
 
 .process-step-card:hover {
@@ -240,18 +287,23 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 1rem;
+  padding: 0.625rem 0.875rem;
   background-color: #f9fafb;
   cursor: pointer;
   user-select: none;
   font-weight: 600;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   color: #1f2937;
   transition: background-color 0.15s ease;
 }
 
 .process-step-summary:hover {
   background-color: #f3f4f6;
+}
+
+.process-step-summary:focus-visible {
+  outline: 2px solid var(--color-primary, #8b5a2b);
+  outline-offset: -1px;
 }
 
 .step-badge {
@@ -272,15 +324,15 @@
 }
 
 .step-content-body {
-  padding: 1rem;
+  padding: 0.875rem 1rem;
   border-top: 1px solid #f3f4f6;
 }
 
 .step-instructions-list {
-  margin: 0 0 0.875rem 0;
+  margin: 0 0 0.75rem 0;
   padding-left: 1.25rem;
   color: #374151;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   line-height: 1.5;
 }
 
@@ -292,12 +344,12 @@
   background-color: #fdfaf6;
   border: 1px solid #f2e4d8;
   border-radius: 6px;
-  padding: 0.75rem 1rem;
-  margin-top: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  margin-top: 0.625rem;
 }
 
 .step-measurements-title {
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.375rem 0;
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -307,8 +359,8 @@
 
 .step-measurements-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 0.5rem 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 0.375rem 0.75rem;
   margin: 0;
 }
 
@@ -317,7 +369,7 @@
   justify-content: space-between;
   align-items: baseline;
   gap: 0.5rem;
-  padding: 0.25rem 0;
+  padding: 0.2rem 0;
   border-bottom: 1px dashed #eedccf;
 }
 
@@ -326,13 +378,13 @@
 }
 
 .measurement-label {
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: #6b7280;
   font-weight: 500;
 }
 
 .measurement-value {
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
   color: #1f2937;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
@@ -340,12 +392,12 @@
 }
 
 .step-notes-panel {
-  margin-top: 0.75rem;
+  margin-top: 0.625rem;
   padding: 0.5rem 0.75rem;
   background-color: #f0fdf4;
   border: 1px solid #bbf7d0;
   border-radius: 4px;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: #166534;
 }
 
@@ -365,7 +417,9 @@
   border: 0;
 }
 
-/* Responsive queries */
+/* ==========================================================================
+   Responsive Breakpoints for Workshop
+   ========================================================================== */
 
 @media (max-width: 768px) {
   .workshop-header-row {

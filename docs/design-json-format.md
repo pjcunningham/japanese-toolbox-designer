@@ -12,11 +12,11 @@ This document specifies the portable JSON interchange file format for Japanese T
 
 ## Schema Version
 
-The current schema version is `2`. The `schemaVersion` field is required and validated against `TOOLBOX_DESIGN_SCHEMA_VERSION`.
+The current schema version is `3`. The `schemaVersion` field is required and validated against `TOOLBOX_DESIGN_SCHEMA_VERSION`.
 
-### Legacy Schema V1 Migration
+### Legacy Schema Migration
 
-Files created under Schema Version 1 are automatically recognized on JSON import and migrated in-memory to Version 2 using proportional inset-end rules derived from the stock thickness $T$. Newly exported files are always serialized as Schema Version 2.
+Files created under Schema Version 1 or 2 are automatically recognized on JSON import and migrated in-memory to Version 3. V1 first migrates through the existing V1-to-V2 inset-end migration; V2 maps its old `desiredOverlap` value to equal `stopEndOverlap` and `lockingEndOverlap` values so the physical design is preserved. Newly exported files are always serialized as Schema Version 3.
 
 ## Top-Level Fields
 
@@ -24,7 +24,7 @@ Files created under Schema Version 1 are automatically recognized on JSON import
 | ------------------------ | ------------------------ | ------------------------------------------------------ |
 | `id`                     | `string` (UUID)          | Unique identifier for the design.                      |
 | `name`                   | `string` (1–100 chars)   | User-visible name of the design.                       |
-| `schemaVersion`          | `number` (`2`)           | Version of the serialized design schema.               |
+| `schemaVersion`          | `number` (`3`)           | Version of the serialized design schema.               |
 | `createdAt`              | `string` (ISO 8601)      | Timestamp of original creation.                        |
 | `updatedAt`              | `string` (ISO 8601)      | Timestamp of last modification.                        |
 | `unitSystem`             | `'metric' \| 'imperial'` | Preferred display unit system when opening the design. |
@@ -53,7 +53,8 @@ All linear dimensions in canonical millimetres, angles in degrees:
 - `fixedTopBattenWidth`: Width of fixed end battens / end caps ($R$).
 - `lidBattenWidth`: Width of sliding lid battens ($B$).
 - `lidSideClearance`: Lateral clearance per side between lid panel and carcass wall ($C$).
-- `desiredOverlap`: Longitudinal engagement per end under fixed battens ($O$).
+- `stopEndOverlap`: Stop-end locked overlap beneath the stop-end cap ($O_s$).
+- `lockingEndOverlap`: Locking-end locked overlap beneath the locking-end cap ($O_l$).
 - `lidBattenOverhang`: Lateral projection of lid battens past lid panel edges ($E$).
 - `wedgeTaperAngle`: Plan taper angle in degrees ($\alpha$).
 - `wedgeBevelAngle`: Vertical captured bevel angle in degrees ($\beta$).
@@ -63,13 +64,13 @@ All linear dimensions in canonical millimetres, angles in degrees:
 
 - `id`: Wood species identifier string (e.g. `"pine"`).
 
-## Example JSON (V2 Default)
+## Example JSON (V3 Default)
 
 ```json
 {
   "id": "e4b27cb0-81f9-4b44-9fa7-3939637cfa90",
   "name": "Workshop Toolbox",
-  "schemaVersion": 2,
+  "schemaVersion": 3,
   "createdAt": "2026-09-07T10:00:00.000Z",
   "updatedAt": "2026-09-07T10:00:00.000Z",
   "unitSystem": "metric",
@@ -88,7 +89,8 @@ All linear dimensions in canonical millimetres, angles in degrees:
     "fixedTopBattenWidth": 84,
     "lidBattenWidth": 42,
     "lidSideClearance": 2,
-    "desiredOverlap": 13.5,
+    "stopEndOverlap": 6,
+    "lockingEndOverlap": 20,
     "lidBattenOverhang": 18,
     "wedgeTaperAngle": 2,
     "wedgeBevelAngle": 10,

@@ -165,7 +165,8 @@ describe('calculateBoxGeometry (Phase 10A Corrected Carcass)', () => {
           fixedTopBattenWidth: 70,
           lidBattenWidth: 35,
           lidSideClearance: 1.5,
-          desiredOverlap: 10,
+          stopEndOverlap: 5,
+          lockingEndOverlap: 10,
           lidBattenOverhang: 15,
           lockingBattenTravelClearance: 1,
           wedgeTaperAngle: 2,
@@ -492,8 +493,8 @@ describe('calculateBoxGeometry (Phase 10A Corrected Carcass)', () => {
 });
 
 describe('calculateLidGeometry & Sliding Lid Mechanics (Phase 4 & 10A)', () => {
-  describe('Default worked fixture (X = 600, R = 84, I = 36, T = 18, O = 13.5, B = 42, P = 12, C = 2, E = 18)', () => {
-    it('calculates exact hand-calculated reference values for the V2 default lid', () => {
+  describe('Default worked fixture (X = 600, R = 84, I = 36, T = 18, Os = 6, Ol = 20, B = 42, P = 12, C = 2, E = 18)', () => {
+    it('calculates exact hand-calculated reference values for the V3 default lid', () => {
       const design = createDefaultToolboxDesign();
       const result = calculateLidGeometry(design);
 
@@ -502,9 +503,9 @@ describe('calculateLidGeometry & Sliding Lid Mechanics (Phase 4 & 10A)', () => {
         return;
       }
 
-      // 1. Lid panel dimensions (432 + 27 = 459, 264 - 4 = 260, thickness = 12)
+      // 1. Lid panel dimensions (432 + 26 = 458, 264 - 4 = 260, thickness = 12)
       expect(result.geometry.panel.dimensions).toEqual({
-        length: 459,
+        length: 458,
         width: 260,
         thickness: 12,
       });
@@ -516,7 +517,7 @@ describe('calculateLidGeometry & Sliding Lid Mechanics (Phase 4 & 10A)', () => {
         width: 42,
         thickness: 18,
       });
-      expect(result.geometry.straightLidBatten.startFromPanelEnd).toBe(13.5);
+      expect(result.geometry.straightLidBatten.startFromPanelEnd).toBe(6);
 
       // 3. Side-wall bearing and lateral fit
       expect(result.geometry.lateralFit.clearancePerSide).toBe(2);
@@ -534,11 +535,13 @@ describe('calculateLidGeometry & Sliding Lid Mechanics (Phase 4 & 10A)', () => {
 
       // 5. Longitudinal fit & travel
       expect(result.geometry.longitudinalFit).toEqual({
-        lockedOverlapPerEnd: 13.5,
+        stopEndLockedOverlap: 6,
+        lockingEndLockedOverlap: 20,
+        totalLockedOverlap: 26,
         pocketDepth: 30, // 84 - 36 - 18
-        travelToReleaseEdge: 13.5,
-        availableTravel: 16.5, // 30 - 13.5
-        releaseTravelMargin: 3, // 30 - 27
+        travelToReleaseEdge: 6,
+        availableTravel: 10, // 30 - 20
+        releaseTravelMargin: 4, // 30 - 26
       });
 
       // 6. Box opening edges
@@ -552,62 +555,62 @@ describe('calculateLidGeometry & Sliding Lid Mechanics (Phase 4 & 10A)', () => {
         name: 'locked',
         translationFromLocked: 0,
         panel: {
-          startX: 70.5, // 84 - 13.5
-          endX: 529.5, // 516 + 13.5
+          startX: 78, // 84 - 6
+          endX: 536, // 516 + 20
         },
         straightLidBatten: {
           startX: 84,
           endX: 126, // 84 + 42
         },
-        stopEndOverlap: 13.5,
-        lockingEndOverlap: 13.5,
+        stopEndOverlap: 6,
+        lockingEndOverlap: 20,
         stopEndReleaseClearance: 0,
       });
 
       // 8. Reference state: RELEASE_THRESHOLD
       expect(result.geometry.states.releaseThreshold).toEqual({
         name: 'releaseThreshold',
-        translationFromLocked: 13.5,
+        translationFromLocked: 6,
         panel: {
           startX: 84,
-          endX: 543,
+          endX: 542,
         },
         straightLidBatten: {
-          startX: 97.5,
-          endX: 139.5,
+          startX: 90,
+          endX: 132,
         },
         stopEndOverlap: 0,
-        lockingEndOverlap: 27,
+        lockingEndOverlap: 26,
         stopEndReleaseClearance: 0,
       });
 
       // 9. Reference state: SHIFTED_FOR_RELEASE
       expect(result.geometry.states.shiftedForRelease).toEqual({
         name: 'shiftedForRelease',
-        translationFromLocked: 16.5,
+        translationFromLocked: 10,
         panel: {
-          startX: 87, // 70.5 + 16.5
+          startX: 88, // 78 + 10
           endX: 546, // 529.5 + 16.5 = X - I - T
         },
         straightLidBatten: {
-          startX: 100.5,
-          endX: 142.5,
+          startX: 94,
+          endX: 136,
         },
         stopEndOverlap: 0,
         lockingEndOverlap: 30,
-        stopEndReleaseClearance: 3,
+        stopEndReleaseClearance: 4,
       });
 
       expect(result.warnings).toEqual([]);
     });
   });
 
-  describe('Boundary tests for fundamental release condition (2O < R - I - T)', () => {
-    it('accepts 2O < pocketDepth, rejects 2O = pocketDepth, and rejects 2O > pocketDepth', () => {
+  describe('Boundary tests for fundamental release condition (Os + Ol < R - I - T)', () => {
+    it('accepts Os + Ol < pocketDepth, rejects equality, and rejects greater than pocketDepth', () => {
       // Default: R = 84, I = 36, T = 18 -> pocketDepth = 30
-      // 1. 2O < 30 -> O = 14.9 (2O = 29.8 < 30) -> Valid
+      // 1. Os + Ol = 29.8 < 30 -> Valid
       const validDesign = createDefaultToolboxDesign({
-        constructionParameters: { desiredOverlap: 14.9 },
+        constructionParameters: { stopEndOverlap: 14.4, lockingEndOverlap: 15.4 },
       });
       const validResult = calculateLidGeometry(validDesign);
       expect(validResult.ok).toBe(true);
@@ -615,9 +618,9 @@ describe('calculateLidGeometry & Sliding Lid Mechanics (Phase 4 & 10A)', () => {
         expect(validResult.geometry.longitudinalFit.releaseTravelMargin).toBeCloseTo(0.2, 5);
       }
 
-      // 2. 2O = 30 -> O = 15 -> Invalid
+      // 2. Os + Ol = 30 -> Invalid
       const equalDesign = createDefaultToolboxDesign({
-        constructionParameters: { desiredOverlap: 15 },
+        constructionParameters: { stopEndOverlap: 10, lockingEndOverlap: 20 },
       });
       const equalResult = calculateLidGeometry(equalDesign);
       expect(equalResult.ok).toBe(false);
@@ -627,9 +630,9 @@ describe('calculateLidGeometry & Sliding Lid Mechanics (Phase 4 & 10A)', () => {
         );
       }
 
-      // 3. 2O > 30 -> O = 16 -> Invalid
+      // 3. Os + Ol = 31 -> Invalid
       const invalidDesign = createDefaultToolboxDesign({
-        constructionParameters: { desiredOverlap: 16 },
+        constructionParameters: { stopEndOverlap: 16, lockingEndOverlap: 15 },
       });
       const invalidResult = calculateLidGeometry(invalidDesign);
       expect(invalidResult.ok).toBe(false);
@@ -652,6 +655,101 @@ describe('calculateLidGeometry & Sliding Lid Mechanics (Phase 4 & 10A)', () => {
         expect(resEqual.errors.some((e) => e.code === 'LID_TOO_THICK')).toBe(true);
       }
     });
+
+    it('produces one aggregate release-travel error for invalid combined overlap', () => {
+      const design = createDefaultToolboxDesign({
+        constructionParameters: { stopEndOverlap: 10, lockingEndOverlap: 20 },
+      });
+
+      const result = calculateToolboxGeometry(design);
+      expect(result.ok).toBe(false);
+      if (!result.ok) {
+        expect(
+          result.errors.filter((e) => e.code === 'INSUFFICIENT_LID_RELEASE_TRAVEL'),
+        ).toHaveLength(1);
+      }
+    });
+
+    it('supports the representative T=20 end-cap flexibility scenarios', () => {
+      const base = {
+        dimensions: {
+          length: 510,
+          width: 170,
+          height: 170,
+          stockThickness: 20,
+        },
+        constructionParameters: {
+          bottomThickness: 12,
+          lidThickness: 12,
+          endHandleDepth: 36,
+          endHandleHeight: 72,
+          housingDadoDepth: 3,
+          fixedTopBattenWidth: 84,
+          lidBattenWidth: 42,
+          lidSideClearance: 2,
+          stopEndOverlap: 6,
+          lockingEndOverlap: 20,
+          lidBattenOverhang: 18,
+          wedgeTaperAngle: 2,
+          wedgeBevelAngle: 10,
+          lockingBattenTravelClearance: 1,
+        },
+      };
+
+      const r84 = calculateToolboxGeometry(createDefaultToolboxDesign(base));
+      expect(r84.ok).toBe(true);
+      if (r84.ok) {
+        expect(r84.geometry.lid.longitudinalFit.pocketDepth).toBe(28);
+        expect(r84.geometry.lid.longitudinalFit.totalLockedOverlap).toBe(26);
+        expect(r84.geometry.lid.longitudinalFit.availableTravel).toBe(8);
+        expect(r84.geometry.lid.longitudinalFit.releaseTravelMargin).toBe(2);
+      }
+
+      const r83 = calculateToolboxGeometry(
+        createDefaultToolboxDesign({
+          ...base,
+          constructionParameters: { ...base.constructionParameters, fixedTopBattenWidth: 83 },
+        }),
+      );
+      expect(r83.ok).toBe(true);
+      if (r83.ok) {
+        expect(r83.geometry.lid.longitudinalFit.pocketDepth).toBe(27);
+        expect(r83.geometry.lid.longitudinalFit.totalLockedOverlap).toBe(26);
+        expect(r83.geometry.lid.longitudinalFit.releaseTravelMargin).toBe(1);
+      }
+
+      const r82DefaultOverlap = calculateToolboxGeometry(
+        createDefaultToolboxDesign({
+          ...base,
+          constructionParameters: { ...base.constructionParameters, fixedTopBattenWidth: 82 },
+        }),
+      );
+      expect(r82DefaultOverlap.ok).toBe(false);
+      if (!r82DefaultOverlap.ok) {
+        expect(
+          r82DefaultOverlap.errors.some((e) => e.code === 'INSUFFICIENT_LID_RELEASE_TRAVEL'),
+        ).toBe(true);
+      }
+
+      const r82TunedOverlap = calculateToolboxGeometry(
+        createDefaultToolboxDesign({
+          ...base,
+          constructionParameters: {
+            ...base.constructionParameters,
+            fixedTopBattenWidth: 82,
+            lockingEndOverlap: 19,
+          },
+        }),
+      );
+      expect(r82TunedOverlap.ok).toBe(true);
+      if (r82TunedOverlap.ok) {
+        expect(r82TunedOverlap.geometry.lid.longitudinalFit.pocketDepth).toBe(26);
+        expect(r82TunedOverlap.geometry.lid.longitudinalFit.totalLockedOverlap).toBe(25);
+        expect(r82TunedOverlap.geometry.lid.longitudinalFit.availableTravel).toBe(7);
+        expect(r82TunedOverlap.geometry.lid.longitudinalFit.releaseTravelMargin).toBe(1);
+        expect(r82TunedOverlap.geometry.lockingMechanism.wedge.topNarrowWidth).toBeGreaterThan(0);
+      }
+    });
   });
 
   describe('Algebraic invariants for valid sliding lid geometry', () => {
@@ -667,7 +765,8 @@ describe('calculateLidGeometry & Sliding Lid Mechanics (Phase 4 & 10A)', () => {
           fixedTopBattenWidth: 75,
           lidThickness: 10,
           lidSideClearance: 2,
-          desiredOverlap: 12,
+          stopEndOverlap: 5,
+          lockingEndOverlap: 12,
           lidBattenWidth: 38,
           lidBattenOverhang: 16,
         },
@@ -689,14 +788,14 @@ describe('calculateLidGeometry & Sliding Lid Mechanics (Phase 4 & 10A)', () => {
         const t = design.dimensions.stockThickness;
         const i = design.constructionParameters.endHandleDepth;
 
-        // Invariant 1: lidPanelLength = topOpeningLength + 2 * lockedOverlap
+        // Invariant 1: lidPanelLength = topOpeningLength + total locked overlap
         expect(lid.panel.dimensions.length).toBe(
-          box.topOpening.length + 2 * lid.longitudinalFit.lockedOverlapPerEnd,
+          box.topOpening.length + lid.longitudinalFit.totalLockedOverlap,
         );
 
-        // Invariant 2: availableTravel = pocketDepth - lockedOverlap
+        // Invariant 2: availableTravel = pocketDepth - locking-end locked overlap
         expect(lid.longitudinalFit.availableTravel).toBe(
-          lid.longitudinalFit.pocketDepth - lid.longitudinalFit.lockedOverlapPerEnd,
+          lid.longitudinalFit.pocketDepth - lid.longitudinalFit.lockingEndLockedOverlap,
         );
 
         // Invariant 3: releaseTravelMargin = availableTravel - travelToReleaseEdge
@@ -704,9 +803,9 @@ describe('calculateLidGeometry & Sliding Lid Mechanics (Phase 4 & 10A)', () => {
           lid.longitudinalFit.availableTravel - lid.longitudinalFit.travelToReleaseEdge,
         );
 
-        // Invariant 4: releaseTravelMargin = pocketDepth - 2 * lockedOverlap
+        // Invariant 4: releaseTravelMargin = pocketDepth - total locked overlap
         expect(lid.longitudinalFit.releaseTravelMargin).toBe(
-          lid.longitudinalFit.pocketDepth - 2 * lid.longitudinalFit.lockedOverlapPerEnd,
+          lid.longitudinalFit.pocketDepth - lid.longitudinalFit.totalLockedOverlap,
         );
 
         // Invariant 5: fully shifted locking-end panel coordinate touches inner inset end wall (X - I - T)
@@ -765,22 +864,22 @@ describe('calculateLockingMechanismGeometry (Phase 5 & 10A)', () => {
       expect(lockingLidBatten.maximumWidth).toBe(42);
       expect(lockingLidBatten.minimumWidth).toBeCloseTo(31.66345223, 6);
       expect(lockingLidBatten.taperDelta).toBeCloseTo(10.33654777, 6);
-      expect(lockingLidBatten.interiorEdgeX).toBe(456.5); // 516 - 17.5 - 42
-      expect(lockingLidBatten.narrowEndWedgeFaceX).toBe(498.5); // 516 - 17.5
-      expect(lockingLidBatten.wideEndWedgeFaceX).toBeCloseTo(488.16345223, 6);
+      expect(lockingLidBatten.interiorEdgeX).toBe(463); // 516 - 11 - 42
+      expect(lockingLidBatten.narrowEndWedgeFaceX).toBe(505); // 516 - 11
+      expect(lockingLidBatten.wideEndWedgeFaceX).toBeCloseTo(494.66345223, 6);
 
       // 3. Removable Locking Wedge
       expect(wedge.workingLength).toBe(296);
       expect(wedge.recommendedOverlength).toBe(36);
       expect(wedge.recommendedBlankLength).toBe(332);
-      expect(wedge.bottomNarrowWidth).toBe(17.5);
-      expect(wedge.bottomWideWidth).toBeCloseTo(27.83654777, 5);
-      expect(wedge.topNarrowWidth).toBeCloseTo(11.15029, 4);
-      expect(wedge.topWideWidth).toBeCloseTo(21.48684, 4);
+      expect(wedge.bottomNarrowWidth).toBe(11);
+      expect(wedge.bottomWideWidth).toBeCloseTo(21.33654777, 5);
+      expect(wedge.topNarrowWidth).toBeCloseTo(4.65029, 4);
+      expect(wedge.topWideWidth).toBeCloseTo(14.98684, 4);
 
       // 4. Channel and residual gap
-      expect(channel.minimumBottomWidth).toBe(17.5);
-      expect(channel.maximumBottomWidth).toBeCloseTo(27.83654777, 6);
+      expect(channel.minimumBottomWidth).toBe(11);
+      expect(channel.maximumBottomWidth).toBeCloseTo(21.33654777, 6);
       expect(channel.residualGapAfterFullLidShift).toBe(1);
 
       // 5. Vertical capture
@@ -788,7 +887,7 @@ describe('calculateLockingMechanismGeometry (Phase 5 & 10A)', () => {
       expect(capture.topWidthReduction).toBeCloseTo(6.34971, 4);
 
       // 6. Manufacturing
-      expect(manufacturing.combinedLockingBlankWidth).toBe(59.5); // 42 + 17.5
+      expect(manufacturing.combinedLockingBlankWidth).toBe(53); // 42 + 11
     });
   });
 });

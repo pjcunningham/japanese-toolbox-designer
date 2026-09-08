@@ -6,7 +6,9 @@ import {
 import {
   ToolboxDesignSchema,
   ToolboxDesignV1Schema,
+  ToolboxDesignV2Schema,
   migrateToolboxDesignV1ToV2,
+  migrateToolboxDesignV2ToV3,
 } from '../persistence';
 
 export const MAX_DESIGN_FILE_SIZE_BYTES = 1024 * 1024; // 1 MiB
@@ -193,8 +195,20 @@ export function parseToolboxDesignJson(jsonText: string): JsonImportResult {
         details: v1ParseResult.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
       };
     }
-    designToValidate = migrateToolboxDesignV1ToV2(v1ParseResult.data);
+    designToValidate = migrateToolboxDesignV2ToV3(migrateToolboxDesignV1ToV2(v1ParseResult.data));
     migratedFromVersion = 1;
+  } else if (version === 2) {
+    const v2ParseResult = ToolboxDesignV2Schema.safeParse(raw);
+    if (!v2ParseResult.success) {
+      return {
+        ok: false,
+        code: 'INVALID_DESIGN_SCHEMA',
+        error: 'The file does not conform to the Japanese Toolbox schema version 2.',
+        details: v2ParseResult.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`),
+      };
+    }
+    designToValidate = migrateToolboxDesignV2ToV3(v2ParseResult.data);
+    migratedFromVersion = 2;
   } else {
     const parseResult = ToolboxDesignSchema.safeParse(raw);
     if (!parseResult.success) {

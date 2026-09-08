@@ -5,20 +5,22 @@ import {
   ToolboxDesignV1Schema,
   ToolboxDimensionsSchema,
   ToolboxConstructionParametersSchema,
+  ToolboxDesignV2Schema,
   PersistedDesignStoreSchema,
   PersistedSettingsSchema,
   migrateToolboxDesignV1ToV2,
+  migrateToolboxDesignV2ToV3,
   type ToolboxDesignV1,
 } from './designSchema';
 
-describe('ToolboxDesignSchema Zod Validation (V2)', () => {
-  it('validates a default valid ToolboxDesign V2', () => {
+describe('ToolboxDesignSchema Zod Validation (V3)', () => {
+  it('validates a default valid ToolboxDesign V3', () => {
     const design = createDefaultToolboxDesign();
     const result = ToolboxDesignSchema.safeParse(design);
     expect(result.success).toBe(true);
   });
 
-  it('rejects schemaVersion 1 in V2 schema', () => {
+  it('rejects schemaVersion 1 in V3 schema', () => {
     const design = {
       ...createDefaultToolboxDesign(),
       schemaVersion: 1,
@@ -85,7 +87,8 @@ describe('ToolboxDesignSchema Zod Validation (V2)', () => {
       ToolboxConstructionParametersSchema.safeParse({ ...base, housingDadoDepth: NaN }).success,
     ).toBe(false);
     expect(
-      ToolboxConstructionParametersSchema.safeParse({ ...base, desiredOverlap: Infinity }).success,
+      ToolboxConstructionParametersSchema.safeParse({ ...base, lockingEndOverlap: Infinity })
+        .success,
     ).toBe(false);
     expect(
       ToolboxConstructionParametersSchema.safeParse({ ...base, wedgeTaperAngle: -Infinity })
@@ -100,7 +103,7 @@ describe('ToolboxDesignSchema Zod Validation (V2)', () => {
     const base = {
       ...createDefaultToolboxDesign().constructionParameters,
     } as Record<string, unknown>;
-    delete base.desiredOverlap;
+    delete base.lockingEndOverlap;
     expect(ToolboxConstructionParametersSchema.safeParse(base).success).toBe(false);
   });
 
@@ -189,6 +192,23 @@ describe('V1 Schema & Migration (Sections 46, 48, 68, 69)', () => {
       wedgeBevelAngle: 10,
       lockingBattenTravelClearance: 1,
     });
+  });
+
+  it('chains V1 -> V2 -> V3 with equal migrated overlaps', () => {
+    const current = migrateToolboxDesignV2ToV3(migrateToolboxDesignV1ToV2(v1Fixture));
+
+    expect(current.schemaVersion).toBe(3);
+    expect(current.id).toBe(v1Fixture.id);
+    expect(current.createdAt).toBe(v1Fixture.createdAt);
+    expect(current.updatedAt).toBe(v1Fixture.updatedAt);
+    expect(current.constructionParameters.stopEndOverlap).toBe(13.5);
+    expect(current.constructionParameters.lockingEndOverlap).toBe(13.5);
+  });
+
+  it('validates explicit V2 designs only with ToolboxDesignV2Schema', () => {
+    const v2 = migrateToolboxDesignV1ToV2(v1Fixture);
+    expect(ToolboxDesignV2Schema.safeParse(v2).success).toBe(true);
+    expect(ToolboxDesignSchema.safeParse(v2).success).toBe(false);
   });
 
   it('migrates fractional stockThickness V1 design without rounding (Section 69)', () => {

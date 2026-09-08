@@ -23,7 +23,8 @@ export const DEFAULT_CONSTRUCTION_PARAMETERS: Readonly<ToolboxConstructionParame
     fixedTopBattenWidth: 84, // R = (14/3) * T = 84 mm
     lidBattenWidth: 42, // B = (7/3) * T = 42 mm
     lidSideClearance: 2, // C = 2 mm
-    desiredOverlap: 13.5, // O = 0.75 * T = 13.5 mm
+    stopEndOverlap: 6, // Os = 6 mm
+    lockingEndOverlap: 20, // Ol = 20 mm
     lidBattenOverhang: 18, // E = T = 18 mm
     wedgeTaperAngle: 2, // degrees (alpha)
     wedgeBevelAngle: 10, // degrees (beta)
@@ -128,7 +129,8 @@ export function duplicateToolboxDesign(
       fixedTopBattenWidth: source.constructionParameters.fixedTopBattenWidth,
       lidBattenWidth: source.constructionParameters.lidBattenWidth,
       lidSideClearance: source.constructionParameters.lidSideClearance,
-      desiredOverlap: source.constructionParameters.desiredOverlap,
+      stopEndOverlap: source.constructionParameters.stopEndOverlap,
+      lockingEndOverlap: source.constructionParameters.lockingEndOverlap,
       lidBattenOverhang: source.constructionParameters.lidBattenOverhang,
       wedgeTaperAngle: source.constructionParameters.wedgeTaperAngle,
       wedgeBevelAngle: source.constructionParameters.wedgeBevelAngle,

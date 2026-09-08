@@ -70,17 +70,23 @@ describe('createProcessPlan', () => {
     const pocketMeas = endCapStep?.measurements?.find((m) => m.label === 'Pocket depth');
     expect(pocketMeas?.kind === 'linear' && pocketMeas.value).toBe(30);
 
-    // Step 11: Locked overlap
+    // Step 11: Locked overlaps
     const lidStep = plan.steps.find((s) => s.id === 'prepare-lid');
-    const overlapMeas = lidStep?.measurements?.find((m) => m.label === 'Locked overlap per end');
-    expect(overlapMeas?.kind === 'linear' && overlapMeas.value).toBe(13.5);
+    const stopOverlapMeas = lidStep?.measurements?.find(
+      (m) => m.label === 'Stop-end locked overlap',
+    );
+    expect(stopOverlapMeas?.kind === 'linear' && stopOverlapMeas.value).toBe(6);
+    const lockingOverlapMeas = lidStep?.measurements?.find(
+      (m) => m.label === 'Locking-end locked overlap',
+    );
+    expect(lockingOverlapMeas?.kind === 'linear' && lockingOverlapMeas.value).toBe(20);
 
     // Step 13: Combined locking blank
     const lockBlankStep = plan.steps.find((s) => s.id === 'prepare-locking-blank');
     const blankWidthMeas = lockBlankStep?.measurements?.find(
       (m) => m.label === 'Combined blank width',
     );
-    expect(blankWidthMeas?.kind === 'linear' && blankWidthMeas.value).toBe(59.5);
+    expect(blankWidthMeas?.kind === 'linear' && blankWidthMeas.value).toBe(53);
     const taperLenMeas = lockBlankStep?.measurements?.find(
       (m) => m.label === 'Working taper length',
     );
@@ -104,11 +110,11 @@ describe('createProcessPlan', () => {
     const availTravelMeas = verifyLidStep?.measurements?.find(
       (m) => m.label === 'Available lid travel',
     );
-    expect(availTravelMeas?.kind === 'linear' && availTravelMeas.value).toBe(16.5);
+    expect(availTravelMeas?.kind === 'linear' && availTravelMeas.value).toBe(10);
     const relMarginMeas = verifyLidStep?.measurements?.find(
       (m) => m.label === 'Release travel margin',
     );
-    expect(relMarginMeas?.kind === 'linear' && relMarginMeas.value).toBe(3);
+    expect(relMarginMeas?.kind === 'linear' && relMarginMeas.value).toBe(4);
   });
 
   it('correctly models single combined locking-set blank in step sequence', () => {

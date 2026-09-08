@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import type { ToolboxDesign, ToolboxWoodParameters, UnitSystem } from '../../domain';
+import type { ToolboxWoodParameters, UnitSystem } from '../../domain';
+import type { ToolboxDesignV2 } from './migrateV2ToV3';
 
 export const ToolboxConstructionParametersV1Schema = z.object({
   lidThickness: z.number().finite().positive('Lid thickness must be a positive finite number.'),
@@ -72,7 +73,7 @@ export type ToolboxDesignV1 = z.infer<typeof ToolboxDesignV1Schema>;
  * obsolete structural proportions with the corrected V2 inset-end construction
  * derived from the design's main stock thickness T.
  */
-export function migrateToolboxDesignV1ToV2(v1Design: ToolboxDesignV1): ToolboxDesign {
+export function migrateToolboxDesignV1ToV2(v1Design: ToolboxDesignV1): ToolboxDesignV2 {
   const T = v1Design.dimensions.stockThickness;
 
   return {

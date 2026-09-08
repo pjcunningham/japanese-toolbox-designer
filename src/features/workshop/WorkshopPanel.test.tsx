@@ -129,7 +129,7 @@ describe('WorkshopPanel Component', () => {
       ...createDefaultToolboxDesign(),
       constructionParameters: {
         ...createDefaultToolboxDesign().constructionParameters,
-        desiredOverlap: 50,
+        lockingEndOverlap: 50,
       },
     };
     const invalidResult = calculateToolboxGeometry(invalidDesign);

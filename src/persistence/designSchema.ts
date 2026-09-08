@@ -9,6 +9,7 @@ import {
 } from '../domain';
 
 export * from './migrations/migrateV1ToV2';
+export * from './migrations/migrateV2ToV3';
 
 export const DESIGNS_STORAGE_KEY = 'jtd.designs.v1';
 export const SETTINGS_STORAGE_KEY = 'jtd.settings.v1';
@@ -24,8 +25,8 @@ export const ToolboxDimensionsSchema: z.ZodType<ToolboxDimensions> = z.object({
   stockThickness: z.number().finite().positive('Stock thickness must be a positive finite number.'),
 });
 
-export const ToolboxConstructionParametersSchema: z.ZodType<ToolboxConstructionParameters> =
-  z.object({
+export const ToolboxConstructionParametersSchema: z.ZodType<ToolboxConstructionParameters> = z
+  .object({
     bottomThickness: z
       .number()
       .finite()
@@ -55,10 +56,14 @@ export const ToolboxConstructionParametersSchema: z.ZodType<ToolboxConstructionP
       .number()
       .finite()
       .min(0, 'Lid side clearance must be a non-negative finite number.'),
-    desiredOverlap: z
+    stopEndOverlap: z
       .number()
       .finite()
-      .min(0, 'Desired overlap must be a non-negative finite number.'),
+      .positive('Stop-end locked overlap must be a positive finite number.'),
+    lockingEndOverlap: z
+      .number()
+      .finite()
+      .positive('Locking-end locked overlap must be a positive finite number.'),
     lidBattenOverhang: z
       .number()
       .finite()
@@ -69,29 +74,32 @@ export const ToolboxConstructionParametersSchema: z.ZodType<ToolboxConstructionP
       .number()
       .finite()
       .min(0, 'Locking batten travel clearance must be a non-negative finite number.'),
-  });
+  })
+  .strict();
 
 export const ToolboxWoodParametersSchema: z.ZodType<ToolboxWoodParameters> = z.object({
   id: z.string().trim().min(1, 'Wood ID must be a non-empty string.'),
 });
 
-export const ToolboxDesignSchema: z.ZodType<ToolboxDesign> = z.object({
-  id: z.string().trim().min(1, 'Design ID must be a non-empty string.'),
-  name: z
-    .string()
-    .trim()
-    .min(1, 'Design name must not be empty.')
-    .max(100, 'Design name must not exceed 100 characters.'),
-  schemaVersion: z.literal(2, {
-    message: `Unsupported design schema version. Expected ${TOOLBOX_DESIGN_SCHEMA_VERSION}.`,
-  }),
-  createdAt: z.string().datetime({ message: 'createdAt must be a valid ISO 8601 timestamp.' }),
-  updatedAt: z.string().datetime({ message: 'updatedAt must be a valid ISO 8601 timestamp.' }),
-  unitSystem: UnitSystemSchema,
-  dimensions: ToolboxDimensionsSchema,
-  constructionParameters: ToolboxConstructionParametersSchema,
-  wood: ToolboxWoodParametersSchema,
-});
+export const ToolboxDesignSchema: z.ZodType<ToolboxDesign> = z
+  .object({
+    id: z.string().trim().min(1, 'Design ID must be a non-empty string.'),
+    name: z
+      .string()
+      .trim()
+      .min(1, 'Design name must not be empty.')
+      .max(100, 'Design name must not exceed 100 characters.'),
+    schemaVersion: z.literal(3, {
+      message: `Unsupported design schema version. Expected ${TOOLBOX_DESIGN_SCHEMA_VERSION}.`,
+    }),
+    createdAt: z.string().datetime({ message: 'createdAt must be a valid ISO 8601 timestamp.' }),
+    updatedAt: z.string().datetime({ message: 'updatedAt must be a valid ISO 8601 timestamp.' }),
+    unitSystem: UnitSystemSchema,
+    dimensions: ToolboxDimensionsSchema,
+    constructionParameters: ToolboxConstructionParametersSchema,
+    wood: ToolboxWoodParametersSchema,
+  })
+  .strict();
 
 export interface PersistedDesignStore {
   storageVersion: 1;
@@ -103,10 +111,12 @@ export interface PersistedSettings {
   activeDesignId: string | null;
 }
 
-export const PersistedDesignStoreSchema: z.ZodType<PersistedDesignStore> = z.object({
-  storageVersion: z.literal(1),
-  designs: z.array(ToolboxDesignSchema),
-});
+export const PersistedDesignStoreSchema: z.ZodType<PersistedDesignStore> = z
+  .object({
+    storageVersion: z.literal(1),
+    designs: z.array(ToolboxDesignSchema),
+  })
+  .strict();
 
 export const PersistedSettingsSchema: z.ZodType<PersistedSettings> = z.object({
   storageVersion: z.literal(1),

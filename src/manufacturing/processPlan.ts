@@ -297,7 +297,7 @@ export function createProcessPlan(geometry: CalculatedToolboxGeometry): ProcessP
       instructions: [
         'Cut the lid panel to finished length and width.',
         'The panel fits between side walls with clearance C per side.',
-        'The panel extends beneath both end caps by locked overlap O.',
+        'The panel extends beneath the end caps by separate stop-end and locking-end locked overlaps.',
       ],
       measurements: [
         {
@@ -322,8 +322,18 @@ export function createProcessPlan(geometry: CalculatedToolboxGeometry): ProcessP
         },
         {
           kind: 'linear',
-          label: 'Locked overlap per end',
-          value: geometry.lid.longitudinalFit.lockedOverlapPerEnd,
+          label: 'Stop-end locked overlap',
+          value: geometry.lid.longitudinalFit.stopEndLockedOverlap,
+        },
+        {
+          kind: 'linear',
+          label: 'Locking-end locked overlap',
+          value: geometry.lid.longitudinalFit.lockingEndLockedOverlap,
+        },
+        {
+          kind: 'linear',
+          label: 'Total lid extension',
+          value: geometry.lid.longitudinalFit.totalLockedOverlap,
         },
       ],
     },
@@ -334,6 +344,7 @@ export function createProcessPlan(geometry: CalculatedToolboxGeometry): ProcessP
       instructions: [
         'Cut the straight batten and attach it to the top face of the lid panel at the stop end.',
         'Its stop-facing edge aligns with the stop end-cap opening edge in locked position.',
+        'Set this edge from the stop end of the panel by the stop-end locked overlap.',
       ],
       measurements: [
         {
@@ -607,8 +618,13 @@ export function createProcessPlan(geometry: CalculatedToolboxGeometry): ProcessP
       measurements: [
         {
           kind: 'linear',
-          label: 'Locked overlap',
-          value: geometry.lid.longitudinalFit.lockedOverlapPerEnd,
+          label: 'Stop-end locked overlap',
+          value: geometry.lid.longitudinalFit.stopEndLockedOverlap,
+        },
+        {
+          kind: 'linear',
+          label: 'Locking-end locked overlap',
+          value: geometry.lid.longitudinalFit.lockingEndLockedOverlap,
         },
         {
           kind: 'linear',

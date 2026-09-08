@@ -4,7 +4,7 @@ import { calculateToolboxGeometry } from '../domain/geometry';
 import { createCutList } from './cutList';
 
 describe('createCutList', () => {
-  it('generates all 8 cut-list rows with exact default V2 dimensions', () => {
+  it('generates all 8 cut-list rows with exact default V3 dimensions', () => {
     const design = createDefaultToolboxDesign();
     const result = calculateToolboxGeometry(design);
     expect(result.ok).toBe(true);
@@ -91,7 +91,7 @@ describe('createCutList', () => {
     expect(lidPanelItem.id).toBe('lid-panel');
     expect(lidPanelItem.name).toBe('Lid panel');
     expect(lidPanelItem.quantity).toBe(1);
-    expect(lidPanelItem.dimensions).toEqual({ length: 459, width: 260, thickness: 12 });
+    expect(lidPanelItem.dimensions).toEqual({ length: 458, width: 260, thickness: 12 });
     expect(lidPanelItem.notes).toContain(
       'Final longitudinal fit is governed by locked overlap and release travel.',
     );
@@ -107,7 +107,7 @@ describe('createCutList', () => {
     expect(lockingSetItem.id).toBe('locking-set-blank');
     expect(lockingSetItem.name).toBe('Locking batten + wedge blank');
     expect(lockingSetItem.quantity).toBe(1);
-    expect(lockingSetItem.dimensions).toEqual({ length: 332, width: 59.5, thickness: 18 });
+    expect(lockingSetItem.dimensions).toEqual({ length: 332, width: 53, thickness: 18 });
     expect(lockingSetItem.notes).toContain(
       'This single blank is machined to produce both the tapered locking lid batten and the captured wedge. The wedge is deliberately left overlength for final fitting.',
     );
@@ -116,7 +116,7 @@ describe('createCutList', () => {
     expect(lockingSetItem.lockingSet?.wedgeOverlength).toBe(36);
     expect(lockingSetItem.lockingSet?.taperAngleDegrees).toBe(2);
     expect(lockingSetItem.lockingSet?.bevelAngleDegrees).toBe(10);
-    expect(lockingSetItem.lockingSet?.combinedWidth).toBe(59.5);
+    expect(lockingSetItem.lockingSet?.combinedWidth).toBe(53);
   });
 
   it('calculates correct cut-list summary metrics (8 items, 12 blanks, 13 finished parts)', () => {
@@ -166,7 +166,7 @@ describe('createCutList', () => {
     );
   });
 
-  it('preserves exact canonical floating-point precision (59.5, etc.) without premature rounding', () => {
+  it('preserves exact canonical dimensions without premature rounding', () => {
     const design = createDefaultToolboxDesign();
     const result = calculateToolboxGeometry(design);
     expect(result.ok).toBe(true);
@@ -174,7 +174,7 @@ describe('createCutList', () => {
 
     const cutList = createCutList(result.geometry);
     const lockingSetItem = cutList.items.find((i) => i.id === 'locking-set-blank');
-    expect(lockingSetItem?.dimensions.width).toBe(59.5);
+    expect(lockingSetItem?.dimensions.width).toBe(53);
   });
 
   it('produces identical pure models regardless of unit system selection', () => {

@@ -202,10 +202,28 @@ export const CalculatedDimensionsPanel: React.FC<CalculatedDimensionsPanelProps>
                 </dd>
               </div>
               <div className="calc-item">
-                <dt>Locked overlap per end</dt>
+                <dt>Stop-end locked overlap</dt>
                 <dd>
                   {formatDimension(
-                    geometryResult.geometry.lid.longitudinalFit.lockedOverlapPerEnd,
+                    geometryResult.geometry.lid.longitudinalFit.stopEndLockedOverlap,
+                    unitSystem,
+                  )}
+                </dd>
+              </div>
+              <div className="calc-item">
+                <dt>Locking-end locked overlap</dt>
+                <dd>
+                  {formatDimension(
+                    geometryResult.geometry.lid.longitudinalFit.lockingEndLockedOverlap,
+                    unitSystem,
+                  )}
+                </dd>
+              </div>
+              <div className="calc-item">
+                <dt>Total lid extension / total overlap</dt>
+                <dd>
+                  {formatDimension(
+                    geometryResult.geometry.lid.longitudinalFit.totalLockedOverlap,
                     unitSystem,
                   )}
                 </dd>
@@ -227,6 +245,10 @@ export const CalculatedDimensionsPanel: React.FC<CalculatedDimensionsPanelProps>
             <h3 id="calc-movement-title" className="calc-group-title">
               Lid overlap &amp; travel
             </h3>
+            <p className="calc-group-note">
+              To remove the lid, slide it toward the locking end. The stop-end overlap is released
+              while the locking end moves deeper beneath its cap.
+            </p>
             <dl className="calc-list">
               <div className="calc-item">
                 <dt>Travel to release edge</dt>

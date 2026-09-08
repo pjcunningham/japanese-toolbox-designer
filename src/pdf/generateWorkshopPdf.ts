@@ -273,8 +273,16 @@ function renderDesignSummaryPage(
       formatDimension(geometry.lid.lateralFit.clearancePerSide, unitSystem),
     ],
     [
-      'Locked overlap (per end)',
-      formatDimension(geometry.lid.longitudinalFit.lockedOverlapPerEnd, unitSystem),
+      'Stop-end locked overlap',
+      formatDimension(geometry.lid.longitudinalFit.stopEndLockedOverlap, unitSystem),
+    ],
+    [
+      'Locking-end locked overlap',
+      formatDimension(geometry.lid.longitudinalFit.lockingEndLockedOverlap, unitSystem),
+    ],
+    [
+      'Total locked overlap',
+      formatDimension(geometry.lid.longitudinalFit.totalLockedOverlap, unitSystem),
     ],
     [
       'Available lid travel',

@@ -14,7 +14,8 @@ export type DimensionFieldKey =
   | 'fixedTopBattenWidth'
   | 'lidBattenWidth'
   | 'lidSideClearance'
-  | 'desiredOverlap'
+  | 'stopEndOverlap'
+  | 'lockingEndOverlap'
   | 'lidBattenOverhang'
   | 'lockingBattenTravelClearance';
 

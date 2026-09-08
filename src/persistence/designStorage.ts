@@ -9,7 +9,9 @@ import {
   PersistedSettingsSchema,
   ToolboxDesignSchema,
   ToolboxDesignV1Schema,
+  ToolboxDesignV2Schema,
   migrateToolboxDesignV1ToV2,
+  migrateToolboxDesignV2ToV3,
   type PersistedDesignStore,
   type PersistedSettings,
 } from './designSchema';
@@ -184,21 +186,33 @@ export function loadDesignStore(
     const itemObj = item as Record<string, unknown>;
     const version = itemObj.schemaVersion;
 
-    if (version === 2) {
+    if (version === 3) {
       const parseResult = ToolboxDesignSchema.safeParse(item);
       if (parseResult.success) {
         validDesigns.push(parseResult.data);
       } else {
         warnings.push('A saved design was skipped because it was corrupted or invalid.');
       }
-    } else if (version === 1) {
-      const v1Result = ToolboxDesignV1Schema.safeParse(item);
-      if (v1Result.success) {
-        const migrated = migrateToolboxDesignV1ToV2(v1Result.data);
+    } else if (version === 2) {
+      const v2Result = ToolboxDesignV2Schema.safeParse(item);
+      if (v2Result.success) {
+        const migrated = migrateToolboxDesignV2ToV3(v2Result.data);
         validDesigns.push(migrated);
         const designName = migrated.name ? `"${migrated.name}"` : 'Unknown';
         warnings.push(
-          `Design ${designName} was automatically migrated from schema version 1 to version 2.`,
+          `Design ${designName} was automatically migrated from schema version 2 to version 3.`,
+        );
+      } else {
+        warnings.push('A saved design was skipped because it was corrupted or invalid.');
+      }
+    } else if (version === 1) {
+      const v1Result = ToolboxDesignV1Schema.safeParse(item);
+      if (v1Result.success) {
+        const migrated = migrateToolboxDesignV2ToV3(migrateToolboxDesignV1ToV2(v1Result.data));
+        validDesigns.push(migrated);
+        const designName = migrated.name ? `"${migrated.name}"` : 'Unknown';
+        warnings.push(
+          `Design ${designName} was automatically migrated from schema version 1 to version 3.`,
         );
       } else {
         warnings.push('A saved design was skipped because it was corrupted or invalid.');

@@ -83,8 +83,13 @@ function getInitialDrafts(design: ToolboxDesign): DraftValues {
       design.unitSystem,
       { includeUnit: false },
     ),
-    desiredOverlap: formatDimension(
-      design.constructionParameters.desiredOverlap,
+    stopEndOverlap: formatDimension(
+      design.constructionParameters.stopEndOverlap,
+      design.unitSystem,
+      { includeUnit: false },
+    ),
+    lockingEndOverlap: formatDimension(
+      design.constructionParameters.lockingEndOverlap,
       design.unitSystem,
       { includeUnit: false },
     ),
@@ -452,15 +457,26 @@ export const DesignEditor: React.FC<DesignEditorProps> = ({
                     onBlur={() => handleDimensionBlur('lidSideClearance')}
                   />
                   <DimensionField
-                    id="field-desiredOverlap"
-                    label="Desired overlap"
-                    symbol="O"
-                    value={drafts.desiredOverlap}
+                    id="field-stopEndOverlap"
+                    label="Stop-end locked overlap"
+                    symbol="Os"
+                    value={drafts.stopEndOverlap}
                     unitSystem={design.unitSystem}
-                    error={fieldErrors.desiredOverlap}
-                    helperText="Amount the lid panel extends beneath each fixed top batten when locked."
-                    onChange={(val) => handleDimensionChange('desiredOverlap', val)}
-                    onBlur={() => handleDimensionBlur('desiredOverlap')}
+                    error={fieldErrors.stopEndOverlap}
+                    helperText="Amount the lid remains beneath the stop-end cap when closed. This is the distance the lid must slide before the stop end can lift."
+                    onChange={(val) => handleDimensionChange('stopEndOverlap', val)}
+                    onBlur={() => handleDimensionBlur('stopEndOverlap')}
+                  />
+                  <DimensionField
+                    id="field-lockingEndOverlap"
+                    label="Locking-end locked overlap"
+                    symbol="Ol"
+                    value={drafts.lockingEndOverlap}
+                    unitSystem={design.unitSystem}
+                    error={fieldErrors.lockingEndOverlap}
+                    helperText="Amount the lid remains beneath the locking-end cap when closed. This end moves deeper into its pocket as the lid slides open."
+                    onChange={(val) => handleDimensionChange('lockingEndOverlap', val)}
+                    onBlur={() => handleDimensionBlur('lockingEndOverlap')}
                   />
                   <DimensionField
                     id="field-lidBattenOverhang"

@@ -166,8 +166,8 @@ describe('createToolbox3DModel (Phase 10 Requirements 4-37, 70-72)', () => {
 
     // Lid panel
     const lidPanel = model.parts.find((p) => p.id === 'lid-panel') as BoxPart3D;
-    expect(lidPanel.min.x).toBe(70.5);
-    expect(lidPanel.max.x).toBe(529.5);
+    expect(lidPanel.min.x).toBe(78);
+    expect(lidPanel.max.x).toBe(536);
     expect(lidPanel.min.y).toBe(20); // 18 + 2 clearance
     expect(lidPanel.max.y).toBe(280); // 300 - 18 - 2
     expect(lidPanel.min.z).toBe(238);
@@ -199,22 +199,22 @@ describe('createToolbox3DModel (Phase 10 Requirements 4-37, 70-72)', () => {
 
     // Bottom narrow width (at y = 0): fixed narrow X - batten narrow X
     const bottomNarrowWidth = wedge.vertices[1]!.x - wedge.vertices[0]!.x;
-    expect(bottomNarrowWidth).toBeCloseTo(17.5, 5);
+    expect(bottomNarrowWidth).toBeCloseTo(11, 5);
     expect(bottomNarrowWidth).toBeCloseTo(geometry.lockingMechanism.wedge.bottomNarrowWidth, 5);
 
     // Bottom wide width (at y = Y = 300): fixed wide X - batten wide X
     const bottomWideWidth = wedge.vertices[2]!.x - wedge.vertices[3]!.x;
-    expect(bottomWideWidth).toBeCloseTo(27.83655, 4);
+    expect(bottomWideWidth).toBeCloseTo(21.33655, 4);
     expect(bottomWideWidth).toBeCloseTo(geometry.lockingMechanism.wedge.bottomWideWidth, 4);
 
     // Top narrow width (at y = 0): top fixed narrow X - top batten narrow X
     const topNarrowWidth = wedge.vertices[5]!.x - wedge.vertices[4]!.x;
-    expect(topNarrowWidth).toBeCloseTo(11.15029, 4);
+    expect(topNarrowWidth).toBeCloseTo(4.65029, 4);
     expect(topNarrowWidth).toBeCloseTo(geometry.lockingMechanism.wedge.topNarrowWidth, 4);
 
     // Top wide width (at y = Y = 300): top fixed wide X - top batten wide X
     const topWideWidth = wedge.vertices[6]!.x - wedge.vertices[7]!.x;
-    expect(topWideWidth).toBeCloseTo(21.48684, 4);
+    expect(topWideWidth).toBeCloseTo(14.98684, 4);
     expect(topWideWidth).toBeCloseTo(geometry.lockingMechanism.wedge.topWideWidth, 4);
 
     // Capture geometry: top width is strictly less than bottom width

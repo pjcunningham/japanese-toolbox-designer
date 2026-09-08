@@ -215,20 +215,21 @@ describe('DesignEditor Component', () => {
     const user = userEvent.setup();
     render(<EditorTestWrapper />);
 
-    const overlapInput = screen.getByLabelText(/Desired overlap/i);
+    const overlapInput = screen.getByLabelText(/Locking-end locked overlap/i);
     await user.clear(overlapInput);
     await user.type(overlapInput, '14');
 
-    // Lid panel length: X - 2R + 2O = 600 - 168 + 28 = 460 mm
-    expect(screen.getAllByText('460 mm').length).toBeGreaterThan(0);
+    // Lid panel length: X - 2R + Os + Ol = 600 - 168 + 6 + 14 = 452 mm
+    expect(screen.getAllByText('452 mm').length).toBeGreaterThan(0);
 
-    // Set excessive overlap that violates release travel: 2*O >= R - I - T (2*25 = 50 >= 84 - 36 - 18 = 30)
+    // Set excessive overlap that violates release travel: Os + Ol >= R - I - T (6 + 25 >= 30)
     await user.clear(overlapInput);
     await user.type(overlapInput, '25');
 
     expect(screen.getByText('Design needs attention')).toBeInTheDocument();
     expect(
-      screen.getAllByText(/Lid overlap requires more travel than available pocket depth/i).length,
+      screen.getAllByText(/Combined locked overlaps must be less than the end-cap pocket depth/i)
+        .length,
     ).toBeGreaterThanOrEqual(1);
   });
 
@@ -339,10 +340,10 @@ describe('DesignEditor Component', () => {
     expect(screen.getByText('264 × 72 × 36 mm')).toBeInTheDocument(); // Handle blank
     expect(screen.getByText('600 × 300 × 12 mm')).toBeInTheDocument(); // Bottom board
 
-    // Calculated default V2 values
+    // Calculated default V3 values
     expect(screen.getByText('492 mm')).toBeInTheDocument(); // Internal length
     expect(screen.getAllByText('30 mm').length).toBeGreaterThanOrEqual(1); // Pocket depth
-    expect(screen.getAllByText('3 mm').length).toBeGreaterThanOrEqual(1); // Release margin / Dado depth
+    expect(screen.getAllByText('4 mm').length).toBeGreaterThanOrEqual(1); // Release margin
   });
 
   it('Requirement 51: updates calculated internal length, pocket depth, and release margin when editing end handle depth', async () => {
@@ -358,8 +359,8 @@ describe('DesignEditor Component', () => {
     expect(screen.getByText('490 mm')).toBeInTheDocument();
     // Pocket depth: 84 - 37 - 18 = 29 mm
     expect(screen.getAllByText('29 mm').length).toBeGreaterThanOrEqual(1);
-    // Release margin: 29 - 27 = 2 mm
-    expect(screen.getByText('2 mm')).toBeInTheDocument();
+    // Release margin: 29 - 26 = 3 mm
+    expect(screen.getAllByText('3 mm').length).toBeGreaterThanOrEqual(1);
   });
 
   it('Requirement 52: displays geometry validation error when housing dado depth is greater than or equal to stock thickness', async () => {

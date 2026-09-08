@@ -13,7 +13,7 @@ Japanese Toolbox Designer is a browser-only web application for woodworkers to d
 
 - **Authoritative Parametric Geometry:** Single authoritative domain calculation engine drives all dimensions, physical validations, 2D drawings, 3D meshes, cut lists, process plans, and PDF export without duplicated formulas.
 - **Traditional Inset-End Construction:** Inset housed end walls seated in shallow side-board dados ($G = 3\text{ mm}$), integral end grab handles, independent bottom board, sliding lid panel, fixed end caps, and captured tapered locking wedge.
-- **Kinematic Sliding Lid & Locking Wedge:** Rigid non-flexing lid sliding mechanics with deterministic release travel, locking batten clearance, $2^\circ$ plan taper, and $10^\circ$ vertical retention bevel.
+- **Kinematic Sliding Lid & Locking Wedge:** Rigid non-flexing lid sliding mechanics with independent stop-end and locking-end overlaps, deterministic release travel, locking batten clearance, $2^\circ$ plan taper, and $10^\circ$ vertical retention bevel.
 - **Metric & Imperial Woodworking Units:** Full floating-point canonical millimetre precision internally; seamless display formatting between whole millimetres and fractional woodworking inches ($1/16\text{ in}$ resolution).
 - **Interactive 2D Technical Drawings:** Clean orthographic Plan, Front, and End SVG drawings with dimension lines, annotation callouts, pointer-centered zoom, pan, and fit-to-view.
 - **Interactive 3D Model:** WebGL Three.js interactive model with 13 distinct semantic woodworking parts, compound dadoed side boards, wood species materials, standard camera projections, and orbit/zoom/pan controls.
@@ -21,7 +21,7 @@ Japanese Toolbox Designer is a browser-only web application for woodworkers to d
 - **Workshop Cut List:** Accurate nominal stock blank bill of materials (8 line items, 12 blanks, 13 finished physical parts, 1 combined locking set blank).
 - **23-Step Construction Process Plan:** Step-by-step joinery sequence from stock preparation, dado cutting, and carcass assembly to compound wedge machining, lid verification, and final tuning.
 - **Browser-Generated Workshop PDF:** Multi-page A4 PDF export generated entirely in the browser using `pdf-lib` featuring summary specifications, vector technical drawings, cut list table, and paginated process plan.
-- **Local Persistence & JSON Interchange:** Browser `localStorage` multi-design management (New, Save, Open, Rename, Duplicate, Delete) and portable single-file JSON backup/sharing with legacy Schema V1 automatic migration.
+- **Local Persistence & JSON Interchange:** Browser `localStorage` multi-design management (New, Save, Open, Rename, Duplicate, Delete) and portable single-file JSON backup/sharing with legacy Schema V1/V2 automatic migration.
 - **Fluid CAD Workstation Shell:** Responsive layout adapting across ultra-wide desktop displays (1920px, 2560px+), 2-column laptop layouts, tablets, and single-column mobile viewports without page-level horizontal overflow.
 
 ---
@@ -131,9 +131,10 @@ Heavy modules (Three.js 3D viewer and `pdf-lib` document export) are loaded dyna
 - **Lid Pocket Depth:**
   $$\text{pocketDepth} = R - I - T$$
 - **Kinematic Release Condition:**
-  $$2O < \text{pocketDepth}$$
-  $$\text{availableLidTravel} = \text{pocketDepth} - O$$
-  $$\text{releaseTravelMargin} = \text{availableLidTravel} - O > 0$$
+  The default lid uses asymmetric locked overlaps ($O_s = 6\text{ mm}$ at the stop end, $O_l = 20\text{ mm}$ at the locking end); equal overlaps remain supported.
+  $$O_s + O_l < \text{pocketDepth}$$
+  $$\text{availableLidTravel} = \text{pocketDepth} - O_l$$
+  $$\text{releaseTravelMargin} = \text{pocketDepth} - O_s - O_l > 0$$
 - **Captured Wedge Profile:**
   $$W_{\min} = \text{availableLidTravel} + Q$$
   $$\text{bottomNarrowWidth} = W_{\min}$$

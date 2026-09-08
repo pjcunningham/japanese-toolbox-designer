@@ -292,10 +292,12 @@ describe('designStorage persistence functions', () => {
     const result = loadDesignStore(storage);
     expect(result.status).toBe('ok');
     expect(result.designs).toHaveLength(1);
-    expect(result.designs[0]?.schemaVersion).toBe(2);
+    expect(result.designs[0]?.schemaVersion).toBe(3);
     expect(result.designs[0]?.constructionParameters.bottomThickness).toBe(12);
     expect(result.designs[0]?.constructionParameters.endHandleDepth).toBe(36);
     expect(result.designs[0]?.constructionParameters.housingDadoDepth).toBe(3);
+    expect(result.designs[0]?.constructionParameters.stopEndOverlap).toBe(13.5);
+    expect(result.designs[0]?.constructionParameters.lockingEndOverlap).toBe(13.5);
     if (result.status === 'ok') {
       expect(result.warnings.some((w) => w.includes('automatically migrated'))).toBe(true);
     }
@@ -304,7 +306,7 @@ describe('designStorage persistence functions', () => {
     expect(storage.getItem(DESIGNS_STORAGE_KEY)).toBe(initialJson);
   });
 
-  it('loads a mixed store with both V1 and V2 designs', () => {
+  it('loads a mixed store with V1, V2, and V3 designs as current V3', () => {
     const v1Design = {
       id: 'v1-mixed-id',
       name: 'V1 Box',
@@ -331,22 +333,52 @@ describe('designStorage persistence functions', () => {
       },
       wood: { id: 'pine' },
     };
-    const v2Design = createDefaultToolboxDesign({
+    const v2Design = {
+      id: 'v2-mixed-id',
       name: 'V2 Box',
-      idGenerator: () => 'v2-mixed-id',
+      schemaVersion: 2,
+      createdAt: '2026-01-02T00:00:00.000Z',
+      updatedAt: '2026-01-02T00:00:00.000Z',
+      unitSystem: 'metric',
+      dimensions: {
+        length: 600,
+        width: 300,
+        height: 250,
+        stockThickness: 18,
+      },
+      constructionParameters: {
+        bottomThickness: 12,
+        lidThickness: 12,
+        endHandleDepth: 36,
+        endHandleHeight: 72,
+        housingDadoDepth: 3,
+        fixedTopBattenWidth: 84,
+        lidBattenWidth: 42,
+        lidSideClearance: 2,
+        desiredOverlap: 13.5,
+        lidBattenOverhang: 18,
+        wedgeTaperAngle: 2,
+        wedgeBevelAngle: 10,
+        lockingBattenTravelClearance: 1,
+      },
+      wood: { id: 'pine' },
+    };
+    const v3Design = createDefaultToolboxDesign({
+      name: 'V3 Box',
+      idGenerator: () => 'v3-mixed-id',
     });
 
     const storage = createMockStorage({
       [DESIGNS_STORAGE_KEY]: JSON.stringify({
         storageVersion: 1,
-        designs: [v1Design, v2Design],
+        designs: [v1Design, v2Design, v3Design],
       }),
     });
 
     const result = loadDesignStore(storage);
     expect(result.status).toBe('ok');
-    expect(result.designs).toHaveLength(2);
-    expect(result.designs.every((d) => d.schemaVersion === 2)).toBe(true);
+    expect(result.designs).toHaveLength(3);
+    expect(result.designs.every((d) => d.schemaVersion === 3)).toBe(true);
   });
 
   it('handles storage read exception gracefully', () => {

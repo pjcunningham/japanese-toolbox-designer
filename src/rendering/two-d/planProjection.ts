@@ -281,15 +281,25 @@ export function createPlanDrawing(geometry: CalculatedToolboxGeometry): Technica
       valueMillimetres: lockingOpeningEdgeX - R,
       label: 'Top Opening',
     },
-    // Stop-end locked overlap O (between locked panel start and stop batten inner edge R)
+    // Stop-end locked overlap Os (between locked panel start and stop batten inner edge R)
     {
-      id: 'plan-dim-overlap',
+      id: 'plan-dim-stop-overlap',
       axis: 'x',
       start: { x: lockedPanelStartX, y: 0 },
       end: { x: R, y: 0 },
       offset: -18,
-      valueMillimetres: geometry.lid.longitudinalFit.lockedOverlapPerEnd,
-      label: 'Overlap O',
+      valueMillimetres: geometry.lid.longitudinalFit.stopEndLockedOverlap,
+      label: 'Stop overlap Os',
+    },
+    // Locking-end locked overlap Ol (between locking opening edge and locked panel end)
+    {
+      id: 'plan-dim-locking-overlap',
+      axis: 'x',
+      start: { x: lockingOpeningEdgeX, y: 0 },
+      end: { x: lockedPanelEndX, y: 0 },
+      offset: -30,
+      valueMillimetres: geometry.lid.longitudinalFit.lockingEndLockedOverlap,
+      label: 'Locking overlap Ol',
     },
     // End wall inset / handle depth I
     {

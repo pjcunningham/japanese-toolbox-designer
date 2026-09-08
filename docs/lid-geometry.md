@@ -43,7 +43,8 @@ Stop End                                                  Locking End
 
 - $P$: Lid panel thickness (`constructionParameters.lidThickness`)
 - $C$: Lid side clearance per side (`constructionParameters.lidSideClearance`)
-- $O$: Desired locked longitudinal overlap per end (`constructionParameters.desiredOverlap`)
+- $O_s$: Stop-end locked overlap (`constructionParameters.stopEndOverlap`)
+- $O_l$: Locking-end locked overlap (`constructionParameters.lockingEndOverlap`)
 - $B$: Lid batten width (`constructionParameters.lidBattenWidth`)
 - $E$: Lid batten overhang beyond lid panel edge per side (`constructionParameters.lidBattenOverhang`)
 
@@ -79,7 +80,7 @@ Outside End (x=0)                          Box Interior (x > I+T)
 
 The lid panel can slide underneath this pocket, but cannot pass through the inset end wall ($x = I + T$ or $x = X - I - T$).
 
-For the V2 default ($R = 84\text{ mm}, I = 36\text{ mm}, T = 18\text{ mm}$):
+For the V3 default ($R = 84\text{ mm}, I = 36\text{ mm}, T = 18\text{ mm}$):
 $$\text{pocketDepth} = 84 - 36 - 18 = 30\text{ mm}$$
 
 ---
@@ -89,16 +90,18 @@ $$\text{pocketDepth} = 84 - 36 - 18 = 30\text{ mm}$$
 - **Width:** Fits inside the long side walls with clearance $C$ on each side:
   $$\text{lidPanelWidth} = \text{topOpeningWidth} - 2C = Y - 2T - 2C$$
 
-- **Length:** Spans the clear opening plus locked overlap $O$ underneath both fixed top battens:
-  $$\text{lidPanelLength} = \text{topOpeningLength} + 2O = X - 2R + 2O$$
+- **Length:** Spans the clear opening plus independent stop-end and locking-end locked overlaps:
+  $$\text{lidPanelLength} = \text{topOpeningLength} + O_s + O_l = X - 2R + O_s + O_l$$
 
 - **Thickness:** $P$
 
-For the V2 default ($X=600, Y=300, R=84, T=18, C=2, O=13.5, P=12\text{ mm}$):
+For the V3 default ($X=600, Y=300, R=84, T=18, C=2, O_s=6, O_l=20, P=12\text{ mm}$):
 
 - $\text{lidPanelWidth} = 300 - 36 - 4 = 260\text{ mm}$
-- $\text{lidPanelLength} = (600 - 168) + 2(13.5) = 432 + 27 = 459\text{ mm}$
-- $\text{lidPanelDimensions} = 459 \times 260 \times 12\text{ mm}$
+- $\text{lidPanelLength} = (600 - 168) + 6 + 20 = 432 + 26 = 458\text{ mm}$
+- $\text{lidPanelDimensions} = 458 \times 260 \times 12\text{ mm}$
+
+The default asymmetric values are inspired by Greg Merritt's build, which uses a lid panel 26 mm longer than the end-cap opening and short battens laid out 26 mm and 6 mm from opposite panel ends. Japanese Toolbox Designer models this as a 6 mm stop-end locked overlap and 20 mm locking-end locked overlap. The 20 mm locked-overlap interpretation is a modelling inference from that installation sequence rather than a dimension Greg explicitly labels as locked overlap.
 
 ---
 
@@ -113,7 +116,7 @@ The stop end features a straight rectangular batten attached to the upper face o
   - $\text{Quantity} = 1$ (locking batten is added in Phase 5)
 
 - **Position relative to lid panel:**
-  - Stop-facing edge is located at distance $O$ from the stop end of the lid panel.
+  - Stop-facing edge is located at distance $O_s$ from the stop end of the lid panel.
   - In the locked state, this edge contacts the inner edge of the stop-end fixed top batten ($x = R$), serving as a positive stop.
 
 - **Side-Wall Bearing:**
@@ -147,54 +150,56 @@ To remove the lid (after the locking wedge is removed), the rigid lid is slid in
 
 1. **Travel to Release Edge:**
    The stop end moves towards the clear opening edge ($x = R$):
-   $$\text{travelToReleaseEdge} = O$$
-   At this position, stop overlap is $0$, and locking overlap is $2O$.
+   $$\text{travelToReleaseEdge} = O_s$$
+   At this position, stop overlap is $0$, and locking overlap is $O_s + O_l$.
 
 2. **Maximum Available Travel:**
    The locking-end edge can slide until it contacts the inner face of the locking inset end wall ($x = X - I - T$):
-   $$\text{availableLidTravel} = \text{pocketDepth} - O = (R - I - T) - O$$
+   $$\text{availableLidTravel} = \text{pocketDepth} - O_l = (R - I - T) - O_l$$
 
 3. **Release Travel Margin:**
    The positive clearance at the stop end once fully shifted:
-   $$\text{releaseTravelMargin} = \text{availableLidTravel} - \text{travelToReleaseEdge} = (R - I - T) - 2O$$
+   $$\text{releaseTravelMargin} = \text{availableLidTravel} - \text{travelToReleaseEdge} = (R - I - T) - O_s - O_l$$
 
 ### Fundamental Rigid Release Condition
 
 For a rigid lid to be lifted and removed without flexing or bending:
 
-$$\text{releaseTravelMargin} > 0 \iff 2O < R - I - T$$
+$$\text{releaseTravelMargin} > 0 \iff O_s + O_l < R - I - T$$
 
-Strict inequality is required because $2O = R - I - T$ yields zero clearance, making physical lifting impossible.
+Strict inequality is required because equality yields zero clearance, making physical lifting impossible. The old symmetric model is recovered by setting $O_s = O_l$.
 
-For the V2 default ($O = 13.5\text{ mm}, \text{pocketDepth} = 30\text{ mm}$):
+For the V3 default ($O_s = 6\text{ mm}, O_l = 20\text{ mm}, \text{pocketDepth} = 30\text{ mm}$):
 
-- $\text{availableLidTravel} = 30 - 13.5 = 16.5\text{ mm}$
-- $\text{releaseTravelMargin} = 30 - 2(13.5) = 3\text{ mm}$
+- $\text{availableLidTravel} = 30 - 20 = 10\text{ mm}$
+- $\text{releaseTravelMargin} = 30 - 6 - 20 = 4\text{ mm}$
 
 ---
 
-## 8. Reference Kinematic States (V2 Default)
+## 8. Reference Kinematic States (V3 Default)
 
 ### 1. LOCKED ($\Delta x = 0$)
 
-- $\text{stopOverlap} = 13.5\text{ mm}$
-- $\text{lockingOverlap} = 13.5\text{ mm}$
+- $\text{stopOverlap} = 6\text{ mm}$
+- $\text{lockingOverlap} = 20\text{ mm}$
 - $\text{stopReleaseClearance} = 0\text{ mm}$
-- Panel range: $[R - O,\; X - R + O] = [70.5,\; 529.5]$
+- Panel range: $[R - O_s,\; X - R + O_l] = [78,\; 536]$
 - Straight batten range: $[R,\; R + B] = [84,\; 126]$
 
-### 2. RELEASE_THRESHOLD ($\Delta x = O = 13.5\text{ mm}$)
+### 2. RELEASE_THRESHOLD ($\Delta x = O_s = 6\text{ mm}$)
 
 - $\text{stopOverlap} = 0\text{ mm}$
-- $\text{lockingOverlap} = 2O = 27\text{ mm}$
+- $\text{lockingOverlap} = O_s + O_l = 26\text{ mm}$
 - $\text{stopReleaseClearance} = 0\text{ mm}$
-- Panel range: $[R,\; X - R + 2O] = [84,\; 543]$
-- Straight batten range: $[R + O,\; R + O + B] = [97.5,\; 139.5]$
+- Panel range: $[R,\; X - R + O_s + O_l] = [84,\; 542]$
+- Straight batten range: $[R + O_s,\; R + O_s + B] = [90,\; 132]$
 
-### 3. SHIFTED_FOR_RELEASE ($\Delta x = (R - I - T) - O = 16.5\text{ mm}$)
+### 3. SHIFTED_FOR_RELEASE ($\Delta x = (R - I - T) - O_l = 10\text{ mm}$)
 
 - $\text{stopOverlap} = 0\text{ mm}$
 - $\text{lockingOverlap} = R - I - T = 30\text{ mm} = \text{pocketDepth}$
-- $\text{stopReleaseClearance} = 3\text{ mm} = \text{releaseTravelMargin}$
-- Panel range: $[87,\; 546]$ ($546 = X - I - T$, contacting locking inset wall)
-- Straight batten range: $[100.5,\; 142.5]$
+- $\text{stopReleaseClearance} = 4\text{ mm} = \text{releaseTravelMargin}$
+- Panel range: $[88,\; 546]$ ($546 = X - I - T$, contacting locking inset wall)
+- Straight batten range: $[94,\; 136]$
+
+Installation is the reverse of removal: insert the locking/long-overlap end into its pocket, lower the stop end, slide the lid toward the stop end until the stop batten reaches the stop cap, then install or tighten the captured locking wedge.

@@ -48,7 +48,8 @@ test.describe('Application Shell & Design Editor Smoke Tests', () => {
     // Open advanced lid & locking parameters
     const lidDetails = page.locator('details:has-text("Lid & locking mechanism")');
     await expect(lidDetails).toBeVisible();
-    await expect(page.getByLabel(/Desired overlap/i)).toBeVisible();
+    await expect(page.getByLabel(/Stop-end locked overlap/i)).toBeVisible();
+    await expect(page.getByLabel(/Locking-end locked overlap/i)).toBeVisible();
   });
 
   test('handles invalid input and recovers live', async ({ page }) => {

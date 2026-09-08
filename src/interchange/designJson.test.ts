@@ -58,7 +58,7 @@ describe('Phase 8 — JSON Interchange', () => {
       const parsed = JSON.parse(result.json);
       expect(parsed.id).toBe(design.id);
       expect(parsed.name).toBe('Standard Pine Box');
-      expect(parsed.schemaVersion).toBe(2);
+      expect(parsed.schemaVersion).toBe(3);
       expect(parsed.dimensions.length).toBe(600);
       expect(parsed.constructionParameters.bottomThickness).toBe(12);
       expect(parsed.constructionParameters.endHandleDepth).toBe(36);
@@ -246,13 +246,15 @@ describe('Phase 8 — JSON Interchange', () => {
       expect(result.ok).toBe(true);
       if (!result.ok) return;
 
-      expect(result.design.schemaVersion).toBe(2);
+      expect(result.design.schemaVersion).toBe(3);
       expect(result.design.constructionParameters.bottomThickness).toBe(12);
       expect(result.design.constructionParameters.endHandleDepth).toBe(36);
       expect(result.design.constructionParameters.endHandleHeight).toBe(72);
       expect(result.design.constructionParameters.housingDadoDepth).toBe(3);
       expect(result.design.constructionParameters.fixedTopBattenWidth).toBe(84);
       expect(result.design.constructionParameters.lidBattenWidth).toBe(42);
+      expect(result.design.constructionParameters.stopEndOverlap).toBe(13.5);
+      expect(result.design.constructionParameters.lockingEndOverlap).toBe(13.5);
       expect(result.migratedFromVersion).toBe(1);
     });
 
@@ -407,7 +409,8 @@ describe('Phase 8 — JSON Interchange', () => {
           fixedTopBattenWidth: 95,
           lidBattenWidth: 48,
           lidSideClearance: 2.5,
-          desiredOverlap: 14,
+          stopEndOverlap: 6,
+          lockingEndOverlap: 14,
           lidBattenOverhang: 19,
           wedgeTaperAngle: 2.2,
           wedgeBevelAngle: 10.5,
@@ -448,7 +451,8 @@ describe('Phase 8 — JSON Interchange', () => {
           fixedTopBattenWidth: 87.5,
           lidBattenWidth: 43.75,
           lidSideClearance: 2.125,
-          desiredOverlap: 13.5625,
+          stopEndOverlap: 6.5625,
+          lockingEndOverlap: 13.5625,
           lidBattenOverhang: 18.75,
           wedgeTaperAngle: 2.125,
           wedgeBevelAngle: 10.375,
@@ -466,7 +470,7 @@ describe('Phase 8 — JSON Interchange', () => {
 
       expect(imported.design.dimensions.length).toBe(600.375);
       expect(imported.design.dimensions.width).toBe(300.125);
-      expect(imported.design.constructionParameters.desiredOverlap).toBe(13.5625);
+      expect(imported.design.constructionParameters.lockingEndOverlap).toBe(13.5625);
       expect(imported.design.constructionParameters.lockingBattenTravelClearance).toBe(1.5875);
     });
 

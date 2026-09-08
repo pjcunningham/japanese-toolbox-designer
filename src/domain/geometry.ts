@@ -45,18 +45,19 @@ import type { ToolboxDesign } from './design';
  * 4. Sliding Lid Construction & Kinematics (Phase 4):
  *    - P = Lid panel thickness (`design.constructionParameters.lidThickness`).
  *    - C = Lid side clearance PER SIDE (`design.constructionParameters.lidSideClearance`).
- *    - O = Desired/locked longitudinal overlap PER END (`design.constructionParameters.desiredOverlap`).
+ *    - Os = Stop-end locked longitudinal overlap (`design.constructionParameters.stopEndOverlap`).
+ *    - Ol = Locking-end locked longitudinal overlap (`design.constructionParameters.lockingEndOverlap`).
  *    - B = Lid batten width (`design.constructionParameters.lidBattenWidth`).
  *    - E = Lid batten overhang beyond lid panel edge PER SIDE (`design.constructionParameters.lidBattenOverhang`).
  *    - Lid panel width = topOpeningWidth - 2C = Y - 2T - 2C.
- *    - Lid panel length = topOpeningLength + 2O = X - 2R + 2O.
+ *    - Lid panel length = topOpeningLength + Os + Ol = X - 2R + Os + Ol.
  *    - Straight lid batten blank = (lidPanelWidth + 2E) × B × T (quantity: 1).
- *    - Straight lid batten attaches to lid panel at distance O from stop end.
+ *    - Straight lid batten attaches to lid panel at distance Os from stop end.
  *    - Side-wall bearing per side = min(max(E - C, 0), T).
- *    - Available lid travel = pocketDepth - O = (R - I - T) - O.
- *    - Travel to release threshold = O.
- *    - Release travel margin = availableLidTravel - travelToReleaseEdge = (R - I - T) - 2O.
- *    - Fundamental rigid release condition: 2O < R - I - T (or releaseTravelMargin > 0).
+ *    - Available lid travel = pocketDepth - Ol = (R - I - T) - Ol.
+ *    - Travel to release threshold = Os.
+ *    - Release travel margin = availableLidTravel - travelToReleaseEdge = (R - I - T) - Os - Ol.
+ *    - Fundamental rigid release condition: Os + Ol < R - I - T (or releaseTravelMargin > 0).
  *    - Lid removal motion is purely longitudinal in +X direction without flexing or bending.
  *
  * 5. Locking Mechanism & Captured Wedge Geometry (Phase 5):
@@ -68,7 +69,7 @@ import type { ToolboxDesign } from './design';
  *    - beta = wedge vertical bevel angle (`design.constructionParameters.wedgeBevelAngle`).
  *    - Q = locking batten travel clearance (`design.constructionParameters.lockingBattenTravelClearance`).
  *    - Working length L = locking batten length = lidBattenLength = lidPanelWidth + 2E.
- *    - Available lid travel D = (R - I - T) - O.
+ *    - Available lid travel D = (R - I - T) - Ol.
  *    - Minimum wedge channel bottom width: Wmin = D + Q.
  *    - Residual minimum gap after full lid shift = Wmin - D = Q (> 0).
  *    - Plan taper delta = L * tan(alpha).
@@ -240,7 +241,9 @@ export interface CalculatedLidGeometry {
     outsideProjectionPerSide: number;
   };
   longitudinalFit: {
-    lockedOverlapPerEnd: number;
+    stopEndLockedOverlap: number;
+    lockingEndLockedOverlap: number;
+    totalLockedOverlap: number;
     pocketDepth: number;
     travelToReleaseEdge: number;
     availableTravel: number;
@@ -351,7 +354,8 @@ export type GeometryErrorCode =
   | 'LID_TOO_THICK'
   | 'INVALID_LID_SIDE_CLEARANCE'
   | 'LID_SIDE_CLEARANCE_TOO_LARGE'
-  | 'INVALID_LID_OVERLAP'
+  | 'INVALID_STOP_END_LID_OVERLAP'
+  | 'INVALID_LOCKING_END_LID_OVERLAP'
   | 'INSUFFICIENT_LID_RELEASE_TRAVEL'
   | 'INVALID_LID_BATTEN_WIDTH'
   | 'LID_BATTEN_TOO_WIDE'
@@ -586,7 +590,7 @@ export function validateBoxGeometry(design: ToolboxDesign): {
 
 /**
  * Validates the sliding lid parameters for physical feasibility.
- * Enforces non-flexing rigid removal condition (2O < R - I - T).
+ * Enforces non-flexing rigid removal condition (Os + Ol < R - I - T).
  */
 export function validateLidGeometry(design: ToolboxDesign): {
   errors: GeometryError[];
@@ -601,7 +605,8 @@ export function validateLidGeometry(design: ToolboxDesign): {
     endHandleDepth: i,
     lidThickness: p,
     lidSideClearance: c,
-    desiredOverlap: o,
+    stopEndOverlap: os,
+    lockingEndOverlap: ol,
     lidBattenWidth: b,
     lidBattenOverhang: e,
     fixedTopBattenWidth: r,
@@ -622,10 +627,17 @@ export function validateLidGeometry(design: ToolboxDesign): {
     });
   }
 
-  if (!Number.isFinite(o) || o <= 0) {
+  if (!Number.isFinite(os) || os <= 0) {
     errors.push({
-      code: 'INVALID_LID_OVERLAP',
-      message: 'Lid desired overlap per end must be a finite number greater than 0.',
+      code: 'INVALID_STOP_END_LID_OVERLAP',
+      message: 'Stop-end locked overlap must be a finite number greater than 0.',
+    });
+  }
+
+  if (!Number.isFinite(ol) || ol <= 0) {
+    errors.push({
+      code: 'INVALID_LOCKING_END_LID_OVERLAP',
+      message: 'Locking-end locked overlap must be a finite number greater than 0.',
     });
   }
 
@@ -646,7 +658,8 @@ export function validateLidGeometry(design: ToolboxDesign): {
   // 2. Relational lid constraints (evaluated only when prerequisite inputs are valid)
   const isPValid = Number.isFinite(p) && p > 0;
   const isCValid = Number.isFinite(c) && c >= 0;
-  const isOValid = Number.isFinite(o) && o > 0;
+  const isStopOverlapValid = Number.isFinite(os) && os > 0;
+  const isLockingOverlapValid = Number.isFinite(ol) && ol > 0;
   const isBValid = Number.isFinite(b) && b > 0;
   const isEValid = Number.isFinite(e) && e >= 0;
 
@@ -675,12 +688,20 @@ export function validateLidGeometry(design: ToolboxDesign): {
     });
   }
 
-  // 2O < R - I - T (fundamental release condition: positive release travel margin)
-  if (isOValid && isRValid && isIValid && isTValid && r > i + t && 2 * o >= r - i - t) {
+  // Os + Ol < R - I - T (fundamental release condition: positive release travel margin)
+  if (
+    isStopOverlapValid &&
+    isLockingOverlapValid &&
+    isRValid &&
+    isIValid &&
+    isTValid &&
+    r > i + t &&
+    os + ol >= r - i - t
+  ) {
     errors.push({
       code: 'INSUFFICIENT_LID_RELEASE_TRAVEL',
       message:
-        'Lid overlap requires more travel than available pocket depth (2O < R - I - T) for positive release clearance.',
+        'Combined locked overlaps must be less than the end-cap pocket depth (Os + Ol < R - I - T) to leave positive release clearance.',
     });
   }
 
@@ -716,9 +737,26 @@ export function validateToolboxGeometry(design: ToolboxDesign): {
   const lockingValidation = validateLockingMechanismGeometry(design);
 
   return {
-    errors: [...boxValidation.errors, ...lidValidation.errors, ...lockingValidation.errors],
+    errors: dedupeGeometryErrors([
+      ...boxValidation.errors,
+      ...lidValidation.errors,
+      ...lockingValidation.errors,
+    ]),
     warnings: [...boxValidation.warnings, ...lidValidation.warnings, ...lockingValidation.warnings],
   };
+}
+
+function dedupeGeometryErrors(errors: GeometryError[]): GeometryError[] {
+  const seen = new Set<string>();
+  const deduped: GeometryError[] = [];
+  for (const error of errors) {
+    const key = `${error.code}\u0000${error.message}`;
+    if (!seen.has(key)) {
+      seen.add(key);
+      deduped.push(error);
+    }
+  }
+  return deduped;
 }
 
 /**
@@ -924,7 +962,8 @@ export function calculateLidGeometry(
     endHandleDepth: i,
     lidThickness: p,
     lidSideClearance: c,
-    desiredOverlap: o,
+    stopEndOverlap: os,
+    lockingEndOverlap: ol,
     lidBattenWidth: b,
     lidBattenOverhang: e,
     fixedTopBattenWidth: r,
@@ -935,16 +974,17 @@ export function calculateLidGeometry(
   const pocketDepth = box.topOpening.battenInteriorProjection;
 
   const lidPanelWidth = topOpeningWidth - 2 * c;
-  const lidPanelLength = topOpeningLength + 2 * o;
+  const totalLockedOverlap = os + ol;
+  const lidPanelLength = topOpeningLength + totalLockedOverlap;
   const lidBattenLength = lidPanelWidth + 2 * e;
 
   const sideWallBearingPerSide = Math.min(Math.max(e - c, 0), t);
   const outsideInsetPerSide = Math.max(t + c - e, 0);
   const outsideProjectionPerSide = Math.max(e - (t + c), 0);
 
-  const travelToReleaseEdge = o;
-  const availableTravel = pocketDepth - o;
-  const releaseTravelMargin = pocketDepth - 2 * o;
+  const travelToReleaseEdge = os;
+  const availableTravel = pocketDepth - ol;
+  const releaseTravelMargin = availableTravel - travelToReleaseEdge;
 
   const stopOpeningEdgeX = r;
   const lockingOpeningEdgeX = x - r;
@@ -954,15 +994,15 @@ export function calculateLidGeometry(
     name: 'locked',
     translationFromLocked: 0,
     panel: {
-      startX: r - o,
-      endX: x - r + o,
+      startX: r - os,
+      endX: x - r + ol,
     },
     straightLidBatten: {
       startX: r,
       endX: r + b,
     },
-    stopEndOverlap: o,
-    lockingEndOverlap: o,
+    stopEndOverlap: os,
+    lockingEndOverlap: ol,
     stopEndReleaseClearance: 0,
   };
 
@@ -972,14 +1012,14 @@ export function calculateLidGeometry(
     translationFromLocked: travelToReleaseEdge,
     panel: {
       startX: r,
-      endX: x - r + 2 * o,
+      endX: x - r + totalLockedOverlap,
     },
     straightLidBatten: {
-      startX: r + o,
-      endX: r + o + b,
+      startX: r + os,
+      endX: r + os + b,
     },
     stopEndOverlap: 0,
-    lockingEndOverlap: 2 * o,
+    lockingEndOverlap: totalLockedOverlap,
     stopEndReleaseClearance: 0,
   };
 
@@ -1015,7 +1055,7 @@ export function calculateLidGeometry(
         width: b,
         thickness: t,
       },
-      startFromPanelEnd: o,
+      startFromPanelEnd: os,
     },
     vertical: {
       lidPanelTopZ: z,
@@ -1030,7 +1070,9 @@ export function calculateLidGeometry(
       outsideProjectionPerSide,
     },
     longitudinalFit: {
-      lockedOverlapPerEnd: o,
+      stopEndLockedOverlap: os,
+      lockingEndLockedOverlap: ol,
+      totalLockedOverlap,
       pocketDepth,
       travelToReleaseEdge,
       availableTravel,
@@ -1072,7 +1114,6 @@ export function validateLockingMechanismGeometry(
   const {
     fixedTopBattenWidth: r,
     lidBattenWidth: b,
-    desiredOverlap: o,
     wedgeTaperAngle: alpha,
     wedgeBevelAngle: beta,
     lockingBattenTravelClearance: q,
@@ -1109,7 +1150,6 @@ export function validateLockingMechanismGeometry(
   const isTValid = Number.isFinite(t) && t > 0;
   const isRValid = Number.isFinite(r) && r > 0;
   const isBValid = Number.isFinite(b) && b > 0;
-  const isOValid = Number.isFinite(o) && o > 0;
 
   let box = precalculatedBox;
   if (!box && isXValid && isTValid && isRValid) {
@@ -1120,7 +1160,7 @@ export function validateLockingMechanismGeometry(
   }
 
   let lid = precalculatedLid;
-  if (!lid && box && isBValid && isOValid) {
+  if (!lid && box && isBValid) {
     const lidResult = calculateLidGeometry(design, box);
     if (lidResult.ok) {
       lid = lidResult.geometry;
@@ -1136,8 +1176,7 @@ export function validateLockingMechanismGeometry(
     isTValid &&
     isBValid &&
     isRValid &&
-    isXValid &&
-    isOValid
+    isXValid
   ) {
     const availableLidTravel = lid.longitudinalFit.availableTravel; // D
     const lockingBattenLength = lid.straightLidBatten.dimensions.length; // L
@@ -1170,8 +1209,8 @@ export function validateLockingMechanismGeometry(
 
     const lockingOpeningEdgeX = x - r;
     const lockingBattenInteriorEdgeX = lockingOpeningEdgeX - wedgeMinimumBottomWidth - b;
-    const panelStartX = r - o;
-    const straightBattenEndX = r + b;
+    const panelStartX = lid.states.locked.panel.startX;
+    const straightBattenEndX = lid.states.locked.straightLidBatten.endX;
 
     if (lockingBattenInteriorEdgeX < panelStartX) {
       errors.push({
@@ -1245,7 +1284,7 @@ export function calculateLockingMechanismGeometry(
   if (errors.length > 0 || !box || !lid) {
     return {
       ok: false,
-      errors,
+      errors: dedupeGeometryErrors(errors),
       warnings,
     };
   }
@@ -1408,7 +1447,7 @@ export function calculateToolboxGeometry(design: ToolboxDesign): ToolboxGeometry
   if (!boxResult.ok || !lidResult.ok || !lockingResult.ok) {
     return {
       ok: false,
-      errors,
+      errors: dedupeGeometryErrors(errors),
       warnings,
     };
   }

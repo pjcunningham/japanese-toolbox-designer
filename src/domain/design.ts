@@ -1,6 +1,6 @@
 export type UnitSystem = 'metric' | 'imperial';
 
-export const TOOLBOX_DESIGN_SCHEMA_VERSION = 2;
+export const TOOLBOX_DESIGN_SCHEMA_VERSION = 3;
 
 export interface ToolboxDimensions {
   length: number;
@@ -18,7 +18,8 @@ export interface ToolboxConstructionParameters {
   fixedTopBattenWidth: number;
   lidBattenWidth: number;
   lidSideClearance: number;
-  desiredOverlap: number;
+  stopEndOverlap: number;
+  lockingEndOverlap: number;
   lidBattenOverhang: number;
   wedgeTaperAngle: number;
   wedgeBevelAngle: number;

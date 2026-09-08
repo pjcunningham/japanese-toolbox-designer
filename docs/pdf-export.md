@@ -43,7 +43,7 @@ The workshop PDF uses standard A4 paper size with 36 pt (0.5 inch / ~12.7 mm) pr
 
 - **Header & Identity**: Title, Design Name, Wood Species (with fallback support for unlisted species), Overall Dimensions ($L \times W \times H$), Active Unit System, and Injected Generation Date.
 - **Carcass Specification Card**: Main stock thickness, bottom thickness, end-wall inset/handle depth, handle height, housing dado depth, end-cap width, pocket depth, and internal cavity dimensions.
-- **Lid Construction & Kinematics Card**: Lid thickness, panel size, side clearance per side, locked overlap per end, available lid travel, and release travel margin.
+- **Lid Construction & Kinematics Card**: Lid thickness, panel size, side clearance per side, stop-end locked overlap, locking-end locked overlap, total locked overlap, available lid travel, and release travel margin.
 - **Locking Mechanism Specification Card**: Plan taper angle ($\alpha$), retaining bevel angle ($\beta$), locking travel clearance, wedge narrow width, wedge wide width, working taper length, and recommended wedge blank length, accompanied by the note:
   > The locking wedge is tapered in plan and bevelled vertically so the profile is captured rather than relying on gravity.
 - **Nominal Dimensions Workshop Note**: Advises that displayed numbers reflect the selected display resolution and that the locking wedge should be final-fitted to the assembled box.

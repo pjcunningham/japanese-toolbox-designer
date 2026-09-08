@@ -336,7 +336,8 @@ Parameters populated with sensible defaults:
 - lid clearance ($C$);
 - fixed top batten width ($R$);
 - lid batten width ($B$);
-- overlap ($O$);
+- stop-end locked overlap ($O_s$);
+- locking-end locked overlap ($O_l$);
 - batten overhang ($E$);
 - wedge taper ($\alpha$);
 - wedge bevel ($\beta$);
@@ -357,7 +358,7 @@ V2 establishes authoritative traditional Japanese toolbox carcass construction:
    - $\text{internalHeight} = Z - T_b$
 5. **Lid Pocket Depth:**
    - $\text{pocketDepth} = R - I - T$
-   - Rigid release condition: $2O < R - I - T$
+   - Rigid release condition: $O_s + O_l < R - I - T$
 
 Default proportions for $T = 18\text{ mm}$:
 ```text
@@ -368,7 +369,8 @@ H  = 72 mm (4 * T)
 G  = 3 mm (T / 6)
 R  = 84 mm ((14/3) * T)
 B  = 42 mm ((7/3) * T)
-O  = 13.5 mm (0.75 * T)
+Os = 6 mm
+Ol = 20 mm
 ```
 
 ---
@@ -814,8 +816,9 @@ Lid width
 Lid travel
 Required release travel
 
-Locked overlap — fixed end
-Locked overlap — wedge end
+Stop-end locked overlap
+Locking-end locked overlap
+Total locked overlap
 
 Wedge minimum width
 Wedge maximum width
@@ -838,7 +841,7 @@ The V1 Cut List defines the nominal rectangular stock blanks required before cut
 | Bottom | 1 | ... | ... | ... | Full-size bottom fitted beneath the carcass. |
 | Grab handles | 2 | ... | ... | ... | Fit between the long sides at the two inset end bays. |
 | End caps | 2 | ... | ... | ... | Stop-end cap keeps a square inner edge; locking-end cap receives the captured-wedge bevel. |
-| Lid panel | 1 | ... | ... | ... | Final longitudinal fit is governed by locked overlap and release travel. |
+| Lid panel | 1 | ... | ... | ... | Final longitudinal fit is governed by separate stop-end and locking-end overlaps and release travel. |
 | Straight lid batten | 1 | ... | ... | ... | Stop-end lid batten. |
 | Locking batten + wedge blank | 1 | ... | ... | ... | Machined to produce both the tapered locking lid batten and the captured wedge; wedge is left overlength for final fitting. |
 
@@ -898,7 +901,7 @@ The document structure comprises:
 - Document title: `Japanese Toolbox Workshop Plan`;
 - Design name, wood species, active unit system, overall $X \times Y \times Z$ dimensions, and generation date;
 - Carcass specification card (main stock thickness, bottom thickness, end-wall inset/handle depth, handle height, housing dado depth, end-cap width, pocket depth, internal cavity);
-- Lid construction & kinematics card (lid thickness, panel size, side clearance, locked overlap, available lid travel, release travel margin);
+- Lid construction & kinematics card (lid thickness, panel size, side clearance, stop-end locked overlap, locking-end locked overlap, total locked overlap, available lid travel, release travel margin);
 - Locking mechanism specification card (plan taper $\alpha$, retaining bevel $\beta$, locking travel clearance, wedge narrow width, wedge wide width, working taper length, recommended wedge blank length, and captured-wedge profile note);
 - Nominal dimensions note advising on metric/imperial display resolution and workshop final-fitting.
 

@@ -10,8 +10,8 @@ import {
 } from './defaults';
 
 describe('ToolboxDesign Domain Model', () => {
-  it('defines TOOLBOX_DESIGN_SCHEMA_VERSION as 2', () => {
-    expect(TOOLBOX_DESIGN_SCHEMA_VERSION).toBe(2);
+  it('defines TOOLBOX_DESIGN_SCHEMA_VERSION as 3', () => {
+    expect(TOOLBOX_DESIGN_SCHEMA_VERSION).toBe(3);
   });
 
   it('creates a default design with sensible metric woodworking defaults', () => {
@@ -25,7 +25,7 @@ describe('ToolboxDesign Domain Model', () => {
 
     expect(design.id).toBe(fixedId);
     expect(design.name).toBe(DEFAULT_DESIGN_NAME);
-    expect(design.schemaVersion).toBe(2);
+    expect(design.schemaVersion).toBe(3);
     expect(design.createdAt).toBe(fixedTime);
     expect(design.updatedAt).toBe(fixedTime);
     expect(design.unitSystem).toBe('metric');
@@ -46,7 +46,8 @@ describe('ToolboxDesign Domain Model', () => {
       fixedTopBattenWidth: 84,
       lidBattenWidth: 42,
       lidSideClearance: 2,
-      desiredOverlap: 13.5,
+      stopEndOverlap: 6,
+      lockingEndOverlap: 20,
       lidBattenOverhang: 18,
       wedgeTaperAngle: 2,
       wedgeBevelAngle: 10,
@@ -128,7 +129,8 @@ describe('Unit Switching Behavior', () => {
         fixedTopBattenWidth: 57.15,
         lidBattenWidth: 47.625,
         lidSideClearance: 1.5875, // 1/16"
-        desiredOverlap: 14.2875,
+        stopEndOverlap: 6.35,
+        lockingEndOverlap: 14.2875,
         lidBattenOverhang: 19.05,
         wedgeTaperAngle: 2,
         wedgeBevelAngle: 10,

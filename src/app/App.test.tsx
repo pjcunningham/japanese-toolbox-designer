@@ -171,14 +171,15 @@ describe('App Component - Phase 7 Saved Designs Requirements', () => {
 
     const { unmount } = render(<App storage={storage} />);
 
-    // Make desiredOverlap impossible (e.g. 50 mm when stock is 18 mm)
-    const overlapInput = screen.getByLabelText(/Desired overlap/i);
+    // Make lockingEndOverlap impossible (e.g. 50 mm when stock is 18 mm)
+    const overlapInput = screen.getByLabelText(/Locking-end locked overlap/i);
     await user.clear(overlapInput);
     await user.type(overlapInput, '50');
 
     // Physical geometry error is shown
     expect(
-      screen.getAllByText(/Lid overlap requires more travel than available pocket depth/i).length,
+      screen.getAllByText(/Combined locked overlaps must be less than the end-cap pocket depth/i)
+        .length,
     ).toBeGreaterThanOrEqual(1);
 
     // Save remains allowed
@@ -191,9 +192,10 @@ describe('App Component - Phase 7 Saved Designs Requirements', () => {
 
     // Reload and verify design is recovered and shows the geometry error
     render(<App storage={storage} />);
-    expect(screen.getByLabelText(/Desired overlap/i)).toHaveValue('50');
+    expect(screen.getByLabelText(/Locking-end locked overlap/i)).toHaveValue('50');
     expect(
-      screen.getAllByText(/Lid overlap requires more travel than available pocket depth/i).length,
+      screen.getAllByText(/Combined locked overlaps must be less than the end-cap pocket depth/i)
+        .length,
     ).toBeGreaterThanOrEqual(1);
   });
 

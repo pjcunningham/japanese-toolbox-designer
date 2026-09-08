@@ -117,12 +117,12 @@ describe('2D Technical Drawing Projections (Phase 9)', () => {
       expect(lockingBattenRect?.width).toBe(84);
       expect(lockingBattenRect?.height).toBe(300);
 
-      // Locked lid panel (70.5..529.5, Y: 20..280, length 459, width 260)
+      // Locked lid panel (78..536, Y: 20..280, length 458, width 260)
       const lidPanelRect = model.rectangles.find((r) => r.id === 'plan-lid-panel');
       expect(lidPanelRect).toBeDefined();
-      expect(lidPanelRect?.x).toBeCloseTo(70.5, 4);
+      expect(lidPanelRect?.x).toBeCloseTo(78, 4);
       expect(lidPanelRect?.y).toBe(20);
-      expect(lidPanelRect?.width).toBeCloseTo(459, 4);
+      expect(lidPanelRect?.width).toBeCloseTo(458, 4);
       expect(lidPanelRect?.height).toBe(260);
 
       // Straight lid batten (84..126, Y: 2..298, length 296, width 42)
@@ -142,13 +142,13 @@ describe('2D Technical Drawing Projections (Phase 9)', () => {
         geometry.lockingMechanism.lockingLidBatten.planCorners.wedgeWideCorner,
         geometry.lockingMechanism.lockingLidBatten.planCorners.interiorWideCorner,
       ]);
-      expect(lockingPoly?.points[0]?.x).toBeCloseTo(456.5, 4);
+      expect(lockingPoly?.points[0]?.x).toBeCloseTo(463, 4);
       expect(lockingPoly?.points[0]?.y).toBe(2);
-      expect(lockingPoly?.points[1]?.x).toBeCloseTo(498.5, 4);
+      expect(lockingPoly?.points[1]?.x).toBeCloseTo(505, 4);
       expect(lockingPoly?.points[1]?.y).toBe(2);
-      expect(lockingPoly?.points[2]?.x).toBeCloseTo(488.16345, 4);
+      expect(lockingPoly?.points[2]?.x).toBeCloseTo(494.66345, 4);
       expect(lockingPoly?.points[2]?.y).toBe(298);
-      expect(lockingPoly?.points[3]?.x).toBeCloseTo(456.5, 4);
+      expect(lockingPoly?.points[3]?.x).toBeCloseTo(463, 4);
       expect(lockingPoly?.points[3]?.y).toBe(298);
 
       // Wedge corners match authoritative Phase 5 planCorners
@@ -163,11 +163,12 @@ describe('2D Technical Drawing Projections (Phase 9)', () => {
       expect(wedgePoly?.points[1]?.x).toBe(516);
       expect(wedgePoly?.points[2]?.x).toBe(516);
 
-      // Dimensions include overall length, width, top opening, locked overlap O, inset I, pocket depth, dado depth
+      // Dimensions include overall length, width, top opening, locked overlaps, inset I, pocket depth, dado depth
       const dimLength = model.dimensions.find((d) => d.id === 'plan-dim-overall-length');
       const dimWidth = model.dimensions.find((d) => d.id === 'plan-dim-overall-width');
       const dimOpening = model.dimensions.find((d) => d.id === 'plan-dim-opening-length');
-      const dimOverlap = model.dimensions.find((d) => d.id === 'plan-dim-overlap');
+      const dimStopOverlap = model.dimensions.find((d) => d.id === 'plan-dim-stop-overlap');
+      const dimLockingOverlap = model.dimensions.find((d) => d.id === 'plan-dim-locking-overlap');
       const dimInset = model.dimensions.find((d) => d.id === 'plan-dim-inset');
       const dimPocket = model.dimensions.find((d) => d.id === 'plan-dim-pocket-depth');
       const dimDado = model.dimensions.find((d) => d.id === 'plan-dim-dado-depth');
@@ -175,7 +176,8 @@ describe('2D Technical Drawing Projections (Phase 9)', () => {
       expect(dimLength?.valueMillimetres).toBe(600);
       expect(dimWidth?.valueMillimetres).toBe(300);
       expect(dimOpening?.valueMillimetres).toBe(432);
-      expect(dimOverlap?.valueMillimetres).toBeCloseTo(13.5, 4);
+      expect(dimStopOverlap?.valueMillimetres).toBeCloseTo(6, 4);
+      expect(dimLockingOverlap?.valueMillimetres).toBeCloseTo(20, 4);
       expect(dimInset?.valueMillimetres).toBe(36);
       expect(dimPocket?.valueMillimetres).toBe(30);
       expect(dimDado?.valueMillimetres).toBe(3);
@@ -290,10 +292,10 @@ describe('2D Technical Drawing Projections (Phase 9)', () => {
       expect(lockHandle?.width).toBe(36);
       expect(lockHandle?.height).toBe(72);
 
-      // Hidden lid panel: Z = 238..250, startX = 70.5, endX = 529.5
+      // Hidden lid panel: Z = 238..250, startX = 78, endX = 536
       const hiddenLidRect = model.rectangles.find((r) => r.id === 'front-lid-panel');
       expect(hiddenLidRect?.hidden).toBe(true);
-      expect(hiddenLidRect?.x).toBeCloseTo(70.5, 4);
+      expect(hiddenLidRect?.x).toBeCloseTo(78, 4);
       expect(hiddenLidRect?.y).toBe(238);
       expect(hiddenLidRect?.height).toBe(12);
 

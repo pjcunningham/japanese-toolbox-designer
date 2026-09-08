@@ -50,14 +50,14 @@ x = 0 (Stop End)                                                 x = X (Locking 
 
 Phase 4 & 10A define the available lid travel required to release the lid:
 
-$$D = \text{availableLidTravel} = (R - I - T) - O$$
+$$D = \text{availableLidTravel} = (R - I - T) - O_l$$
 
 where:
 
 - $R$ is the fixed top batten width (`fixedTopBattenWidth`).
 - $I$ is the end handle depth / end-wall inset (`endHandleDepth`).
 - $T$ is the stock thickness (`stockThickness`).
-- $O$ is the locked longitudinal overlap per end (`desiredOverlap`).
+- $O_l$ is the locking-end locked longitudinal overlap (`lockingEndOverlap`).
 
 When the wedge is removed, the lid must be free to shift by the full travel distance $D$ towards the locking end to allow the stop end to clear the top opening.
 
@@ -79,9 +79,9 @@ $$\text{remainingGapAfterFullLidShift} = W_{\min} - D = (D + Q) - D = Q$$
 
 For the default design:
 
-- $D = 16.5\text{ mm}$
+- $D = 10\text{ mm}$
 - $Q = 1.0\text{ mm}$
-- $W_{\min} = 17.5\text{ mm}$
+- $W_{\min} = 11\text{ mm}$
 - $\text{remainingGapAfterFullLidShift} = 1.0\text{ mm} > 0$
 
 ---

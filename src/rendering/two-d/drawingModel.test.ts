@@ -292,8 +292,16 @@ describe('2D Technical Drawing Projections (Phase 9)', () => {
       expect(dimInset?.valueMillimetres).toBe(36);
 
       // Annotations
-      expect(model.annotations.some((a) => a.text.includes('β = 10°'))).toBe(true);
-      expect(model.annotations.some((a) => a.text.includes('Captured wedge'))).toBe(true);
+      const capturedWedgeAnn = model.annotations.find((a) => a.id === 'front-ann-captured-wedge');
+      const lockingEndAnn = model.annotations.find((a) => a.id === 'front-ann-locking-end');
+      expect(capturedWedgeAnn).toBeDefined();
+      expect(capturedWedgeAnn?.text).toBe('Captured wedge');
+      expect(capturedWedgeAnn?.secondaryText).toBe(
+        `β = ${geometry.lockingMechanism.wedge.bevelAngle}°`,
+      );
+      expect(lockingEndAnn).toBeDefined();
+      expect(lockingEndAnn?.text).toBe('LOCKING END');
+      expect(lockingEndAnn!.position.y - capturedWedgeAnn!.position.y).toBeGreaterThanOrEqual(12);
       expect(model.annotations.some((a) => a.text.includes('Grab handle'))).toBe(true);
       expect(model.annotations.some((a) => a.text.includes('Inset end wall'))).toBe(true);
     });

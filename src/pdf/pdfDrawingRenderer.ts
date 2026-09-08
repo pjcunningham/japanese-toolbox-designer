@@ -1,4 +1,4 @@
-import type { PDFPage, PDFFont } from 'pdf-lib';
+import { degrees, type PDFPage, type PDFFont } from 'pdf-lib';
 import type { TechnicalDrawingModel } from '../rendering/two-d/drawingModel';
 import type { UnitSystem } from '../domain/design';
 import { formatDimension } from '../domain/units';
@@ -18,6 +18,36 @@ import type { Rect } from './types';
 export interface DrawingRendererFonts {
   regular: PDFFont;
   bold: PDFFont;
+}
+
+export interface VerticalDimensionPlacement {
+  x: number;
+  y: number;
+  rotationDegrees: number;
+}
+
+/**
+ * Calculates deterministic placement and rotation for vertical (Y-axis) dimension labels in PDF space.
+ * Uses normal technical drawing convention: text reads bottom-to-top (+90 degrees counter-clockwise in PDF coordinate space).
+ */
+export function calculateVerticalDimensionTextPlacement(
+  pdfXDim: number,
+  pdfY1: number,
+  pdfY2: number,
+  textWidth: number,
+  fontSize: number,
+  offset: number,
+  gap: number = 3.5,
+): VerticalDimensionPlacement {
+  const midY = (pdfY1 + pdfY2) / 2;
+  const startY = midY - textWidth / 2;
+  const textX = offset > 0 ? pdfXDim + gap + fontSize * 0.75 : pdfXDim - gap;
+
+  return {
+    x: textX,
+    y: startY,
+    rotationDegrees: 90,
+  };
 }
 
 /**
@@ -283,17 +313,26 @@ export function renderTechnicalDrawing(
       // Arrowheads
       drawVerticalArrows(page, pdfXDim, pdfY1, pdfY2);
 
-      // Label
-      const textWidth = fonts.regular.widthOfTextAtSize(displayText, 7.5);
-      const textX = dim.offset > 0 ? pdfXDim + 3.5 : pdfXDim - 3.5 - textWidth;
-      const textY = (pdfY1 + pdfY2) / 2 - 2.5;
+      // Label (Vertically oriented, bottom-to-top reading direction)
+      const fontSize = 7.5;
+      const textWidth = fonts.regular.widthOfTextAtSize(displayText, fontSize);
+      const placement = calculateVerticalDimensionTextPlacement(
+        pdfXDim,
+        pdfY1,
+        pdfY2,
+        textWidth,
+        fontSize,
+        dim.offset,
+        3.5,
+      );
 
       page.drawText(displayText, {
-        x: textX,
-        y: textY,
-        size: 7.5,
+        x: placement.x,
+        y: placement.y,
+        size: fontSize,
         font: fonts.regular,
         color: COLOR_TEXT_PRIMARY,
+        rotate: degrees(placement.rotationDegrees),
       });
     }
   }

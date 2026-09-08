@@ -207,6 +207,8 @@ export const SvgTechnicalDrawing: React.FC<SvgTechnicalDrawingProps> = ({
             const svgY1 = -y1;
             const svgY2 = -y2;
             const overshoot = dim.offset > 0 ? 4 : -4;
+            const labelX = xDim + (dim.offset > 0 ? 8 : -8);
+            const labelY = (svgY1 + svgY2) / 2;
 
             return (
               <g key={dim.id} className="dimension-group" data-dimension={dim.id}>
@@ -238,13 +240,14 @@ export const SvgTechnicalDrawing: React.FC<SvgTechnicalDrawingProps> = ({
                   markerEnd={`url(#${markerStartId})`}
                   vectorEffect="non-scaling-stroke"
                 />
-                {/* Text Label */}
+                {/* Text Label - Vertically oriented (bottom-to-top reading direction) */}
                 <text
                   className="dimension-text"
-                  x={xDim + (dim.offset > 0 ? 8 : -8)}
-                  y={(svgY1 + svgY2) / 2}
-                  textAnchor={dim.offset > 0 ? 'start' : 'end'}
+                  x={labelX}
+                  y={labelY}
+                  textAnchor="middle"
                   dominantBaseline="central"
+                  transform={`rotate(-90 ${labelX} ${labelY})`}
                 >
                   {displayText}
                 </text>
@@ -256,19 +259,46 @@ export const SvgTechnicalDrawing: React.FC<SvgTechnicalDrawingProps> = ({
 
       {/* Layer 5: Annotations */}
       <g className="drawing-layer layer-annotations">
-        {model.annotations.map((ann) => (
-          <text
-            key={ann.id}
-            id={ann.id}
-            className="drawing-annotation"
-            x={ann.position.x}
-            y={-ann.position.y}
-            textAnchor={ann.align === 'left' ? 'start' : ann.align === 'right' ? 'end' : 'middle'}
-            dominantBaseline="central"
-          >
-            {ann.text}
-          </text>
-        ))}
+        {model.annotations.map((ann) => {
+          const anchor = ann.align === 'left' ? 'start' : ann.align === 'right' ? 'end' : 'middle';
+          const svgX = ann.position.x;
+          const svgY = -ann.position.y;
+
+          if (!ann.secondaryText) {
+            return (
+              <text
+                key={ann.id}
+                id={ann.id}
+                className="drawing-annotation"
+                x={svgX}
+                y={svgY}
+                textAnchor={anchor}
+                dominantBaseline="central"
+              >
+                {ann.text}
+              </text>
+            );
+          }
+
+          return (
+            <text
+              key={ann.id}
+              id={ann.id}
+              className="drawing-annotation"
+              x={svgX}
+              y={svgY}
+              textAnchor={anchor}
+              dominantBaseline="central"
+            >
+              <tspan x={svgX} y={svgY - 6}>
+                {ann.text}
+              </tspan>
+              <tspan x={svgX} y={svgY + 7} className="drawing-annotation-secondary">
+                {ann.secondaryText}
+              </tspan>
+            </text>
+          );
+        })}
       </g>
     </svg>
   );

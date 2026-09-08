@@ -266,6 +266,16 @@
   fill: #0f172a;
 }
 
+.drawing-annotation-secondary {
+  font-family:
+    system-ui,
+    -apple-system,
+    sans-serif;
+  font-size: 9.5px;
+  font-weight: 500;
+  fill: #475569;
+}
+
 @media (max-width: 640px) {
   .technical-drawing-viewer {
     height: 320px;

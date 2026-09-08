@@ -76,6 +76,8 @@ Technical drawings are rendered directly into native PDF vector graphics (lines,
 1. Razor-sharp vector print output at any zoom or physical print resolution.
 2. Lightweight PDF file sizes (~15–20 kB total for an 8-page document).
 3. Exact preservation of engineering coordinate conventions ($Y$ increases upward, matching PDF coordinate space).
+4. **Vertical Dimension Layout (`axis === 'y'`)**: Rendered vertically along the vertical dimension line with +90 degrees rotation (`rotate: degrees(90)` in PDF coordinates), reading bottom-to-top, centered along the dimension span.
+5. **Annotation & Secondary Text Parity**: Multi-line annotations with `secondaryText` (such as captured wedge bevel details) and multi-row annotation spacing prevent text collisions.
 
 Aspect-ratio preserving scale and translation are computed by `fitDrawingBoundsToRect(bounds, targetRect)`.
 

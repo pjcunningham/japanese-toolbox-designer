@@ -99,4 +99,43 @@ test.describe('Phase 9 — Technical Drawings E2E Workflows', () => {
     // 4. Verify drawing dimension updates to imperial fractions (680 mm = 26 3/4")
     await expect(page.getByText(/Length X: 26 3\/4"/i)).toBeVisible();
   });
+
+  test('Workflow D — Phase 13A vertical dimensions and annotation layout', async ({ page }) => {
+    await page.goto('/');
+
+    const svg = page.locator('.technical-drawing-svg');
+    await expect(svg).toBeVisible();
+
+    // 1. Plan drawing: Width Y is vertically oriented
+    const widthYDim = svg.locator('[data-dimension="plan-dim-overall-width"] text.dimension-text');
+    await expect(widthYDim).toBeVisible();
+    await expect(widthYDim).toHaveText('Width Y: 300 mm');
+    const widthYTransform = await widthYDim.getAttribute('transform');
+    expect(widthYTransform).toMatch(/^rotate\(-90/);
+
+    // 2. Switch to Front elevation
+    const frontTab = page.getByRole('tab', { name: 'Front', exact: true });
+    await frontTab.click();
+
+    // 3. Front drawing: Body Height is vertically oriented
+    const bodyHeightDim = svg.locator(
+      '[data-dimension="front-dim-body-height"] text.dimension-text',
+    );
+    await expect(bodyHeightDim).toBeVisible();
+    await expect(bodyHeightDim).toHaveText('Body Height: 250 mm');
+    const bodyHeightTransform = await bodyHeightDim.getAttribute('transform');
+    expect(bodyHeightTransform).toMatch(/^rotate\(-90/);
+
+    // 4. Front drawing: LOCKING END and Captured wedge annotations both visible and distinct
+    const lockingEndAnn = svg.locator('#front-ann-locking-end');
+    const capturedWedgeAnn = svg.locator('#front-ann-captured-wedge');
+    await expect(lockingEndAnn).toBeVisible();
+    await expect(lockingEndAnn).toHaveText('LOCKING END');
+
+    await expect(capturedWedgeAnn).toBeVisible();
+    const primaryTspan = capturedWedgeAnn.locator('tspan').first();
+    const secondaryTspan = capturedWedgeAnn.locator('tspan.drawing-annotation-secondary');
+    await expect(primaryTspan).toHaveText('Captured wedge');
+    await expect(secondaryTspan).toHaveText('β = 10°');
+  });
 });

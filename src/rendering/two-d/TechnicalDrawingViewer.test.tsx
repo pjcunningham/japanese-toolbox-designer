@@ -186,4 +186,59 @@ describe('TechnicalDrawingViewer Component (Requirements 67–72)', () => {
 
     expect(svg.getAttribute('viewBox')).toBe(initialViewBox);
   });
+
+  it('renders vertical dimensions with -90 degree rotation and centered alignment in SVG (Phase 13A)', () => {
+    const { container } = render(
+      <TechnicalDrawingViewer
+        geometryResult={validGeometryResult}
+        unitSystem="metric"
+        hasInputErrors={false}
+        design={defaultDesign}
+      />,
+    );
+
+    // Plan view has Width Y dimension (axis: 'y')
+    const widthYGroup = container.querySelector('[data-dimension="plan-dim-overall-width"]');
+    expect(widthYGroup).toBeInTheDocument();
+
+    const textElem = widthYGroup?.querySelector('.dimension-text');
+    expect(textElem).toBeInTheDocument();
+    expect(textElem?.textContent).toBe('Width Y: 300 mm');
+    expect(textElem).toHaveAttribute('text-anchor', 'middle');
+    expect(textElem).toHaveAttribute('dominant-baseline', 'central');
+
+    const transform = textElem?.getAttribute('transform');
+    expect(transform).toMatch(/^rotate\(-90\s+-?\d+(\.\d+)?\s+-?\d+(\.\d+)?\)$/);
+  });
+
+  it('renders primary and secondary annotation text in SVG with appropriate classes (Phase 13A)', () => {
+    const { container } = render(
+      <TechnicalDrawingViewer
+        geometryResult={validGeometryResult}
+        unitSystem="metric"
+        hasInputErrors={false}
+        design={defaultDesign}
+      />,
+    );
+
+    // Switch to Front view
+    const frontTab = screen.getByRole('tab', { name: 'Front' });
+    fireEvent.click(frontTab);
+
+    const capturedWedgeElem = container.querySelector('#front-ann-captured-wedge');
+    expect(capturedWedgeElem).toBeInTheDocument();
+
+    const tspans = capturedWedgeElem?.querySelectorAll('tspan');
+    expect(tspans?.length).toBe(2);
+    expect(tspans?.[0]?.textContent).toBe('Captured wedge');
+    expect(tspans?.[1]?.textContent).toBe('β = 10°');
+    expect(tspans?.[1]).toHaveClass('drawing-annotation-secondary');
+
+    // Body Height dimension is vertical
+    const bodyHeightGroup = container.querySelector('[data-dimension="front-dim-body-height"]');
+    expect(bodyHeightGroup).toBeInTheDocument();
+    const bodyHeightText = bodyHeightGroup?.querySelector('.dimension-text');
+    expect(bodyHeightText?.textContent).toBe('Body Height: 250 mm');
+    expect(bodyHeightText?.getAttribute('transform')).toMatch(/^rotate\(-90/);
+  });
 });

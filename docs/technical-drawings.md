@@ -69,6 +69,9 @@ The technical drawings adhere to standard engineering drawing standards with mon
 - **Hidden Edges (`kind: 'hidden'`, `is-hidden-edge`):** Dashed strokes (`4 3`), showing obscured lid panel boundaries beneath walls and fixed top battens.
 - **Construction / Joint Lines (`kind: 'construction'`):** Fine dashed lines (`2 2`).
 - **Dimensions (`DrawingDimension`):** Thin extension lines, dimension lines with directional arrowheads, and centered numeric dimension values formatted to current display units.
+  - **Horizontal Dimensions (`axis === 'x'`):** Rendered horizontally above or below the dimension line.
+  - **Vertical Dimensions (`axis === 'y'`):** Rendered vertically alongside the vertical dimension line with a -90 degree rotation (bottom-to-top reading direction), centered on the dimension span with `textAnchor="middle"` and constant horizontal offset.
+- **Annotations (`DrawingAnnotation`):** Distinct primary labels and optional `secondaryText` rendered with `.drawing-annotation-secondary` styling (e.g. captured wedge bevel angle $\beta$). Annotation positioning uses deterministic multi-row hierarchy to avoid overlaps.
 - **Non-Scaling Strokes:** SVG elements specify `vector-effect="non-scaling-stroke"` so line weights remain crisp and constant across all zoom levels.
 
 ---

@@ -29,6 +29,7 @@
 .toolbox-3d-tabs {
   display: flex;
   gap: 4px;
+  flex-wrap: wrap;
 }
 
 .toolbox-3d-tab {

@@ -301,7 +301,7 @@ export function createFrontDrawing(geometry: CalculatedToolboxGeometry): Technic
       id: 'front-ann-locking-end',
       position: {
         x: X - (X - lockingFixedTopBatten.innerEdgeX) / 2,
-        y: overallHeightWithTopBattens + 12,
+        y: overallHeightWithTopBattens + 28,
       },
       text: 'LOCKING END',
       align: 'center',
@@ -309,7 +309,8 @@ export function createFrontDrawing(geometry: CalculatedToolboxGeometry): Technic
     {
       id: 'front-ann-captured-wedge',
       position: { x: wedgeMidX, y: overallHeightWithTopBattens + 12 },
-      text: `β = ${wedge.bevelAngle}° Captured wedge`,
+      text: 'Captured wedge',
+      secondaryText: `β = ${wedge.bevelAngle}°`,
       align: 'center',
     },
     {

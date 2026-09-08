@@ -241,4 +241,86 @@ describe('TechnicalDrawingViewer Component (Requirements 67–72)', () => {
     expect(bodyHeightText?.textContent).toBe('Body Height: 250 mm');
     expect(bodyHeightText?.getAttribute('transform')).toMatch(/^rotate\(-90/);
   });
+
+  it('renders Phase 14A short dimensions and annotations on distinct vertical SVG Y rows in intended order', () => {
+    const { container } = render(
+      <TechnicalDrawingViewer
+        geometryResult={validGeometryResult}
+        unitSystem="metric"
+        hasInputErrors={false}
+        design={defaultDesign}
+      />,
+    );
+
+    // Verify Inset I, Pocket, STOP END, Top Opening each appear exactly once
+    const insetDimTexts = container.querySelectorAll(
+      '[data-dimension="plan-dim-inset"] .dimension-text',
+    );
+    const pocketDimTexts = container.querySelectorAll(
+      '[data-dimension="plan-dim-pocket-depth"] .dimension-text',
+    );
+    const openingDimTexts = container.querySelectorAll(
+      '[data-dimension="plan-dim-opening-length"] .dimension-text',
+    );
+    const stopEndAnns = container.querySelectorAll('#plan-ann-stop-end');
+
+    expect(insetDimTexts.length).toBe(1);
+    expect(pocketDimTexts.length).toBe(1);
+    expect(openingDimTexts.length).toBe(1);
+    expect(stopEndAnns.length).toBe(1);
+
+    expect(insetDimTexts[0]?.textContent).toBe('Inset I: 36 mm');
+    expect(pocketDimTexts[0]?.textContent).toBe('Pocket: 30 mm');
+    expect(openingDimTexts[0]?.textContent).toBe('Top Opening: 432 mm');
+    expect(stopEndAnns[0]?.textContent).toBe('STOP END');
+
+    // Parse numeric SVG Y coordinates
+    const insetTextY = parseFloat(insetDimTexts[0]?.getAttribute('y') || '0');
+    const pocketTextY = parseFloat(pocketDimTexts[0]?.getAttribute('y') || '0');
+    const openingTextY = parseFloat(openingDimTexts[0]?.getAttribute('y') || '0');
+    const stopEndTextY = parseFloat(stopEndAnns[0]?.getAttribute('y') || '0');
+
+    // In SVG space, more negative Y is higher visually.
+    // Order from visually highest to lowest: Top Opening < Inset I < Pocket < STOP END
+    expect(openingTextY).toBeLessThan(insetTextY);
+    expect(insetTextY).toBeLessThan(pocketTextY);
+    expect(pocketTextY).toBeLessThan(stopEndTextY);
+
+    // Each row has distinct deterministic SVG Y coordinate
+    const yValues = [openingTextY, insetTextY, pocketTextY, stopEndTextY];
+    const uniqueYValues = new Set(yValues);
+    expect(uniqueYValues.size).toBe(4);
+  });
+
+  it('renders Phase 14A Imperial Plan view short dimensions on separate rows without truncation', () => {
+    const imperialDesign = setDesignUnitSystem(defaultDesign, 'imperial');
+    const imperialGeoResult = calculateToolboxGeometry(imperialDesign);
+
+    const { container } = render(
+      <TechnicalDrawingViewer
+        geometryResult={imperialGeoResult}
+        unitSystem="imperial"
+        hasInputErrors={false}
+        design={imperialDesign}
+      />,
+    );
+
+    const insetText = container.querySelector('[data-dimension="plan-dim-inset"] .dimension-text');
+    const pocketText = container.querySelector(
+      '[data-dimension="plan-dim-pocket-depth"] .dimension-text',
+    );
+
+    expect(insetText).toBeInTheDocument();
+    expect(pocketText).toBeInTheDocument();
+
+    // 36 mm = 1 7/16", 30 mm = 1 3/16"
+    expect(insetText?.textContent).toBe('Inset I: 1 7/16"');
+    expect(pocketText?.textContent).toBe('Pocket: 1 3/16"');
+
+    const insetTextY = parseFloat(insetText?.getAttribute('y') || '0');
+    const pocketTextY = parseFloat(pocketText?.getAttribute('y') || '0');
+
+    expect(insetTextY).not.toBe(pocketTextY);
+    expect(insetTextY).toBeLessThan(pocketTextY); // Inset is higher row than Pocket
+  });
 });

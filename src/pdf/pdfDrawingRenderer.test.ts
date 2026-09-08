@@ -343,5 +343,69 @@ describe('renderTechnicalDrawing', () => {
       // Specifically, LOCKING END should sit on an upper row above Captured wedge
       expect(lockBox.bottom).toBeGreaterThan(wedgeBox.top);
     });
+
+    it('ensures Phase 14A Plan top dimensions and STOP END are cleanly separated in PDF layout without clipping', async () => {
+      const doc = await PDFDocument.create();
+      const regularFont = await doc.embedFont(StandardFonts.Helvetica);
+
+      const planModel = createPlanDrawing(geometry);
+      const fit = fitDrawingBoundsToRect(planModel.bounds, targetRect);
+
+      const dimOpening = planModel.dimensions.find((d) => d.id === 'plan-dim-opening-length')!;
+      const dimInset = planModel.dimensions.find((d) => d.id === 'plan-dim-inset')!;
+      const dimPocket = planModel.dimensions.find((d) => d.id === 'plan-dim-pocket-depth')!;
+      const annStopEnd = planModel.annotations.find((a) => a.id === 'plan-ann-stop-end')!;
+
+      expect(dimOpening).toBeDefined();
+      expect(dimInset).toBeDefined();
+      expect(dimPocket).toBeDefined();
+      expect(annStopEnd).toBeDefined();
+
+      // In PDF coordinate space, Y increases UPWARD.
+      // Top Opening line Y:
+      const openingPdfY =
+        (geometry.box.outside.width + dimOpening.offset) * fit.scale + fit.offsetY;
+      const insetPdfY = (geometry.box.outside.width + dimInset.offset) * fit.scale + fit.offsetY;
+      const pocketPdfY = (geometry.box.outside.width + dimPocket.offset) * fit.scale + fit.offsetY;
+      const stopEndPdfY = annStopEnd.position.y * fit.scale + fit.offsetY;
+
+      // In PDF space, highest offset has largest Y
+      expect(openingPdfY).toBeGreaterThan(insetPdfY);
+      expect(insetPdfY).toBeGreaterThan(pocketPdfY);
+      expect(pocketPdfY).toBeGreaterThan(stopEndPdfY);
+
+      // Top Opening label remains inside targetRect height
+      const openingTextY = openingPdfY + 2.5 + 7.5;
+      expect(openingTextY).toBeLessThanOrEqual(targetRect.y + targetRect.height);
+
+      // Inset and Pocket text boxes do not intersect
+      const insetText = toPdfSafeText(`Inset I: 36 mm`);
+      const insetWidth = regularFont.widthOfTextAtSize(insetText, 7.5);
+      const insetMidX = ((0 + 36) / 2) * fit.scale + fit.offsetX;
+      const insetBox = {
+        left: insetMidX - insetWidth / 2,
+        right: insetMidX + insetWidth / 2,
+        bottom: insetPdfY + 2.5,
+        top: insetPdfY + 2.5 + 7.5,
+      };
+
+      const pocketText = toPdfSafeText(`Pocket: 30 mm`);
+      const pocketWidth = regularFont.widthOfTextAtSize(pocketText, 7.5);
+      const pocketMidX = ((54 + 84) / 2) * fit.scale + fit.offsetX;
+      const pocketBox = {
+        left: pocketMidX - pocketWidth / 2,
+        right: pocketMidX + pocketWidth / 2,
+        bottom: pocketPdfY + 2.5,
+        top: pocketPdfY + 2.5 + 7.5,
+      };
+
+      const verticalOverlap = !(
+        insetBox.bottom >= pocketBox.top || pocketBox.bottom >= insetBox.top
+      );
+      const horizontalOverlap = !(
+        insetBox.left >= pocketBox.right || pocketBox.left >= insetBox.right
+      );
+      expect(verticalOverlap && horizontalOverlap).toBe(false);
+    });
   });
 });

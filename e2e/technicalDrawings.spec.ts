@@ -138,4 +138,116 @@ test.describe('Phase 9 — Technical Drawings E2E Workflows', () => {
     await expect(primaryTspan).toHaveText('Captured wedge');
     await expect(secondaryTspan).toHaveText('β = 10°');
   });
+
+  test.describe('Phase 14A — Short-Dimension Layout Collision Regression', () => {
+    async function assertPlanShortDimensionsNoCollision(page: import('@playwright/test').Page) {
+      await page.goto('/');
+
+      const planTab = page.getByRole('tab', { name: 'Plan', exact: true });
+      await planTab.click();
+
+      const fitBtn = page.getByRole('button', { name: 'Fit to view' });
+      await fitBtn.click();
+
+      const insetTextLoc = page.locator('[data-dimension="plan-dim-inset"] text.dimension-text');
+      const pocketTextLoc = page.locator(
+        '[data-dimension="plan-dim-pocket-depth"] text.dimension-text',
+      );
+      const stopEndTextLoc = page.locator('#plan-ann-stop-end');
+      const topOpeningTextLoc = page.locator(
+        '[data-dimension="plan-dim-opening-length"] text.dimension-text',
+      );
+
+      await expect(insetTextLoc).toBeVisible();
+      await expect(pocketTextLoc).toBeVisible();
+      await expect(stopEndTextLoc).toBeVisible();
+      await expect(topOpeningTextLoc).toBeVisible();
+
+      // Retrieve actual DOM client bounding rects
+      const [insetRect, pocketRect, stopEndRect, topOpeningRect] = await Promise.all([
+        insetTextLoc.evaluate((el) => {
+          const r = el.getBoundingClientRect();
+          return {
+            left: r.left,
+            right: r.right,
+            top: r.top,
+            bottom: r.bottom,
+            width: r.width,
+            height: r.height,
+          };
+        }),
+        pocketTextLoc.evaluate((el) => {
+          const r = el.getBoundingClientRect();
+          return {
+            left: r.left,
+            right: r.right,
+            top: r.top,
+            bottom: r.bottom,
+            width: r.width,
+            height: r.height,
+          };
+        }),
+        stopEndTextLoc.evaluate((el) => {
+          const r = el.getBoundingClientRect();
+          return {
+            left: r.left,
+            right: r.right,
+            top: r.top,
+            bottom: r.bottom,
+            width: r.width,
+            height: r.height,
+          };
+        }),
+        topOpeningTextLoc.evaluate((el) => {
+          const r = el.getBoundingClientRect();
+          return {
+            left: r.left,
+            right: r.right,
+            top: r.top,
+            bottom: r.bottom,
+            width: r.width,
+            height: r.height,
+          };
+        }),
+      ]);
+
+      const intersects = (
+        r1: { left: number; right: number; top: number; bottom: number },
+        r2: { left: number; right: number; top: number; bottom: number },
+      ) =>
+        !(r1.right <= r2.left || r2.right <= r1.left || r1.bottom <= r2.top || r2.bottom <= r1.top);
+
+      // Verify no intersection between short dimensions and annotations
+      expect(intersects(insetRect, pocketRect)).toBe(false);
+      expect(intersects(insetRect, stopEndRect)).toBe(false);
+      expect(intersects(pocketRect, stopEndRect)).toBe(false);
+      expect(intersects(topOpeningRect, insetRect)).toBe(false);
+
+      // Verify strict vertical order: Top Opening (top) < Inset < Pocket < STOP END (bottom in browser viewport coords)
+      expect(topOpeningRect.bottom).toBeLessThanOrEqual(insetRect.top + 2);
+      expect(insetRect.bottom).toBeLessThanOrEqual(pocketRect.top + 2);
+      expect(pocketRect.bottom).toBeLessThanOrEqual(stopEndRect.top + 2);
+    }
+
+    test('1920 × 1080 desktop workstation: Inset, Pocket, STOP END and Top Opening bounding boxes do not intersect', async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 1920, height: 1080 });
+      await assertPlanShortDimensionsNoCollision(page);
+    });
+
+    test('2560 × 1440 wide workstation: Inset, Pocket, and STOP END do not intersect', async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 2560, height: 1440 });
+      await assertPlanShortDimensionsNoCollision(page);
+    });
+
+    test('1366 × 768 normal laptop: Inset, Pocket, and STOP END do not intersect', async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 1366, height: 768 });
+      await assertPlanShortDimensionsNoCollision(page);
+    });
+  });
 });

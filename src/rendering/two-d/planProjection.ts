@@ -10,6 +10,19 @@ import type {
 } from './drawingModel';
 
 /**
+ * Named layout constants for Plan drawing top dimension and annotation vertical rows.
+ * Hierarchy from top (highest offset) to bottom (closest to carcass):
+ * 1. Top Opening (spans wide across the top)
+ * 2. Inset I (end-wall inset dimension at stop end)
+ * 3. Pocket (pocket depth dimension at stop end)
+ * 4. STOP END (annotation baseline above carcass)
+ */
+export const PLAN_TOP_ROW_STOP_END = 12;
+export const PLAN_TOP_ROW_POCKET = 24;
+export const PLAN_TOP_ROW_INSET = 40;
+export const PLAN_TOP_ROW_OPENING = 56;
+
+/**
  * Creates the renderer-neutral Plan View technical drawing model.
  *
  * View: Plan (looking downward along Z axis)
@@ -264,7 +277,7 @@ export function createPlanDrawing(geometry: CalculatedToolboxGeometry): Technica
       axis: 'x',
       start: { x: R, y: Y },
       end: { x: lockingOpeningEdgeX, y: Y },
-      offset: 35,
+      offset: PLAN_TOP_ROW_OPENING,
       valueMillimetres: lockingOpeningEdgeX - R,
       label: 'Top Opening',
     },
@@ -284,7 +297,7 @@ export function createPlanDrawing(geometry: CalculatedToolboxGeometry): Technica
       axis: 'x',
       start: { x: 0, y: Y },
       end: { x: stopWall.outsideFaceX, y: Y },
-      offset: 18,
+      offset: PLAN_TOP_ROW_INSET,
       valueMillimetres: stopWall.outsideFaceX,
       label: 'Inset I',
     },
@@ -294,7 +307,7 @@ export function createPlanDrawing(geometry: CalculatedToolboxGeometry): Technica
       axis: 'x',
       start: { x: stopWall.insideFaceX, y: Y },
       end: { x: R, y: Y },
-      offset: 18,
+      offset: PLAN_TOP_ROW_POCKET,
       valueMillimetres: geometry.box.topOpening.battenInteriorProjection,
       label: 'Pocket',
     },
@@ -314,19 +327,19 @@ export function createPlanDrawing(geometry: CalculatedToolboxGeometry): Technica
   const annotations: DrawingAnnotation[] = [
     {
       id: 'plan-ann-stop-end',
-      position: { x: R / 2, y: Y + 12 },
+      position: { x: R / 2, y: Y + PLAN_TOP_ROW_STOP_END },
       text: 'STOP END',
       align: 'center',
     },
     {
       id: 'plan-ann-locking-end',
-      position: { x: X - (X - lockingOpeningEdgeX) / 2, y: Y + 12 },
+      position: { x: X - (X - lockingOpeningEdgeX) / 2, y: Y + PLAN_TOP_ROW_STOP_END },
       text: 'LOCKING END',
       align: 'center',
     },
     {
       id: 'plan-ann-lid-release',
-      position: { x: X / 2, y: Y + 12 },
+      position: { x: X / 2, y: Y + PLAN_TOP_ROW_STOP_END },
       text: 'Lid release +X →',
       align: 'center',
     },
@@ -370,7 +383,7 @@ export function createPlanDrawing(geometry: CalculatedToolboxGeometry): Technica
 
   // Viewport margin bounds
   const marginX = Math.max(50, X * 0.08);
-  const marginY = Math.max(50, Y * 0.08);
+  const marginY = Math.max(72, Y * 0.1);
 
   const bounds: DrawingBounds = {
     minX: -marginX,

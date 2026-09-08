@@ -2,7 +2,13 @@ import { describe, it, expect } from 'vitest';
 import { createDefaultToolboxDesign } from '../../domain/defaults';
 import { calculateToolboxGeometry } from '../../domain/geometry';
 import { setDesignUnitSystem } from '../../domain/design';
-import { createPlanDrawing } from './planProjection';
+import {
+  createPlanDrawing,
+  PLAN_TOP_ROW_STOP_END,
+  PLAN_TOP_ROW_POCKET,
+  PLAN_TOP_ROW_INSET,
+  PLAN_TOP_ROW_OPENING,
+} from './planProjection';
 import { createFrontDrawing } from './frontProjection';
 import { createEndDrawing } from './endProjection';
 
@@ -183,6 +189,46 @@ describe('2D Technical Drawing Projections (Phase 9)', () => {
       expect(model.annotations.some((a) => a.text.includes('Inset housed end wall'))).toBe(true);
       expect(model.annotations.some((a) => a.text.includes('Grab handle below end cap'))).toBe(
         true,
+      );
+    });
+
+    it('implements Phase 14A staggered dimension rows avoiding collision near STOP END', () => {
+      const model = createPlanDrawing(geometry);
+
+      const dimOpening = model.dimensions.find((d) => d.id === 'plan-dim-opening-length');
+      const dimInset = model.dimensions.find((d) => d.id === 'plan-dim-inset');
+      const dimPocket = model.dimensions.find((d) => d.id === 'plan-dim-pocket-depth');
+      const annStopEnd = model.annotations.find((a) => a.id === 'plan-ann-stop-end');
+      const annLockingEnd = model.annotations.find((a) => a.id === 'plan-ann-locking-end');
+
+      expect(dimOpening).toBeDefined();
+      expect(dimInset).toBeDefined();
+      expect(dimPocket).toBeDefined();
+      expect(annStopEnd).toBeDefined();
+      expect(annLockingEnd).toBeDefined();
+
+      // Dimension offsets match named constants
+      expect(dimOpening?.offset).toBe(PLAN_TOP_ROW_OPENING);
+      expect(dimInset?.offset).toBe(PLAN_TOP_ROW_INSET);
+      expect(dimPocket?.offset).toBe(PLAN_TOP_ROW_POCKET);
+
+      // Structural collision separation: Inset and Pocket are not on the same row
+      expect(dimInset?.offset).not.toBe(dimPocket?.offset);
+
+      // Strict vertical hierarchy: Top Opening (highest) > Inset I > Pocket > STOP END baseline
+      expect(dimOpening!.offset).toBeGreaterThan(dimInset!.offset);
+      expect(dimInset!.offset).toBeGreaterThan(dimPocket!.offset);
+      const stopEndRelativeY = annStopEnd!.position.y - geometry.box.outside.width;
+      expect(stopEndRelativeY).toBe(PLAN_TOP_ROW_STOP_END);
+      expect(dimPocket!.offset).toBeGreaterThan(stopEndRelativeY);
+
+      // Visual balance: LOCKING END and STOP END share the same baseline
+      const lockingEndRelativeY = annLockingEnd!.position.y - geometry.box.outside.width;
+      expect(lockingEndRelativeY).toBe(stopEndRelativeY);
+
+      // Bounds accommodate top opening dimension with margin
+      expect(model.bounds.maxY).toBeGreaterThanOrEqual(
+        geometry.box.outside.width + PLAN_TOP_ROW_OPENING + 10,
       );
     });
   });

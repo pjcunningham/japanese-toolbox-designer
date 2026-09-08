@@ -71,6 +71,7 @@ The technical drawings adhere to standard engineering drawing standards with mon
 - **Dimensions (`DrawingDimension`):** Thin extension lines, dimension lines with directional arrowheads, and centered numeric dimension values formatted to current display units.
   - **Horizontal Dimensions (`axis === 'x'`):** Rendered horizontally above or below the dimension line.
   - **Vertical Dimensions (`axis === 'y'`):** Rendered vertically alongside the vertical dimension line with a -90 degree rotation (bottom-to-top reading direction), centered on the dimension span with `textAnchor="middle"` and constant horizontal offset.
+  - **Staggered Dimension Rows (Phase 14A):** Adjacent short Plan dimensions (`Inset I` and `Pocket`) and wide reference dimensions (`Top Opening`) use explicit, staggered vertical offset rows (`PLAN_TOP_ROW_STOP_END = 12`, `PLAN_TOP_ROW_POCKET = 24`, `PLAN_TOP_ROW_INSET = 40`, `PLAN_TOP_ROW_OPENING = 56`) above the carcass to guarantee clean separation and prevent label collisions across all display scales and unit systems (metric and imperial).
 - **Annotations (`DrawingAnnotation`):** Distinct primary labels and optional `secondaryText` rendered with `.drawing-annotation-secondary` styling (e.g. captured wedge bevel angle $\beta$). Annotation positioning uses deterministic multi-row hierarchy to avoid overlaps.
 - **Non-Scaling Strokes:** SVG elements specify `vector-effect="non-scaling-stroke"` so line weights remain crisp and constant across all zoom levels.
 

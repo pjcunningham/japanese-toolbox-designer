@@ -1509,19 +1509,19 @@ Both must use authoritative `CalculatedToolboxGeometry` directly with zero indep
 
 ---
 
-## Phase 13 — PDF
+## Phase 13 — PDF & Vector Drawings (13 & 13A) (Complete)
 
 Implement browser-only PDF generation containing:
 
 - design details;
-- orthographic drawings;
+- orthographic drawings (rendered as pure vector graphics with vertical dimension text rotation and annotation collision avoidance);
 - cut list;
 - lid mechanism dimensions;
 - process plan.
 
 ---
 
-## Phase 14 — Responsive UI and polish
+## Phase 14 — Responsive UI and Polish (14 & 14A) (Complete)
 
 Improve:
 
@@ -1532,25 +1532,27 @@ Improve:
 - **Full-Width Workshop:** Workshop section (Cut List and Process Plan) spans the full width beneath workspace columns, featuring flexible Cut List columns and an accessible two-column process step grid on large screens.
 - **Design Management & Context Bar:** Compact horizontal header alignment on wide screens with grouped lifecycle, danger, and interchange action buttons; editor context bar shows active units and wood species compactly.
 - **Accessibility & Focus States:** High-contrast `:focus-visible` outlines, logical heading hierarchy, and complete horizontal overflow protection (`min-width: 0;`).
+- **Short-Dimension Layout Collision Protection (Phase 14A):** Staggered vertical dimension offset rows in Plan technical drawing to guarantee clean separation of Inset, Pocket, STOP END, and Top Opening labels across all viewport widths and zoom scales.
 
 ---
 
-## Phase 15 — Final V1 verification
+## Phase 15 — Final V1 Verification / Release (Complete)
 
-Run:
+Verification and release readiness:
 
-- lint;
-- type checking;
-- unit tests;
-- component tests;
-- Playwright;
-- production build.
-
-Verify GitHub Pages deployment from a clean checkout.
-
-Update README.
-
-Tag V1.
+- Clean-clone installation with `pnpm install --frozen-lockfile` verified.
+- Code formatting check (`prettier --check .`) clean.
+- ESLint checks clean with zero errors.
+- Strict TypeScript typechecking (`tsc --noEmit` and `tsc -b`) clean with zero errors.
+- Vitest unit/component suite (293 tests across 27 files) 100% passing.
+- Playwright E2E suite (36 tests) 100% passing across Chromium, Firefox, and WebKit (108 total browser runs).
+- Production build succeeds with clean code-splitting into initial JS (~392 kB), lazy Three.js chunk (~935 kB), lazy PDF chunk (~436 kB), and CSS (~29 kB).
+- Production preview verified locally.
+- Runtime network audit confirmed 100% offline browser execution (0 external API/network requests).
+- Full audit of Metric, Imperial, canonical precision, persistence, dirty-state, invalid drafts, schema migration (V1 to V2), and PDF generation.
+- README and documentation updated with authoritative V2 geometry, limitations, commands, and future V2 roadmap.
+- Release notes created (`docs/release-v1.0.0.md`).
+- V1.0.0 release candidate established.
 
 ---
 

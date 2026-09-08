@@ -2,46 +2,60 @@
 
 Parametric Japanese toolbox design in your browser.
 
-Japanese Toolbox Designer is a browser-only web application designed for woodworkers to simplify the design and layout of traditional Japanese toolboxes with sliding lids and wedge-locking battens.
+Japanese Toolbox Designer is a browser-only web application for woodworkers to design, visualize, and plan the construction of traditional Japanese toolboxes (_bako_) featuring sliding lids, captured wedge-locking battens, inset housed end walls, and integrated grab handles.
 
-## Current Status
+**Live Application:** [https://pjcunningham.github.io/japanese-toolbox-designer/](https://pjcunningham.github.io/japanese-toolbox-designer/)  
+**Source Repository:** [https://github.com/pjcunningham/japanese-toolbox-designer](https://github.com/pjcunningham/japanese-toolbox-designer)
 
-**Phase 14 Complete — Responsive UI and Polish**
+---
 
-The application provides a responsive technical workstation layout:
+## Features
 
-- **Fluid Desktop CAD Workspace:** Eliminates restrictive fixed-width container limits, allowing the workspace to expand across large desktop and ultra-wide displays (1920px, 2560px+) while keeping form rails comfortably bounded (340–400px inputs rail, 340–430px calculated rail).
-- **Dominant Central Visualizer:** Central canvas for 2D Technical Drawings and the 3D Interactive Model occupies 45–60%+ of usable workspace width on wide screens, backed by sticky positioning during parameter editing.
-- **Responsive Sizing & 2D/3D Stability:** Unified viewport height scaling across 2D drawings and the 3D model eliminates layout shifts during view mode switching.
-- **Multi-Device Adaptability:** Responsive breakpoints seamlessly transition between wide 3-column desktop workstation (`>= 1500px`), 2-column laptop layout (`980px–1499px`), adaptive tablet layout, and single-column mobile flow (`< 720px`).
-- **Full-Width Workshop:** The Workshop section (Cut List and Process Plan) spans the full application width, featuring wider cut list tables and an accessible two-column process step grid on large screens.
-- **Visual Polish & Accessibility:** Consistent card tokens, high-contrast keyboard focus indicators (`:focus-visible`), logical heading hierarchy, and zero horizontal page overflow.
+- **Authoritative Parametric Geometry:** Single authoritative domain calculation engine drives all dimensions, physical validations, 2D drawings, 3D meshes, cut lists, process plans, and PDF export without duplicated formulas.
+- **Traditional Inset-End Construction:** Inset housed end walls seated in shallow side-board dados ($G = 3\text{ mm}$), integral end grab handles, independent bottom board, sliding lid panel, fixed end caps, and captured tapered locking wedge.
+- **Kinematic Sliding Lid & Locking Wedge:** Rigid non-flexing lid sliding mechanics with deterministic release travel, locking batten clearance, $2^\circ$ plan taper, and $10^\circ$ vertical retention bevel.
+- **Metric & Imperial Woodworking Units:** Full floating-point canonical millimetre precision internally; seamless display formatting between whole millimetres and fractional woodworking inches ($1/16\text{ in}$ resolution).
+- **Interactive 2D Technical Drawings:** Clean orthographic Plan, Front, and End SVG drawings with dimension lines, annotation callouts, pointer-centered zoom, pan, and fit-to-view.
+- **Interactive 3D Model:** WebGL Three.js interactive model with 13 distinct semantic woodworking parts, compound dadoed side boards, wood species materials, standard camera projections, and orbit/zoom/pan controls.
+- **Bundled Wood Species Catalogue:** 9 built-in species definitions (Hinoki, Japanese Cedar, Pine, Douglas Fir, Paulownia, Ash, Oak, Beech, Custom) with zero external network downloads.
+- **Workshop Cut List:** Accurate nominal stock blank bill of materials (8 line items, 12 blanks, 13 finished physical parts, 1 combined locking set blank).
+- **23-Step Construction Process Plan:** Step-by-step joinery sequence from stock preparation, dado cutting, and carcass assembly to compound wedge machining, lid verification, and final tuning.
+- **Browser-Generated Workshop PDF:** Multi-page A4 PDF export generated entirely in the browser using `pdf-lib` featuring summary specifications, vector technical drawings, cut list table, and paginated process plan.
+- **Local Persistence & JSON Interchange:** Browser `localStorage` multi-design management (New, Save, Open, Rename, Duplicate, Delete) and portable single-file JSON backup/sharing with legacy Schema V1 automatic migration.
+- **Fluid CAD Workstation Shell:** Responsive layout adapting across ultra-wide desktop displays (1920px, 2560px+), 2-column laptop layouts, tablets, and single-column mobile viewports without page-level horizontal overflow.
 
-**Next Activity:** Phase 15 — Final V1 Verification / Release.
-
-For the full specification and architectural roadmap, see the [Product Requirements Document](.junie/plans/prd-v1.md), the [Responsive Layout Documentation](docs/responsive-layout.md), the [PDF Export Documentation](docs/pdf-export.md), the [Manufacturing Documentation](docs/manufacturing.md), the [Wood Materials Documentation](docs/wood-materials.md), the [Carcass Geometry Documentation](docs/carcass-geometry.md), the [Sliding Lid Geometry Documentation](docs/lid-geometry.md), the [Locking Wedge Geometry Documentation](docs/wedge-geometry.md), the [Design JSON Format Documentation](docs/design-json-format.md), the [2D Technical Drawings Documentation](docs/technical-drawings.md), and the [3D Rendering Documentation](docs/three-d-rendering.md).
+---
 
 ## Technology Stack
 
 - **Framework & UI:** React 19, TypeScript
+- **3D Visualization:** Three.js, React Three Fiber, `@react-three/drei`
+- **PDF Generation:** `pdf-lib` (client-side, vector drawings, standard fonts)
+- **Validation & Schema:** Zod
 - **Build Tool:** Vite
 - **Package Manager:** pnpm
 - **Unit & Component Testing:** Vitest, React Testing Library, `@testing-library/jest-dom`
-- **End-to-End Testing:** Playwright
-- **Linting & Code Formatting:** ESLint (flat config), Prettier
-- **Deployment:** GitHub Pages (static client-only deployment)
+- **End-to-End Testing:** Playwright (Chromium, Firefox, WebKit)
+- **Linting & Formatting:** ESLint (flat config), Prettier
+- **Deployment:** GitHub Pages (static client-only build)
+
+---
 
 ## Prerequisites
 
-- **Node.js:** LTS release (Node.js 20+ or 22+)
-- **pnpm:** 10.x+
+- **Node.js:** `>=20.0.0` (Node.js 20 LTS or 22 LTS recommended)
+- **pnpm:** `>=10.0.0` (configured via `packageManager` in `package.json`)
+
+---
 
 ## Getting Started
 
-### 1. Install Dependencies
+### 1. Clone and Install Dependencies
 
 ```bash
-pnpm install
+git clone https://github.com/pjcunningham/japanese-toolbox-designer.git
+cd japanese-toolbox-designer
+pnpm install --frozen-lockfile
 ```
 
 ### 2. Start Development Server
@@ -50,76 +64,109 @@ pnpm install
 pnpm dev
 ```
 
-The application will be accessible at `http://localhost:5173/`.
+Open `http://localhost:5173/` in your browser.
+
+---
 
 ## Available Scripts
 
-### Development & Build
+### Development & Production
 
 - `pnpm dev`: Start the local Vite development server.
-- `pnpm build`: Run TypeScript checks and compile static production assets into `dist/`.
-- `pnpm preview`: Locally preview the production build.
+- `pnpm build`: Typecheck with `tsc -b` and compile static production assets into `dist/`.
+- `pnpm preview`: Start a local HTTP server to preview the production build.
 
 ### Code Quality & Verification
 
-- `pnpm typecheck`: Run strict TypeScript type checking without emitting output files.
-- `pnpm lint`: Run ESLint checks across the codebase.
+- `pnpm typecheck`: Run strict TypeScript checks without emitting output.
+- `pnpm lint`: Run ESLint checks across all project files.
 - `pnpm format`: Format source files using Prettier.
-- `pnpm format:check`: Verify that all files adhere to Prettier formatting rules.
-- `pnpm check`: Run all static checks (`format:check`, `lint`, `typecheck`) and unit tests in sequence.
+- `pnpm format:check`: Verify all files adhere to Prettier formatting rules.
+- `pnpm check`: Run all verification steps in sequence (`format:check`, `lint`, `typecheck`, `test:run`).
 
-### Testing
+### Automated Testing
 
-- `pnpm test`: Run Vitest in interactive watch mode for active development.
-- `pnpm test:run`: Run Vitest once and exit with a status code (used in CI).
-- `pnpm test:e2e`: Run Playwright end-to-end browser smoke tests.
+- `pnpm test`: Run Vitest in interactive watch mode.
+- `pnpm test:run`: Run Vitest unit/component suite once and exit.
+- `pnpm test:e2e`: Run Playwright end-to-end browser test suite.
 
-## Architecture & Domain Model
+---
 
-- **Browser-Only:** The application runs completely in the browser with no backend server, database, or cloud API required.
-- **Canonical Millimetre Representation:** Dimensions are stored internally in millimetres (`1 inch = 25.4 mm` exact). Metric and imperial are presentation and input formats; changing units updates display representation without mutating underlying physical design values or accumulating rounding drift.
-- **Imperial Woodworking Resolution:** Imperial inputs and display formatting operate on a standard woodworking grid with a maximum resolution of `1/16 inch` (denominators 2, 4, 8, 16).
-- **GitHub Pages Deployment:** The application builds into static assets configured for hosting under `/japanese-toolbox-designer/` on GitHub Pages. CI/CD runs automated verification on all pull requests and pushes to `main`, and deploys passing builds directly to GitHub Pages.
+## Architecture & Design Principles
 
-## Geometry Conventions
+### 1. Browser-Only, Zero API Dependencies
 
-The geometry engine (`src/domain/geometry.ts`) is a pure, framework-independent calculation layer based on standard V1 Japanese toolbox carcass construction:
+The application executes entirely client-side. Once the static bundle is loaded, normal design operations, calculations, persistence, rendering, and export require no backend server, database, or external network requests.
 
-- **Coordinate System:**
-  - `X` = overall outside length of the main box body (left/right, parallel to future sliding lid movement)
-  - `Y` = overall outside width of the main box body (front/back across carcass)
-  - `Z` = vertical distance from the underside of the bottom board to the top edge of the side/end walls
-  - `T` = main stock thickness (`stockThickness`)
-  - `R` = fixed top batten width (`fixedTopBattenWidth`)
-- **Carcass Construction:**
-  - The long side boards run the full outside length `X` and sit on top of the bottom board (`X × (Z - T) × T`).
-  - The end boards fit between the long sides and sit on top of the bottom board (`(Y - 2T) × (Z - T) × T`).
-  - The bottom board is full-size and attached underneath the carcass walls (`X × Y × T`).
-  - Two fixed top battens sit **on top** of the body flush with each end and span the full outside width (`Y × R × T`).
-  - Overall height including fixed top battens is therefore `Z + T`.
-- **Internal & Clear Opening Dimensions:**
-  - Unobstructed internal dimensions: `(X - 2T) × (Y - 2T) × (Z - T)`.
-  - Clear top opening between fixed battens: `(X - 2R)` along `X` and `(Y - 2T)` along `Y`.
-  - Fixed top batten interior projection: `R - T` (inward projection past the inner face of the end board).
-- **Calculations & Scope:**
-  - All calculations operate deterministically in canonical millimetres with full floating-point precision (no premature rounding).
-  - Phase 3 implements core carcass geometry only. Sliding lid calculations (Phase 4) and locking wedge geometry (Phase 5) will build on this model.
-  - Phase 6 provides live interactive numerical parameter editing, validation, and calculated dimensions.
+### 2. Single Authoritative Geometry Engine
 
-## Roadmap
+There is exactly one authoritative implementation of toolbox geometry (`src/domain/geometry.ts`). Validation rules, calculated dimensions, 2D technical drawings, 3D meshes, cut lists, construction plans, and PDF exports all consume `CalculatedToolboxGeometry`.
 
-Implementation roadmap outlined in `.junie/plans/prd-v1.md`:
+### 3. Canonical Precision & Units
 
-- **Phase 1 (Complete):** Project foundation, testing infrastructure, and deployment pipeline
-- **Phase 2 (Complete):** Domain model, unit system (metric and imperial fractions), and default design state
-- **Phase 3 (Complete):** Pure TypeScript core box geometry calculation engine and physical validation
-- **Phase 4 (Complete):** Sliding lid geometry, kinematic reference states, and non-flexing release validation
-- **Phase 5 (Complete):** Locking wedge and tapered batten geometry
-- **Phase 6 (Complete):** Interactive numerical design parameters editor, live validation, and calculated dimensions
-- **Phase 7 (Complete):** Local storage persistence, multi-design management (New, Save, Open, Rename, Duplicate, Delete), and Zod schema validation
-- **Phase 8 (Complete):** Portable JSON single-design export and import with validation, ID conflict resolution, and pure serialization
-- **Phase 9 (Complete):** 2D technical drawing generation (front, plan, end views) using SVG with zoom/pan
-- **Phase 10 (Complete):** Interactive 3D viewer (Three.js / React Three Fiber) with 13 semantic components, compound side parts with housing dados, solid grab handles, orbit/zoom/pan, standard camera views, and accurate captured locking wedge
-- **Phase 11 (Complete):** Bundled wood material catalogue, species selector, persistence/JSON interchange, and species-sensitive 3D appearance
-- **Phase 12 (Complete):** Workshop Cut List (nominal stock blanks, one combined locking set) and deterministic Construction Process Plan (23-step joinery sequence, lid verification)
-- **Phase 13 (Complete):** Browser-side workshop PDF export (design summary, Plan/Front/End vector drawings, Cut List table, and paginated Construction Process Plan)
+Dimensions are stored internally as finite positive numbers in millimetres (`1 in = 25.4 mm` exact). Switching between Metric and Imperial changes display representation only and never mutates canonical design state or introduces rounding errors.
+
+### 4. Code Splitting & Lazy Loading
+
+Heavy modules (Three.js 3D viewer and `pdf-lib` document export) are loaded dynamically on demand via `React.lazy()` and dynamic `import()`, keeping the initial application bundle lightweight (~392 kB minified).
+
+---
+
+## Carcass & Mechanism Geometry (V2 Inset-End Construction)
+
+### Coordinate System
+
+- **$X$ Axis (Length):** Parallel to sliding lid motion ($0 = \text{Stop End}$, $X = \text{Locking End}$).
+- **$Y$ Axis (Width):** Across long side boards ($0 = \text{Front / narrow wedge}$, $Y = \text{Back / wide wedge}$).
+- **$Z$ Axis (Height):** Vertical ($0 = \text{Bottom board underside}$, $Z = \text{Body height}$, $Z + T = \text{Total height with top battens}$).
+
+### Core Relationships
+
+- **Internal Cavity:**
+  $$\text{internalLength} = X - 2(I + T)$$
+  $$\text{internalWidth} = Y - 2T$$
+  $$\text{internalHeight} = Z - T_b$$
+- **Housed End Walls:**
+  $$\text{endWallLength} = Y - 2T + 2G$$
+- **Lid Pocket Depth:**
+  $$\text{pocketDepth} = R - I - T$$
+- **Kinematic Release Condition:**
+  $$2O < \text{pocketDepth}$$
+  $$\text{availableLidTravel} = \text{pocketDepth} - O$$
+  $$\text{releaseTravelMargin} = \text{availableLidTravel} - O > 0$$
+- **Captured Wedge Profile:**
+  $$W_{\min} = \text{availableLidTravel} + Q$$
+  $$\text{bottomNarrowWidth} = W_{\min}$$
+  $$\text{bottomWideWidth} = W_{\min} + L \tan(\alpha)$$
+  $$\text{topWidth} = \text{bottomWidth} - 2 T \tan(\beta)$$
+
+---
+
+## V1 Limitations
+
+- **Single Construction Style:** V1 specifically models the traditional Japanese toolbox with inset housed end walls, grab handles, and sliding wedge lid. Alternative carcass joints (e.g. through dovetails, finger joints, flush ends) are not supported.
+- **Local Browser Storage:** Saved designs reside in the browser's `localStorage`. Clearing browser site data removes locally saved designs.
+- **Portable Interchange:** JSON export/import serves as the primary backup and sharing mechanism.
+- **No CAD/Nesting Tools:** No arbitrary freehand CAD sketching, automatic nesting, stock optimization, or weight/cost calculation.
+- **Static Rendered Materials:** 3D wood materials use approximate tone and roughness without photographic texture maps or procedural grain shaders.
+- **Static Output:** Technical drawings and 3D models depict the design in its locked assembled configuration; interactive lid sliding animation is not included in V1.
+
+---
+
+## Future Roadmap (V2 Candidates)
+
+- Photographic and procedural wood grain shaders.
+- Alternative joinery styles and modular internal tool trays.
+- Interactive lid slide and wedge removal animations.
+- Exploded assembly view.
+- Stock cutting layout optimization and kerf planning.
+- Weight and board-foot lumber cost calculation.
+- Vector DXF and 3D STL/OBJ/GLTF export.
+- Shareable URL design encoding.
+- Progressive Web App (PWA) offline installation manifests.
+
+---
+
+## License
+
+MIT License. See `LICENSE` for details.

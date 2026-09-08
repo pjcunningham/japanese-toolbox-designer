@@ -477,7 +477,7 @@ export const App: React.FC<AppProps> = ({ storage }) => {
 
       <footer className="app-footer">
         <div className="footer-content">
-          <p>Japanese Toolbox Designer &copy; {new Date().getFullYear()}</p>
+          <p>Japanese Toolbox Designer &copy; {new Date().getFullYear()} &middot; v1.0.0</p>
         </div>
       </footer>
     </div>
